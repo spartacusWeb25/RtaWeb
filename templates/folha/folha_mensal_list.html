@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+
+{% block title %}Folha Mensal — RtaWeb{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ─── Filtros ──────────────────────────────────────────────────── */
+    .filter-card {
+        background: var(--surface-card);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-lg);
+        padding: 16px 20px;
+        margin-bottom: 20px;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .filter-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 10px;
+    }
+
+    .filter-field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .filter-label {
+        font-size: 11.5px;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: .5px;
+    }
+
+    .filter-actions {
+        display: flex;
+        align-items: flex-end;
+        gap: 8px;
+    }
+
+    .btn-primary {
+        padding: 7px 18px;
+        border-radius: var(--radius-sm);
+        background: var(--accent);
+        border: none;
+        color: #fff;
+        font-size: 13.5px;
+        font-weight: 500;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background .15s;
+    }
+
+    .btn-primary:hover { background: var(--accent-hover); }
+
+    .btn-ghost {
+        padding: 7px 14px;
+        border-radius: var(--radius-sm);
+        background: none;
+        border: 1px solid var(--border-default);
+        color: var(--text-secondary);
+        font-size: 13.5px;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all .15s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .btn-ghost:hover {
+        border-color: var(--border-strong);
+        color: var(--text-primary);
+    }
+
+    /* ─── Header da página ─────────────────────────────────────────── */
+    .page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .page-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    .page-subtitle {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-top: 2px;
+    }
+
+    /* ─── Tabela wrapper ───────────────────────────────────────────── */
+    .table-wrapper {
+        background: var(--surface-card);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+    }
+
+    .table-scroll {
+        overflow-x: auto;
+    }
+
+    /* ─── Célula vazia ─────────────────────────────────────────────── */
+    .empty-row td {
+        padding: 40px 14px;
+        color: var(--text-muted);
+        font-size: 13.5px;
+    }
+
+    .empty-row .empty-icon {
+        font-size: 28px;
+        display: block;
+        margin-bottom: 8px;
+        color: var(--border-strong);
+    }
+
+    /* ─── Footer da tabela ─────────────────────────────────────────── */
+    .table-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        border-top: 1px solid var(--border-default);
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Folha Mensal</h1>
+        <p class="page-subtitle">Consulta e filtro de registros de folha</p>
+    </div>
+</div>
+
+<!-- ─── Filtros ──────────────────────────────────────────────────────── -->
+<div class="filter-card">
+    <form method="get">
+        <input type="hidden" name="banco" value="{{ request.banco }}">
+
+        <div class="filter-grid">
+            <div class="filter-field">
+                <label class="filter-label">Referência</label>
+                <input
+                    class="form-control form-control-sm"
+                    type="text"
+                    name="referencia"
+                    placeholder="YYYYMM"
+                    value="{{ request.GET.referencia }}"
+                >
+            </div>
+
+            <div class="filter-field">
+                <label class="filter-label">Empresa</label>
+                <input
+                    class="form-control form-control-sm"
+                    type="text"
+                    name="empresa"
+                    placeholder="Código"
+                    value="{{ request.GET.empresa }}"
+                >
+            </div>
+
+            <div class="filter-field">
+                <label class="filter-label">Filial</label>
+                <input
+                    class="form-control form-control-sm"
+                    type="text"
+                    name="filial"
+                    placeholder="Código"
+                    value="{{ request.GET.filial }}"
+                >
+            </div>
+
+            <div class="filter-field">
+                <label class="filter-label">Funcionário</label>
+                <input
+                    class="form-control form-control-sm"
+                    type="text"
+                    name="funcionario"
+                    placeholder="Nome ou código"
+                    value="{{ request.GET.funcionario }}"
+                >
+            </div>
+
+            <div class="filter-actions">
+                <button type="submit" class="btn-primary">
+                    <i class="bi bi-search"></i> Filtrar
+                </button>
+                <a href="?" class="btn-ghost">
+                    <i class="bi bi-x-lg"></i> Limpar
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- ─── Tabela ───────────────────────────────────────────────────────── -->
+<div class="table-wrapper">
+    <div class="table-scroll">
+        <table class="app-table">
+            <thead>
+                <tr>
+                    <th>Empresa</th>
+                    <th>Filial</th>
+                    <th>Funcionário</th>
+                    <th>Referência</th>
+                    <th>Evento</th>
+                    <th>Base</th>
+                    <th>%</th>
+                    <th>Valor</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in folhas %}
+                <tr>
+                    <td>{{ item.fome_empr }}</td>
+                    <td>{{ item.fome_fili }}</td>
+                    <td>{{ item.fome_func }}</td>
+                    <td>{{ item.fome_refe }}</td>
+                    <td>{{ item.fome_even }}</td>
+                    <td>{{ item.fome_base }}</td>
+                    <td>{{ item.fome_perc }}</td>
+                    <td>{{ item.fome_valo }}</td>
+                </tr>
+                {% empty %}
+                <tr class="empty-row">
+                    <td colspan="8">
+                        <i class="bi bi-inbox empty-icon"></i>
+                        Nenhum registro encontrado
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ─── Footer: contagem + paginação ─────────────────────────── -->
+    {% if is_paginated or folhas %}
+    <div class="table-footer">
+        <span class="page-info">
+            {% if is_paginated %}
+                Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                &nbsp;·&nbsp; {{ page_obj.paginator.count }} registro{{ page_obj.paginator.count|pluralize }}
+            {% endif %}
+        </span>
+
+        {% if is_paginated %}
+        <div class="pagination-bar">
+
+            {% if page_obj.has_previous %}
+                <a class="page-btn"
+                   href="?banco={{ request.banco }}&referencia={{ request.GET.referencia }}&empresa={{ request.GET.empresa }}&filial={{ request.GET.filial }}&funcionario={{ request.GET.funcionario }}&page=1"
+                   title="Primeira">
+                    <i class="bi bi-chevron-double-left"></i>
+                </a>
+                <a class="page-btn"
+                   href="?banco={{ request.banco }}&referencia={{ request.GET.referencia }}&empresa={{ request.GET.empresa }}&filial={{ request.GET.filial }}&funcionario={{ request.GET.funcionario }}&page={{ page_obj.previous_page_number }}">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            {% endif %}
+
+            <span class="page-btn current">{{ page_obj.number }}</span>
+
+            {% if page_obj.has_next %}
+                <a class="page-btn"
+                   href="?banco={{ request.banco }}&referencia={{ request.GET.referencia }}&empresa={{ request.GET.empresa }}&filial={{ request.GET.filial }}&funcionario={{ request.GET.funcionario }}&page={{ page_obj.next_page_number }}">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+                <a class="page-btn"
+                   href="?banco={{ request.banco }}&referencia={{ request.GET.referencia }}&empresa={{ request.GET.empresa }}&filial={{ request.GET.filial }}&funcionario={{ request.GET.funcionario }}&page={{ page_obj.paginator.num_pages }}"
+                   title="Última">
+                    <i class="bi bi-chevron-double-right"></i>
+                </a>
+            {% endif %}
+
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
