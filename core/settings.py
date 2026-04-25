@@ -106,6 +106,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
      "core.middleware.BancoMiddleware",
+    "core.middleware_auditoria.AuditoriaHttpMiddleware",
 ]
 
 ROOT_URLCONF = 'core.urls'

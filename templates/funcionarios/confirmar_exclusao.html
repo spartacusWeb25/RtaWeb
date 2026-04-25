@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Excluir Funcionário — RtaWeb{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">Confirmação</div>
+    <div class="card-body">
+        <p>Deseja realmente excluir <strong>{{ funcionario.func_nome|default:'Funcionário' }}</strong>?</p>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Excluir</button>
+            <a href="{% url 'funcionarios:listar' %}?banco={{ request.banco }}" class="btn btn-outline-secondary">Cancelar</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

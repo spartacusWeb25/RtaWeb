@@ -1,0 +1,11 @@
+<li class="nav-item">
+    <button class="nav-btn">
+        Relatórios <i class="bi bi-chevron-down chevron"></i>
+    </button>
+    <div class="dropdown-panel sortable-submenu">
+        <a href="#">Eventos por Funcionário</a>
+        <a href="#">Resumo da Folha</a>
+        <a href="#">Total por Referência</a>
+        <a href="{% url 'auditoria_logs' %}?banco={{ request.banco }}">Auditoria HTTP</a>
+    </div>
+</li>
