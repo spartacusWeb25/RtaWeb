@@ -1,0 +1,91 @@
+{% load static %}
+{% extends "base.html" %}
+
+{% block title %}Funcionários — RtaWeb{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+<link href="{% static 'core/css/list-cards.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Funcionários</h1>
+        <p class="page-subtitle">CRUD de funcionários por registro</p>
+    </div>
+</div>
+
+<div class="app-form-card mb-3">
+    <form method="get" class="form-grid form-grid-compact">
+        <input type="hidden" name="banco" value="{{ request.banco }}">
+        <div>
+            <label class="form-label">Nome</label>
+            <input class="form-control" type="text" name="nome" value="{{ request.GET.nome|default:'' }}" placeholder="Pesquisar por nome">
+        </div>
+        <div class="form-actions-row">
+            <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search"></i> Filtrar</button>
+            <a href="?banco={{ request.banco }}" class="btn btn-outline-secondary btn-sm">Limpar</a>
+            <a href="{% url 'funcionarios:criar' %}?banco={{ request.banco }}" class="btn btn-success btn-sm"><i class="bi bi-plus-lg"></i> Novo</a>
+        </div>
+    </form>
+</div>
+
+<div class="table-wrapper desktop-table-only">
+    <div class="table-scroll">
+        <table class="app-table">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Nome</th>
+                    <th>CPF</th>
+                    <th>Setor</th>
+                    <th>Cargo</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in funcionarios %}
+                <tr>
+                    <td>{{ item.func_codi }}</td>
+                    <td>{{ item.func_nome|default:'-' }}</td>
+                    <td>{{ item.func_cpf|default:'-' }}</td>
+                    <td>{{ item.func_seto|default:'-' }}</td>
+                    <td>{{ item.func_carg|default:'-' }}</td>
+                    <td>
+                        <a class="btn btn-sm btn-outline-primary" href="{% url 'funcionarios:atualizar' item.func_codi %}?banco={{ request.banco }}">Editar</a>
+                        <a class="btn btn-sm btn-outline-danger" href="{% url 'funcionarios:deletar' item.func_codi %}?banco={{ request.banco }}">Excluir</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr class="empty-row">
+                    <td colspan="6"><i class="bi bi-inbox empty-icon"></i>Nenhum funcionário encontrado</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="list-card-view mobile-card-only">
+    {% for item in funcionarios %}
+    <article class="list-card-item">
+        <div class="list-card-head">
+            <strong>{{ item.func_nome|default:'Sem nome' }}</strong>
+            <span>#{{ item.func_codi }}</span>
+        </div>
+        <div class="list-card-grid">
+            <div><small>CPF</small><p>{{ item.func_cpf|default:'-' }}</p></div>
+            <div><small>Setor</small><p>{{ item.func_seto|default:'-' }}</p></div>
+            <div><small>Cargo</small><p>{{ item.func_carg|default:'-' }}</p></div>
+        </div>
+        <div class="list-card-actions">
+            <a class="btn btn-sm btn-outline-primary" href="{% url 'funcionarios:atualizar' item.func_codi %}?banco={{ request.banco }}">Editar</a>
+            <a class="btn btn-sm btn-outline-danger" href="{% url 'funcionarios:deletar' item.func_codi %}?banco={{ request.banco }}">Excluir</a>
+        </div>
+    </article>
+    {% empty %}
+    <div class="list-card-empty">Nenhum funcionário encontrado</div>
+    {% endfor %}
+</div>
+{% endblock %}

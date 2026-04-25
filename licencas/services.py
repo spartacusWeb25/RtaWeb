@@ -43,6 +43,7 @@ class LoginRtaService:
         )
         return True, "Login realizado com sucesso", {
             "banco": registro,
+            "licenca_nome": licenca.lice_banc,
             "usuario_id": user.id,
             "usuario_nome": user.usua_login,
             "usuario_grupo": user.usua_grup,
