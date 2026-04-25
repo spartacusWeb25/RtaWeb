@@ -1,0 +1,38 @@
+{% load static %}
+{% extends "base.html" %}
+
+{% block title %}Usuário da Licença{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Usuário da Licença</h1>
+        <p class="page-subtitle">Cadastro e edição</p>
+    </div>
+</div>
+
+<div class="app-form-card">
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-grid">
+            <div><label class="form-label">{{ form.usua_nome.label }}</label>{{ form.usua_nome }}</div>
+            <div><label class="form-label">{{ form.usua_login.label }}</label>{{ form.usua_login }}</div>
+            <div><label class="form-label">{{ form.usua_senh.label }}</label>{{ form.usua_senh }}</div>
+            <div><label class="form-label">{{ form.usua_grup.label }}</label>{{ form.usua_grup }}</div>
+            <div><label class="form-label">{{ form.usua_emai.label }}</label>{{ form.usua_emai }}</div>
+            <div class="d-flex gap-3 align-items-center mt-4">
+                <div class="form-check">{{ form.usua_ativ }} <label class="form-check-label ms-1">{{ form.usua_ativ.label }}</label></div>
+                <div class="form-check">{{ form.super }} <label class="form-check-label ms-1">{{ form.super.label }}</label></div>
+            </div>
+        </div>
+        <div class="form-actions-row">
+            <button type="submit" class="btn btn-success">Salvar</button>
+            <a href="{% url 'licencas_usuarios:listar' %}?banco={{ request.banco }}" class="btn btn-outline-secondary">Voltar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

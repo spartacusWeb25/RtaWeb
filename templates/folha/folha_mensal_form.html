@@ -1,0 +1,72 @@
+{% load static %}
+{% extends "base.html" %}
+
+{% block title %}Folha Mensal — Formulário{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Lançamento Folha Mensal</h1>
+        <p class="page-subtitle">Cadastro com abas para melhor alocação dos campos</p>
+    </div>
+</div>
+
+<div class="app-form-card">
+    <form method="post">
+        {% csrf_token %}
+
+        <ul class="nav nav-tabs mb-3" id="folhaTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-identificacao" type="button">Identificação</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-valores" type="button">Valores</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-classificacao" type="button">Classificação</button>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="tab-identificacao">
+                <div class="form-grid">
+                    <div><label class="form-label">{{ form.fome_empr.label }}</label>{{ form.fome_empr }}</div>
+                    <div><label class="form-label">{{ form.fome_fili.label }}</label>{{ form.fome_fili }}</div>
+                    <div><label class="form-label">{{ form.fome_func.label }}</label>{{ form.fome_func }}</div>
+                    <div><label class="form-label">{{ form.fome_refe.label }}</label>{{ form.fome_refe }}</div>
+                    <div><label class="form-label">{{ form.fome_even.label }}</label>{{ form.fome_even }}</div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="tab-valores">
+                <div class="form-grid">
+                    <div><label class="form-label">{{ form.fome_base.label }}</label>{{ form.fome_base }}</div>
+                    <div><label class="form-label">{{ form.fome_perc.label }}</label>{{ form.fome_perc }}</div>
+                    <div><label class="form-label">{{ form.fome_valo.label }}</label>{{ form.fome_valo }}</div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="tab-classificacao">
+                <div class="form-grid">
+                    <div><label class="form-label">{{ form.fome_tipo.label }}</label>{{ form.fome_tipo }}</div>
+                    <div><label class="form-label">{{ form.fome_depa.label }}</label>{{ form.fome_depa }}</div>
+                    <div><label class="form-label">{{ form.fome_seto.label }}</label>{{ form.fome_seto }}</div>
+                </div>
+            </div>
+        </div>
+
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger mt-3">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="form-actions-row">
+            <button type="submit" class="btn btn-success">Salvar</button>
+            <a href="{% url 'folha:folha_mensal_list' %}?banco={{ request.banco }}" class="btn btn-outline-secondary">Voltar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

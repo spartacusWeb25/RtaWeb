@@ -10,439 +10,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-
-    <style>
-        /* ─── Tokens de tema ─────────────────────────────────────────── */
-        :root {
-            /* Superfícies */
-            --surface-page:    #f0f2f5;
-            --surface-card:    #ffffff;
-            --surface-raised:  #ffffff;
-            --surface-input:   #ffffff;
-            --surface-nav:     #ffffff;
-            --surface-th:      #1e293b;
-
-            /* Bordas */
-            --border-default:  #dde1e7;
-            --border-strong:   #b0b8c4;
-
-            /* Texto */
-            --text-primary:    #0f172a;
-            --text-secondary:  #475569;
-            --text-muted:      #94a3b8;
-            --text-on-dark:    #f8fafc;
-
-            /* Acento */
-            --accent:          #2563eb;
-            --accent-hover:    #1d4ed8;
-            --accent-subtle:   #eff6ff;
-
-            /* Status */
-            --success:         #16a34a;
-            --warning:         #d97706;
-            --danger:          #dc2626;
-
-            /* Sombra */
-            --shadow-sm:       0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
-            --shadow-md:       0 4px 16px rgba(0,0,0,.08);
-
-            /* Layout */
-            --radius-sm:       6px;
-            --radius-md:       10px;
-            --radius-lg:       14px;
-
-            --nav-height:      56px;
-        }
-
-        [data-theme="dark"] {
-            --surface-page:    #0d1117;
-            --surface-card:    #161b22;
-            --surface-raised:  #1c2333;
-            --surface-input:   #1c2333;
-            --surface-nav:     #161b22;
-            --surface-th:      #0d1117;
-
-            --border-default:  #30363d;
-            --border-strong:   #484f58;
-
-            --text-primary:    #e6edf3;
-            --text-secondary:  #8b949e;
-            --text-muted:      #6e7681;
-            --text-on-dark:    #f0f6fc;
-
-            --accent:          #4493f8;
-            --accent-hover:    #6cb6ff;
-            --accent-subtle:   #1d2d44;
-
-            --success:         #3fb950;
-            --warning:         #d29922;
-            --danger:          #f85149;
-
-            --shadow-sm:       0 1px 3px rgba(0,0,0,.3);
-            --shadow-md:       0 4px 16px rgba(0,0,0,.4);
-        }
-
-        /* ─── Reset & base ───────────────────────────────────────────── */
-        *, *::before, *::after { box-sizing: border-box; }
-
-        html, body {
-            min-height: 100vh;
-            font-family: 'DM Sans', system-ui, sans-serif;
-            font-size: 14px;
-            background: var(--surface-page);
-            color: var(--text-primary);
-        }
-
-        /* ─── Navbar ─────────────────────────────────────────────────── */
-        /*
-         * Estrutura:  [brand]  [nav-menus — flex:1]  [nav-right]
-         * Em mobile:  [brand]  [toggle]  →  dropdown com tudo
-         */
-        .site-nav {
-            height: var(--nav-height);
-            background: var(--surface-nav);
-            border-bottom: 1px solid var(--border-default);
-            box-shadow: var(--shadow-sm);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            padding: 0 20px;
-            gap: 0;
-        }
-
-        /* Brand — canto esquerdo, tamanho fixo */
-        .brand {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-primary);
-            text-decoration: none;
-            letter-spacing: -.3px;
-            white-space: nowrap;
-            margin-right: 20px;
-            flex-shrink: 0;
-        }
-
-        .brand span { color: var(--success); }
-
-        /* Separador visual entre brand e menus */
-        .nav-divider {
-            width: 1px;
-            height: 20px;
-            background: var(--border-default);
-            margin-right: 12px;
-            flex-shrink: 0;
-        }
-
-        /* Menus: ocupa o espaço disponível, empurra nav-right para direita */
-        .nav-menus {
-            display: flex;
-            align-items: center;
-            gap: 2px;
-            flex: 1;
-            list-style: none;
-            margin: 0;
-            padding: 0;
-        }
-
-        /* Botão de cada menu dropdown */
-        .nav-item { position: relative; }
-
-        .nav-btn {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            padding: 6px 12px;
-            border-radius: var(--radius-sm);
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 13.5px;
-            font-weight: 500;
-            font-family: inherit;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: background .15s, color .15s;
-        }
-
-        .nav-btn:hover { background: var(--accent-subtle); color: var(--accent); }
-        .nav-btn .chevron { font-size: 10px; opacity: .5; }
-
-        /* Painel de dropdown */
-        .dropdown-panel {
-            display: none;
-            position: absolute;
-            top: calc(100% + 6px);
-            left: 0;
-            min-width: 200px;
-            background: var(--surface-raised);
-            border: 1px solid var(--border-default);
-            border-radius: var(--radius-md);
-            box-shadow: var(--shadow-md);
-            padding: 4px;
-            z-index: 200;
-        }
-
-        .nav-item:hover .dropdown-panel,
-        .nav-item:focus-within .dropdown-panel { display: block; }
-
-        .dropdown-panel a {
-            display: block;
-            padding: 7px 12px;
-            border-radius: var(--radius-sm);
-            color: var(--text-primary);
-            text-decoration: none;
-            font-size: 13.5px;
-            transition: background .12s;
-        }
-
-        .dropdown-panel a:hover { background: var(--accent-subtle); color: var(--accent); }
-
-        /* Área direita: banco + tema */
-        .nav-right {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-shrink: 0;
-            margin-left: 12px;
-        }
-
-        .banco-form {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .banco-icon { color: var(--text-muted); font-size: 13px; }
-
-        .banco-input {
-            width: 140px;
-            padding: 5px 10px;
-            border: 1px solid var(--border-default);
-            border-radius: var(--radius-sm);
-            background: var(--surface-input);
-            color: var(--text-primary);
-            font-size: 13px;
-            font-family: 'DM Mono', monospace;
-            transition: border-color .15s;
-        }
-
-        .banco-input:focus { outline: none; border-color: var(--accent); }
-        .banco-input::placeholder { color: var(--text-muted); }
-
-        .theme-btn {
-            width: 34px;
-            height: 34px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border-default);
-            background: none;
-            color: var(--text-secondary);
-            cursor: pointer;
-            font-size: 15px;
-            flex-shrink: 0;
-            transition: background .15s, color .15s, border-color .15s;
-        }
-
-        .theme-btn:hover {
-            background: var(--accent-subtle);
-            color: var(--accent);
-            border-color: var(--accent);
-        }
-
-        /* Painel mobile — escondido por padrão em QUALQUER tela */
-        .nav-mobile-panel { display: none; }
-
-        /* ─── Mobile ─────────────────────────────────────────────────── */
-        .nav-toggle {
-            display: none;
-            background: none;
-            border: 1px solid var(--border-default);
-            border-radius: var(--radius-sm);
-            padding: 5px 8px;
-            color: var(--text-secondary);
-            cursor: pointer;
-            margin-left: auto;
-        }
-
-        @media (max-width: 768px) {
-            .nav-divider { display: none; }
-            .nav-toggle  { display: flex; }
-
-            /* Menus e nav-right somem do flow e viram painel fixo */
-            .nav-menus,
-            .nav-right {
-                display: none;
-            }
-
-            /* Painel mobile */
-            .nav-mobile-panel {
-                display: none;
-                position: fixed;
-                top: var(--nav-height);
-                left: 0; right: 0;
-                background: var(--surface-nav);
-                border-bottom: 1px solid var(--border-default);
-                box-shadow: var(--shadow-md);
-                padding: 10px 16px 14px;
-                flex-direction: column;
-                gap: 4px;
-                z-index: 99;
-            }
-
-            .nav-mobile-panel.open { display: flex; }
-
-            /* Dentro do painel mobile, dropdown fica estático */
-            .nav-mobile-panel .nav-item { width: 100%; }
-            .nav-mobile-panel .nav-btn  { width: 100%; justify-content: space-between; }
-
-            .nav-mobile-panel .dropdown-panel {
-                position: static;
-                box-shadow: none;
-                border: 1px solid var(--border-default);
-                background: var(--surface-page);
-                display: block;
-                margin-top: 2px;
-                margin-bottom: 4px;
-            }
-
-            .nav-mobile-panel .nav-right {
-                display: flex;
-                flex-direction: column;
-                align-items: stretch;
-                border-top: 1px solid var(--border-default);
-                padding-top: 10px;
-                margin-top: 6px;
-                margin-left: 0;
-            }
-
-            .nav-mobile-panel .banco-form { width: 100%; }
-            .nav-mobile-panel .banco-input { flex: 1; width: 100%; }
-        }
-
-        /* ─── Conteúdo principal ─────────────────────────────────────── */
-        .page-content {
-            padding: 24px 20px;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        /* ─── Card padrão ────────────────────────────────────────────── */
-        .card {
-            background: var(--surface-card);
-            border: 1px solid var(--border-default);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-sm);
-        }
-
-        .card-body { padding: 20px 24px; }
-        .card-header {
-            padding: 14px 24px;
-            border-bottom: 1px solid var(--border-default);
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        /* ─── Tabela padrão ──────────────────────────────────────────── */
-        .app-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13.5px;
-        }
-
-        .app-table thead th {
-            background: var(--surface-th);
-            color: var(--text-on-dark);
-            padding: 10px 14px;
-            font-weight: 500;
-            text-align: center;
-            white-space: nowrap;
-        }
-
-        .app-table thead th:first-child { border-radius: var(--radius-sm) 0 0 0; }
-        .app-table thead th:last-child  { border-radius: 0 var(--radius-sm) 0 0; }
-
-        .app-table tbody td {
-            padding: 9px 14px;
-            text-align: center;
-            border-bottom: 1px solid var(--border-default);
-            color: var(--text-primary);
-        }
-
-        .app-table tbody tr:last-child td { border-bottom: none; }
-
-        .app-table tbody tr:nth-child(even) td {
-            background: var(--surface-page);
-        }
-
-        .app-table tbody tr:hover td {
-            background: var(--accent-subtle);
-        }
-
-        /* ─── Inputs / selects ───────────────────────────────────────── */
-        .form-control, .form-select {
-            background: var(--surface-input) !important;
-            color: var(--text-primary) !important;
-            border-color: var(--border-default) !important;
-            font-size: 13.5px;
-        }
-
-        .form-control:focus, .form-select:focus {
-            border-color: var(--accent) !important;
-            box-shadow: 0 0 0 3px rgba(37,99,235,.12) !important;
-        }
-
-        .form-control::placeholder { color: var(--text-muted) !important; }
-
-        /* ─── Badges ─────────────────────────────────────────────────── */
-        .badge-success { background: #dcfce7; color: #15803d; }
-        .badge-warning { background: #fef9c3; color: #a16207; }
-        .badge-danger  { background: #fee2e2; color: #b91c1c; }
-
-        [data-theme="dark"] .badge-success { background: #14532d; color: #86efac; }
-        [data-theme="dark"] .badge-warning { background: #451a03; color: #fcd34d; }
-        [data-theme="dark"] .badge-danger  { background: #450a0a; color: #fca5a5; }
-
-        /* ─── Paginação ──────────────────────────────────────────────── */
-        .pagination-bar {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-
-        .page-btn {
-            padding: 5px 11px;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border-default);
-            background: var(--surface-card);
-            color: var(--text-secondary);
-            font-size: 13px;
-            text-decoration: none;
-            cursor: pointer;
-            transition: all .15s;
-        }
-
-        .page-btn:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-        }
-
-        .page-btn.current {
-            background: var(--accent);
-            border-color: var(--accent);
-            color: #fff;
-            font-weight: 600;
-        }
-
-        .page-info {
-            font-size: 13px;
-            color: var(--text-muted);
-        }
-    </style>
+    <link href="{% static 'core/css/forms.css' %}" rel="stylesheet">
+    <link href="{% static 'core/css/list.css' %}" rel="stylesheet">
 
     {% block extra_css %}{% endblock %}
 </head>
@@ -464,53 +33,22 @@
 
         <!-- Menus desktop (flex:1 — empurra nav-right para direita) -->
         <ul class="nav-menus">
-
-            <li class="nav-item">
-                <button class="nav-btn">
-                    Folha <i class="bi bi-chevron-down chevron"></i>
-                </button>
-                <div class="dropdown-panel sortable-submenu">
-                    <a href="{% url 'folha:folha_mensal_list' %}?banco={{ request.banco }}">Folha Mensal</a>
-                    <a href="#">Funcionários</a>
-                    <a href="#">Eventos</a>
-                </div>
-            </li>
-
-            <li class="nav-item">
-                <button class="nav-btn">
-                    Cadastros <i class="bi bi-chevron-down chevron"></i>
-                </button>
-                <div class="dropdown-panel sortable-submenu">
-                    <a href="#">Departamentos</a>
-                    <a href="#">Empresas</a>
-                    <a href="#">Filiais</a>
-                    <a href="#">Setores</a>
-                </div>
-            </li>
-
-            <li class="nav-item">
-                <button class="nav-btn">
-                    Relatórios <i class="bi bi-chevron-down chevron"></i>
-                </button>
-                <div class="dropdown-panel sortable-submenu">
-                    <a href="#">Eventos por Funcionário</a>
-                    <a href="#">Resumo da Folha</a>
-                    <a href="#">Total por Referência</a>
-                </div>
-            </li>
-
+            {% include "partials/nav/menu_folha.html" %}
+            {% include "partials/nav/menu_cadastros.html" %}
+            {% include "partials/nav/menu_relatorios.html" %}
         </ul>
 
         <!-- Banco + tema (desktop, alinhado à direita pelo flex do nav) -->
         <div class="nav-right">
             <form class="banco-form" method="get">
                 <i class="bi bi-database banco-icon"></i>
+                <input type="hidden" name="banco" value="{{ request.banco|default:'' }}">
                 <input
                     class="banco-input"
                     type="text"
-                    name="banco"
-                    placeholder="Banco"
-                    value="{{ request.banco|default:'' }}"
+                    placeholder="Licença"
+                    value="{{ request.session.licenca_nome|default:request.banco|default:'' }}"
+                    readonly
                 >
             </form>
 
@@ -530,52 +68,21 @@
     <div class="nav-mobile-panel" id="navMobilePanel">
 
         <ul class="nav-menus" style="flex-direction:column; width:100%;">
-
-            <li class="nav-item">
-                <button class="nav-btn">
-                    Folha <i class="bi bi-chevron-down chevron"></i>
-                </button>
-                <div class="dropdown-panel sortable-submenu">
-                    <a href="{% url 'folha:folha_mensal_list' %}?banco={{ request.banco }}">Folha Mensal</a>
-                    <a href="#">Funcionários</a>
-                    <a href="#">Eventos</a>
-                </div>
-            </li>
-
-            <li class="nav-item">
-                <button class="nav-btn">
-                    Cadastros <i class="bi bi-chevron-down chevron"></i>
-                </button>
-                <div class="dropdown-panel sortable-submenu">
-                    <a href="#">Departamentos</a>
-                    <a href="#">Empresas</a>
-                    <a href="#">Filiais</a>
-                    <a href="#">Setores</a>
-                </div>
-            </li>
-
-            <li class="nav-item">
-                <button class="nav-btn">
-                    Relatórios <i class="bi bi-chevron-down chevron"></i>
-                </button>
-                <div class="dropdown-panel sortable-submenu">
-                    <a href="#">Eventos por Funcionário</a>
-                    <a href="#">Resumo da Folha</a>
-                    <a href="#">Total por Referência</a>
-                </div>
-            </li>
-
+            {% include "partials/nav/menu_folha.html" %}
+            {% include "partials/nav/menu_cadastros.html" %}
+            {% include "partials/nav/menu_relatorios.html" %}
         </ul>
 
         <div class="nav-right">
             <form class="banco-form" method="get">
                 <i class="bi bi-database banco-icon"></i>
+                <input type="hidden" name="banco" value="{{ request.banco|default:'' }}">
                 <input
                     class="banco-input"
                     type="text"
-                    name="banco"
-                    placeholder="Banco"
-                    value="{{ request.banco|default:'' }}"
+                    placeholder="Licença"
+                    value="{{ request.session.licenca_nome|default:request.banco|default:'' }}"
+                    readonly
                 >
             </form>
 
@@ -586,43 +93,16 @@
 
     </div>
 
+    {% include "partials/ui/toasts.html" %}
+
     <!-- ─── Conteúdo ────────────────────────────────────────────────── -->
     <main class="page-content">
         {% block content %}{% endblock %}
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        /* ── Tema ── */
-        const html = document.documentElement;
-
-        function applyTheme(t) {
-            html.setAttribute('data-theme', t);
-            localStorage.setItem('rtaweb-theme', t);
-            const icon = t === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
-            document.querySelectorAll('.js-theme-icon').forEach(el => el.className = icon);
-        }
-
-        applyTheme(localStorage.getItem('rtaweb-theme') || 'light');
-
-        document.querySelectorAll('.js-theme-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
-            });
-        });
-
-        /* ── Menu mobile ── */
-        document.getElementById('navToggle').addEventListener('click', () => {
-            document.getElementById('navMobilePanel').classList.toggle('open');
-        });
-
-        /* ── Ordena submenus ── */
-        document.querySelectorAll('.sortable-submenu').forEach(menu => {
-            [...menu.children]
-                .sort((a, b) => a.textContent.trim().localeCompare(b.textContent.trim(), 'pt-BR'))
-                .forEach(el => menu.appendChild(el));
-        });
-    </script>
+    <script src="{% static 'js/toasts.js' %}"></script>
+    <script src="{% static 'core/js/base.js' %}"></script>
 
     {% block extra_js %}{% endblock %}
 </body>

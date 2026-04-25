@@ -1,0 +1,89 @@
+{% load static %}
+{% extends "base.html" %}
+
+{% block title %}Auditoria HTTP{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+<link href="{% static 'core/css/list-cards.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Auditoria de Logs HTTP</h1>
+        <p class="page-subtitle">Filtre por usuário e método normalizado</p>
+    </div>
+</div>
+
+<div class="app-form-card mb-3">
+    <form method="get" class="form-grid form-grid-compact">
+        <div>
+            <label class="form-label">Usuário</label>
+            <input class="form-control" type="text" name="usuario" value="{{ filtro_usuario }}" placeholder="Nome do usuário">
+        </div>
+        <div>
+            <label class="form-label">Método</label>
+            <select name="metodo" class="form-select">
+                <option value="">Todos</option>
+                {% for m in metodos %}
+                    <option value="{{ m }}" {% if m == filtro_metodo %}selected{% endif %}>{{ m }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-actions-row">
+            <button type="submit" class="btn btn-primary btn-sm">Buscar</button>
+        </div>
+    </form>
+</div>
+
+<div class="table-wrapper desktop-table-only">
+    <div class="table-scroll">
+        <table class="app-table">
+            <thead>
+                <tr>
+                    <th>Data/Hora</th>
+                    <th>Usuário</th>
+                    <th>Método</th>
+                    <th>Ação</th>
+                    <th>Rota</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td>{{ log.ts }}</td>
+                    <td>{{ log.usuario_nome }}</td>
+                    <td>{{ log.method }}</td>
+                    <td>{{ log.method_label }}</td>
+                    <td>{{ log.path }}</td>
+                    <td>{{ log.status_code }}</td>
+                </tr>
+                {% empty %}
+                <tr class="empty-row"><td colspan="6">Sem registros</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="list-card-view mobile-card-only">
+    {% for log in logs %}
+    <article class="list-card-item">
+        <div class="list-card-head">
+            <strong>{{ log.usuario_nome }}</strong>
+            <span>{{ log.method }}</span>
+        </div>
+        <div class="list-card-grid">
+            <div><small>Ação</small><p>{{ log.method_label }}</p></div>
+            <div><small>Status</small><p>{{ log.status_code }}</p></div>
+            <div><small>Rota</small><p>{{ log.path }}</p></div>
+            <div><small>Data</small><p>{{ log.ts }}</p></div>
+        </div>
+    </article>
+    {% empty %}
+    <div class="list-card-empty">Sem registros</div>
+    {% endfor %}
+</div>
+{% endblock %}
