@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Excluir Usuário{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">Confirmação de exclusão</div>
+    <div class="card-body">
+        <p>Deseja excluir o usuário <strong>{{ usuario.usua_login }}</strong>?</p>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Excluir</button>
+            <a href="{% url 'licencas_usuarios:listar' %}?banco={{ request.banco }}" class="btn btn-outline-secondary">Cancelar</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

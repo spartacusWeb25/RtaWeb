@@ -1,5 +1,4 @@
-from .models import LicencasRta, Usuarios, Logado
-
+from licencas.models import LicencasRta, Logado, Usuarios
 
 
 class LoginRtaService:
