@@ -6,12 +6,12 @@ from django.views.generic import UpdateView
 from core.mixin import BancoObrigatorioMixin
 from licencas.models import Usuarios
 from licencas.services import UsuariosService
-from licencas.web.forms import UsuarioLicencaForm
+from licencas.web.forms import UsuariosForm
 
 
-class UsuarioLicencaUpdateView(BancoObrigatorioMixin, UpdateView):
+class UsuariosUpdateView(BancoObrigatorioMixin, UpdateView):
     model = Usuarios
-    form_class = UsuarioLicencaForm
+    form_class = UsuariosForm   
     template_name = "licencas/usuarios/form.html"
 
     def get_object(self, queryset=None):
@@ -22,4 +22,4 @@ class UsuarioLicencaUpdateView(BancoObrigatorioMixin, UpdateView):
         instance.registro = self.request.banco
         UsuariosService.salvar(instance=instance)
         messages.success(self.request, "Usuário atualizado com sucesso.")
-        return redirect(reverse("licencas_usuarios:listar") + f"?banco={self.request.banco}")
+        return redirect(reverse("licencas:listar") + f"?banco={self.request.banco}")

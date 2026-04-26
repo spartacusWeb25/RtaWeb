@@ -21,12 +21,13 @@
         <input type="hidden" name="banco" value="{{ request.banco }}">
         <div>
             <label class="form-label">Nome</label>
-            <input class="form-control" type="text" name="nome" value="{{ request.GET.nome|default:'' }}" placeholder="Pesquisar por nome">
+            <input class="form-control" type="text" name="nome" value="{{ request.GET.nome|default:'' }}"
+                placeholder="Pesquisar por nome">
         </div>
         <div class="form-actions-row">
             <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
             <a href="?banco={{ request.banco }}" class="btn btn-outline-secondary btn-sm">Limpar</a>
-            <a href="{% url 'licencas_usuarios:criar' %}?banco={{ request.banco }}" class="btn btn-success btn-sm">Novo</a>
+            <a href="{% url 'licencas:criar' %}?banco={{ request.banco }}" class="btn btn-success btn-sm">Novo</a>
         </div>
     </form>
 </div>
@@ -53,12 +54,16 @@
                     <td>{% if u.usua_ativ %}Sim{% else %}Não{% endif %}</td>
                     <td>{{ u.usua_grup|default:'-' }}</td>
                     <td>
-                        <a class="btn btn-sm btn-outline-primary" href="{% url 'licencas_usuarios:atualizar' u.id %}?banco={{ request.banco }}">Editar</a>
-                        <a class="btn btn-sm btn-outline-danger" href="{% url 'licencas_usuarios:deletar' u.id %}?banco={{ request.banco }}">Excluir</a>
+                        <a class="btn btn-sm btn-outline-primary"
+                            href="{% url 'licencas:atualizar' u.id %}?banco={{ request.banco }}">Editar</a>
+                        <a class="btn btn-sm btn-outline-danger"
+                            href="{% url 'licencas:deletar' u.id %}?banco={{ request.banco }}">Excluir</a>
                     </td>
                 </tr>
                 {% empty %}
-                <tr class="empty-row"><td colspan="6">Nenhum usuário encontrado</td></tr>
+                <tr class="empty-row">
+                    <td colspan="6">Nenhum usuário encontrado</td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -68,15 +73,24 @@
 <div class="list-card-view mobile-card-only">
     {% for u in usuarios %}
     <article class="list-card-item">
-        <div class="list-card-head"><strong>{{ u.usua_nome|default:u.usua_login }}</strong><span>#{{ u.id }}</span></div>
+        <div class="list-card-head"><strong>{{ u.usua_nome|default:u.usua_login }}</strong><span>#{{ u.id }}</span>
+        </div>
         <div class="list-card-grid">
-            <div><small>Login</small><p>{{ u.usua_login }}</p></div>
-            <div><small>Ativo</small><p>{% if u.usua_ativ %}Sim{% else %}Não{% endif %}</p></div>
-            <div><small>Grupo</small><p>{{ u.usua_grup|default:'-' }}</p></div>
+            <div><small>Login</small>
+                <p>{{ u.usua_login }}</p>
+            </div>
+            <div><small>Ativo</small>
+                <p>{% if u.usua_ativ %}Sim{% else %}Não{% endif %}</p>
+            </div>
+            <div><small>Grupo</small>
+                <p>{{ u.usua_grup|default:'-' }}</p>
+            </div>
         </div>
         <div class="list-card-actions">
-            <a class="btn btn-sm btn-outline-primary" href="{% url 'licencas_usuarios:atualizar' u.id %}?banco={{ request.banco }}">Editar</a>
-            <a class="btn btn-sm btn-outline-danger" href="{% url 'licencas_usuarios:deletar' u.id %}?banco={{ request.banco }}">Excluir</a>
+            <a class="btn btn-sm btn-outline-primary"
+                href="{% url 'licencas:atualizar' u.id %}?banco={{ request.banco }}">Editar</a>
+            <a class="btn btn-sm btn-outline-danger"
+                href="{% url 'licencas:deletar' u.id %}?banco={{ request.banco }}">Excluir</a>
         </div>
     </article>
     {% empty %}
