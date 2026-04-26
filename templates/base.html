@@ -26,13 +26,13 @@
     <nav class="site-nav">
 
         <!-- Brand -->
-        <a class="brand" href="/">Rta<span>Web</span></a>
+        <a class="brand" href="/">  <img src="{% static 'logo.png' %}" alt="Logo" style="width:150px; height:80px; margin-right:8px"> <span></span></a>
 
         <!-- Separador brand / menus -->
         <div class="nav-divider"></div>
 
         <!-- Menus desktop (flex:1 — empurra nav-right para direita) -->
-        <ul class="nav-menus">
+        <ul class="nav-menus" id="navMenus">
             {% include "partials/nav/menu_folha.html" %}
             {% include "partials/nav/menu_cadastros.html" %}
             {% include "partials/nav/menu_relatorios.html" %}
@@ -107,3 +107,18 @@
     {% block extra_js %}{% endblock %}
 </body>
 </html>
+<script>
+    // Função para ordenar os elementos do menu
+    function sortMenu() {
+        const menu = document.getElementById("navMenus");
+        const items = Array.from(menu.children);
+        items.sort((a, b) => {
+            const textA = a.textContent.trim().toLowerCase();
+            const textB = b.textContent.trim().toLowerCase();
+            return textA.localeCompare(textB);
+        });
+        menu.innerHTML = "";
+        items.forEach(item => menu.appendChild(item));
+    }
+    sortMenu();
+</script>
