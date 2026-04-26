@@ -3,7 +3,7 @@ from django import forms
 from licencas.models import Usuarios
 
 
-class UsuarioLicencaForm(forms.ModelForm):
+class UsuariosForm(forms.ModelForm):
     class Meta:
         model = Usuarios
         fields = [

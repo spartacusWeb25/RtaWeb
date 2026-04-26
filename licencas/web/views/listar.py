@@ -5,7 +5,7 @@ from licencas.models import Usuarios
 from licencas.services import UsuariosService
 
 
-class UsuarioLicencaListView(BancoObrigatorioMixin, ListView):
+class UsuariosListView(BancoObrigatorioMixin, ListView):
     model = Usuarios
     template_name = "licencas/usuarios/listar.html"
     context_object_name = "usuarios"

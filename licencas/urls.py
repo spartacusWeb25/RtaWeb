@@ -6,5 +6,5 @@ app_name = "licencas"
 
 urlpatterns = [
     path("login/", LoginRtaView.as_view(), name="login"),
-    path("usuarios/", include(("licencas.web.urls", "licencas_usuarios"), namespace="licencas_usuarios")),
+    path("usuarios/", include(("licencas.web.urls", "licencas"), namespace="licencas")),
 ]
