@@ -23,13 +23,18 @@ jobs:
             cd /home/ubuntu/apps/RtaWeb
             git fetch origin main
             git reset --hard origin/main
+            sudo mkdir -p /home/ubuntu/apps/RtaWeb/staticfiles
+            sudo chown -R ubuntu:www-data /home/ubuntu/apps/RtaWeb/staticfiles
+            sudo find /home/ubuntu/apps/RtaWeb/staticfiles -type d -exec chmod 775 {} \;
+            sudo find /home/ubuntu/apps/RtaWeb/staticfiles -type f -exec chmod 664 {} \;
+            umask 002
             source venv/bin/activate
             pip install -r requirements.txt
             python manage.py migrate --noinput
             python manage.py collectstatic --noinput
             sudo systemctl restart gunicorn
             sudo systemctl restart nginx
-          
+
       - name: Send email on success
         if: success()
         uses: dawidd6/action-send-mail@v3
@@ -38,7 +43,7 @@ jobs:
           server_port: 465
           username: ${{ secrets.EMAIL_USER }}
           password: ${{ secrets.EMAIL_PASS }}
-          subject: "✅ Deploy realizado com sucesso - RtaWeb"
+          subject: '✅ Deploy realizado com sucesso - RtaWeb'
           to: leokaique7@gmail.com
           from: RtaWeb Deploy <${{ secrets.EMAIL_USER }}>
           body: |
