@@ -1,16 +1,85 @@
 {% extends "base.html" %}
-
+{% load static %}
 {% block title %}Início{% endblock %}
 
+{% block extra_css %}
+<style>
+    .home-shell {
+        width: 100%;
+        min-height: calc(100vh - var(--nav-height) - 48px);
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+    }
+
+    .home-card {
+        width: 100%;
+        max-width: 1200px;
+        padding: 16px 8px 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 18px;
+        text-align: center;
+    }
+
+    .home-header {
+        width: 100%;
+        text-align: left;
+    }
+
+    .home-title {
+        margin: 0;
+        font-size: clamp(20px, 2.4vw, 30px);
+        font-weight: 600;
+    }
+
+    .home-subtitle {
+        margin: 4px 0 0;
+        color: var(--text-secondary);
+        font-size: clamp(14px, 1.6vw, 18px);
+    }
+
+    .home-logo {
+        width: min(100%, 820px);
+        max-height: calc(100vh - var(--nav-height) - 180px);
+        height: auto;
+        display: block;
+        object-fit: contain;
+    }
+
+    @media (max-width: 768px) {
+        .home-shell {
+            min-height: calc(100vh - var(--nav-height) - 32px);
+        }
+
+        .home-card {
+            padding: 8px 0 0;
+            gap: 12px;
+        }
+
+        .home-header {
+            padding: 0 6px;
+        }
+
+        .home-logo {
+            width: min(100%, 720px);
+            max-height: calc(100vh - var(--nav-height) - 150px);
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="app-card">
-    <div class="app-card-header">
-        <h2 class="app-card-title">Início</h2>
-        <p class="app-card-subtitle">Bem-vindo {{ request.user.usuanome }}</p>
+<div class="home-shell">
+<div class="home-card">
+    <div class="home-header">
+        <h1 class="home-title">Bem-vindo!!!  <p class="home-subtitle">{{ request.user.usuanome|default:request.session.usuario_nome|default:'RtaWeb' }}</p></h1>
+       
     </div>
-    <div class="logo">
-        <img src="{% static 'logo.png' %}" alt="Logo" style="width:40px; height:40px; margin-right:8px">
-    </div>
-  
+    <img class="home-logo" src="{% static 'logo.png' %}" alt="Logo Rta Sistemas">
 </div>
+</div>
+
 {% endblock %}

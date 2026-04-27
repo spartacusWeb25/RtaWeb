@@ -1,4 +1,5 @@
 from django.db import models
+from core.consultas import BancoConsulta
 
 
 class Funcionarios(models.Model):
@@ -194,6 +195,7 @@ class Funcionarios(models.Model):
     func_tipo_exam_ocup = models.IntegerField(blank=True, null=True)
     func_vale_trans = models.BooleanField(blank=True, null=True)
 
+    objects = BancoConsulta()
     class Meta:
         managed = False
         db_table = 'funcionarios'

@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import redirect
 from django.urls import reverse
 from django.views.generic import UpdateView
 
@@ -16,9 +16,8 @@ class FuncionarioUpdateView(BancoObrigatorioMixin, UpdateView):
     context_object_name = "funcionario"
 
     def get_object(self, queryset=None):
-        return get_object_or_404(
-            Funcionarios,
-            registro=self.request.banco,
+        return self.get_contextual_object(
+            Funcionarios.objects,
             func_codi=self.kwargs["func_codi"],
         )
 

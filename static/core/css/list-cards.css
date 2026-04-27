@@ -1,63 +1,73 @@
-.desktop-table-only { display: block; }
-.mobile-card-only { display: none; }
+.desktop-table-only {
+  display: block;
+}
+
+.mobile-card-only {
+  display: none !important;
+}
 
 .list-card-view {
-    display: grid;
-    gap: 10px;
+  display: grid;
+  gap: 10px;
 }
 
 .list-card-item {
-    background: var(--surface-card);
-    border: 1px solid var(--border-default);
-    border-radius: var(--radius-md);
-    padding: 12px;
-    box-shadow: var(--shadow-sm);
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  box-shadow: var(--shadow-sm);
 }
 
 .list-card-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
 }
 
 .list-card-head span {
-    color: var(--text-muted);
-    font-size: 12px;
+  color: var(--text-muted);
+  font-size: 12px;
 }
 
 .list-card-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
 }
 
 .list-card-grid small {
-    color: var(--text-muted);
-    display: block;
+  color: var(--text-muted);
+  display: block;
 }
 
 .list-card-grid p {
-    margin: 0;
-    font-size: 13px;
+  margin: 0;
+  font-size: 13px;
 }
 
 .list-card-actions {
-    margin-top: 10px;
-    display: flex;
-    gap: 8px;
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
 }
 
 .list-card-empty {
-    background: var(--surface-card);
-    border: 1px dashed var(--border-strong);
-    border-radius: var(--radius-md);
-    color: var(--text-muted);
-    padding: 14px;
-    text-align: center;
+  background: var(--surface-card);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  padding: 14px;
+  text-align: center;
 }
 
 @media (max-width: 768px) {
-    .desktop-table-only { display: none; }
-    .mobile-card-only { display: grid; }
+  .desktop-table-only {
+    display: none !important;
+  }
+
+  .mobile-card-only {
+    display: grid !important;
+  }
 }
