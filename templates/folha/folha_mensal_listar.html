@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Conferência da Folha Mensal — RtaWeb{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'folha/css/forms.css' %}" rel="stylesheet">
+<link href="{% static 'folha/css/list.css' %}" rel="stylesheet">
+<link href="{% static 'core/css/list-cards.css' %}" rel="stylesheet">
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Conferência da Folha Mensal</h1>
+        <p class="page-subtitle">Resumo por funcionário com INSS, IRRF, FGTS e líquido</p>
+    </div>
+</div>
+
+<div class="filter-card">
+    <form method="get">
+        <input type="hidden" name="banco" value="{{ request.banco }}">
+
+        <div class="filter-grid">
+            <div class="filter-field">
+                <label class="filter-label">Referência</label>
+                <input class="form-control form-control-sm"
+                       type="text"
+                       name="referencia"
+                       placeholder="YYYYMM"
+                       value="{{ request.GET.referencia }}">
+            </div>
+
+            <div class="filter-field">
+                <label class="filter-label">Empresa</label>
+                <input class="form-control form-control-sm"
+                       type="number"
+                       name="empresa"
+                       placeholder="Código"
+                       value="{{ request.GET.empresa }}">
+            </div>
+
+            <div class="filter-field">
+                <label class="filter-label">Filial</label>
+                <input class="form-control form-control-sm"
+                       type="number"
+                       name="filial"
+                       placeholder="Código"
+                       value="{{ request.GET.filial }}">
+            </div>
+
+            <div class="filter-actions">
+                <button type="submit" class="btn-primary">
+                    <i class="bi bi-search"></i> Conferir
+                </button>
+
+                <a href="?banco={{ request.banco }}" class="btn-ghost">
+                    <i class="bi bi-x-lg"></i> Limpar
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% if totais %}
+<div class="row g-3 mb-3">
+    <div class="col-md-3">
+        <div class="app-form-card">
+            <small>Funcionários</small>
+            <h4>{{ totais.funcionarios }}</h4>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="app-form-card">
+            <small>Proventos</small>
+            <h4>R$ {{ totais.proventos }}</h4>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="app-form-card">
+            <small>Descontos</small>
+            <h4>R$ {{ totais.descontos }}</h4>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="app-form-card">
+            <small>Líquido</small>
+            <h4>R$ {{ totais.liquido }}</h4>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="app-form-card">
+            <small>Base INSS</small>
+            <h4>R$ {{ totais.base_inss }}</h4>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="app-form-card">
+            <small>INSS Calculado</small>
+            <h4>R$ {{ totais.inss }}</h4>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="app-form-card">
+            <small>Base IRRF</small>
+            <h4>R$ {{ totais.base_irrf }}</h4>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="app-form-card">
+            <small>IRRF Calculado</small>
+            <h4>R$ {{ totais.irrf }}</h4>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="app-form-card">
+            <small>Base FGTS</small>
+            <h4>R$ {{ totais.base_fgts }}</h4>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="app-form-card">
+            <small>FGTS Estimado</small>
+            <h4>R$ {{ totais.fgts }}</h4>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="table-wrapper desktop-table-only">
+    <div class="table-scroll">
+        <table class="app-table">
+            <thead>
+                <tr>
+                    <th>Funcionário</th>
+                    <th>Referência</th>
+                    <th>Cargo</th>
+                    <th>Departamento</th>
+                    <th>Proventos</th>
+                    <th>Descontos</th>
+                    <th>Líquido</th>
+                    <th>INSS</th>
+                    <th>IRRF</th>
+                    <th>FGTS</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for item in dados %}
+                <tr>
+                    <td>
+                        <strong>{{ item.funcionario_nome|default:"-" }}</strong><br>
+                        <small>#{{ item.funcionario_id }} · CPF {{ item.cpf|default:"-" }}</small>
+                    </td>
+                    <td>{{ item.referencia }}</td>
+                    <td>{{ item.cargo|default:"-" }}</td>
+                    <td>{{ item.departamento|default:"-" }}</td>
+                    <td>R$ {{ item.proventos }}</td>
+                    <td>R$ {{ item.descontos }}</td>
+                    <td><strong>R$ {{ item.liquido }}</strong></td>
+                    <td>R$ {{ item.inss_calculado.valor }}</td>
+                    <td>R$ {{ item.irrf_calculado.valor }}</td>
+                    <td>R$ {{ item.fgts_estimado }}</td>
+                </tr>
+
+                <tr>
+                    <td colspan="10">
+                        <details>
+                            <summary>Ver eventos</summary>
+
+                            <table class="app-table mt-2">
+                                <thead>
+                                    <tr>
+                                        <th>Código</th>
+                                        <th>Descrição</th>
+                                        <th>Tipo</th>
+                                        <th>Base</th>
+                                        <th>%</th>
+                                        <th>Valor</th>
+                                        <th>INSS</th>
+                                        <th>IRRF</th>
+                                        <th>FGTS</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    {% for ev in item.eventos %}
+                                    <tr>
+                                        <td>{{ ev.codigo }}</td>
+                                        <td>{{ ev.descricao|default:"-" }}</td>
+                                        <td>{{ ev.tipo }}</td>
+                                        <td>R$ {{ ev.base }}</td>
+                                        <td>{{ ev.percentual|default:"-" }}</td>
+                                        <td>R$ {{ ev.valor }}</td>
+                                        <td>{% if ev.incide_inss %}Sim{% else %}Não{% endif %}</td>
+                                        <td>{% if ev.incide_irrf %}Sim{% else %}Não{% endif %}</td>
+                                        <td>{% if ev.incide_fgts %}Sim{% else %}Não{% endif %}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </details>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr class="empty-row">
+                    <td colspan="10">
+                        <i class="bi bi-inbox empty-icon"></i>
+                        Informe empresa e referência para consultar a folha.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="list-card-view mobile-card-only">
+    {% for item in dados %}
+    <article class="list-card-item">
+        <div class="list-card-head">
+            <strong>{{ item.funcionario_nome|default:"-" }}</strong>
+            <span>{{ item.referencia }}</span>
+        </div>
+
+        <div class="list-card-grid">
+            <div>
+                <small>Proventos</small>
+                <p>R$ {{ item.proventos }}</p>
+            </div>
+
+            <div>
+                <small>Descontos</small>
+                <p>R$ {{ item.descontos }}</p>
+            </div>
+
+            <div>
+                <small>Líquido</small>
+                <p><strong>R$ {{ item.liquido }}</strong></p>
+            </div>
+
+            <div>
+                <small>INSS</small>
+                <p>R$ {{ item.inss_calculado.valor }}</p>
+            </div>
+
+            <div>
+                <small>IRRF</small>
+                <p>R$ {{ item.irrf_calculado.valor }}</p>
+            </div>
+
+            <div>
+                <small>FGTS</small>
+                <p>R$ {{ item.fgts_estimado }}</p>
+            </div>
+        </div>
+
+        <details class="mt-2">
+            <summary>Eventos</summary>
+
+            {% for ev in item.eventos %}
+            <div class="border-top py-2">
+                <strong>{{ ev.codigo }} - {{ ev.descricao|default:"-" }}</strong>
+                <p class="mb-0">{{ ev.tipo }} · R$ {{ ev.valor }}</p>
+            </div>
+            {% endfor %}
+        </details>
+    </article>
+    {% empty %}
+    <div class="list-card-empty">
+        Informe empresa e referência para consultar a folha.
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'folha/js/forms.js' %}"></script>
+<script src="{% static 'folha/js/list.js' %}"></script>
+{% endblock %}
