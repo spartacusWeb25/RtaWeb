@@ -28,4 +28,4 @@ class FolhaMensalUpdateView(BancoObrigatorioMixin, UpdateView):
         instance.registro_id = self.request.banco
         FolhaMensalService.salvar(instance=instance)
         messages.success(self.request, "Lançamento atualizado com sucesso.")
-        return redirect(reverse("folha:folha_mensal_list") + f"?banco={self.request.banco}")
+        return redirect(reverse("folha:folha_mensal_listar") + f"?banco={self.request.banco}")

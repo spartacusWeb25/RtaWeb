@@ -5,12 +5,15 @@ from folhamensal.models import Folhamensal
 from folhamensal.services.folha_mensal import FolhaMensal
 
 
-
 class FolhaMensalListView(BancoObrigatorioMixin, ListView):
     model = Folhamensal
-    template_name = "folha/folha_mensal_list.html"
+    template_name = "folha/folha_mensal_listar.html"
     context_object_name = "folhas"
     paginate_by = 50
+
+    def get_queryset(self):
+        # A conferência consome os dados em `dados` via serviço SQL consolidado.
+        return Folhamensal.objects.none()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -18,7 +21,7 @@ class FolhaMensalListView(BancoObrigatorioMixin, ListView):
         empresa = self.request.GET.get("empresa")
         filial = self.request.GET.get("filial")
         referencia = self.request.GET.get("referencia")
-        nome = self.request.GET.get("nome")
+        funcionario = self.request.GET.get("funcionario")
 
         dados = []
         totais = None
@@ -30,9 +33,8 @@ class FolhaMensalListView(BancoObrigatorioMixin, ListView):
                 empresa=int(empresa),
                 filial=int(filial) if filial else None,
                 referencia=referencia,
-
+                funcionario=int(funcionario) if funcionario else None,
             )
-
             totais = FolhaMensal.totais_gerais(dados)
 
         context["dados"] = dados

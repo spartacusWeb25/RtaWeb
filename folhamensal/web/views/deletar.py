@@ -32,4 +32,4 @@ class FolhaMensalDeleteView(BancoObrigatorioMixin, TemplateView):
         )
         FolhaMensalService.remover(instance=item)
         messages.success(request, "Lançamento excluído com sucesso.")
-        return redirect(reverse("folha:folha_mensal_list") + f"?banco={request.banco}")
+        return redirect(reverse("folha:folha_mensal_listar") + f"?banco={request.banco}")
