@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.views.generic import TemplateView
@@ -5,6 +6,11 @@ from django.views.generic import TemplateView
 
 class HomeView(TemplateView):
     template_name = "home.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.session.get("usuario_id"):
+            return redirect(reverse("licencas:login"))
+        return super().dispatch(request, *args, **kwargs)
 
 
 class RootRedirectView(TemplateView):
@@ -15,8 +21,6 @@ class RootRedirectView(TemplateView):
 
 import json
 from pathlib import Path
-
-from django.conf import settings
 
 
 class AuditoriaLogsView(TemplateView):

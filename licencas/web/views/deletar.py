@@ -28,6 +28,6 @@ class UsuariosDeleteView(BancoObrigatorioMixin, TemplateView):
 
     def post(self, request, *args, **kwargs):
         usuario = self._get_usuario(user_id=kwargs["user_id"])
-        UsuariosService.remover(instance=usuario, db_alias=request.db_alias)
+        UsuariosService.remover(instance=usuario, db_alias=self.request.db_alias)
         messages.success(request, "Usuário excluído com sucesso.")
         return redirect(reverse("licencas:listar") + f"?banco={request.banco}")

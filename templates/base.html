@@ -51,7 +51,15 @@
                 <i class="bi bi-database banco-icon"></i>
                 <input type="hidden" name="banco" value="{{ request.banco|default:'' }}">
                 <input class="banco-input" type="text" placeholder="Licença"
-                    value="{{ request.session.licenca_nome|default:request.banco|default:'' }}" readonly>
+                    value="{{ request.session.licenca_nome|default:''|default:request.banco|default:'rta0001' }}"
+                    readonly>
+            </form>
+
+            <form method="post" action="{% url 'licencas:logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="theme-btn" title="Sair">
+                    <i class="bi bi-box-arrow-right"></i>
+                </button>
             </form>
 
             <button id="themeBtn" class="theme-btn js-theme-btn" title="Alternar tema">
@@ -80,7 +88,15 @@
                 <i class="bi bi-database banco-icon"></i>
                 <input type="hidden" name="banco" value="{{ request.banco|default:'' }}">
                 <input class="banco-input" type="text" placeholder="Licença"
-                    value="{{ request.session.licenca_nome|default:request.banco|default:'' }}" readonly>
+                    value="{{ request.session.licenca_nome|default:''|default:request.banco|default:'rta0001' }}"
+                    readonly>
+            </form>
+
+            <form method="post" action="{% url 'licencas:logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="theme-btn" title="Sair">
+                    <i class="bi bi-box-arrow-right"></i>
+                </button>
             </form>
 
             <button class="theme-btn js-theme-btn" title="Alternar tema">

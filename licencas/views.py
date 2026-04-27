@@ -45,3 +45,10 @@ class LoginRtaView(View):
 
         messages.success(request, mensagem)
         return redirect(reverse("home"))
+
+
+class LogoutRtaView(View):
+    def post(self, request):
+        request.session.flush()
+        messages.success(request, "Logout realizado com sucesso.")
+        return redirect(reverse("licencas:login"))
