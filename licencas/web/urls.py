@@ -8,6 +8,7 @@ from licencas.web.views.listar import UsuariosListView
 app_name = "licencas"
 
 urlpatterns = [
+    path("", UsuariosListView.as_view(), name="index"),
     path("listar/", UsuariosListView.as_view(), name="listar"),
     path("novo/", UsuariosCreateView.as_view(), name="criar"),
     path("<int:user_id>/editar/", UsuariosUpdateView.as_view(), name="atualizar"),

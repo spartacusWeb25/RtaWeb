@@ -1,5 +1,6 @@
 from django.contrib import messages
-from django.shortcuts import get_object_or_404, redirect
+from django.http import Http404
+from django.shortcuts import redirect
 from django.urls import reverse
 from django.views.generic import UpdateView
 
@@ -15,11 +16,18 @@ class UsuariosUpdateView(BancoObrigatorioMixin, UpdateView):
     template_name = "licencas/usuarios/form.html"
 
     def get_object(self, queryset=None):
-        return get_object_or_404(Usuarios.objects.using("default"), id=self.kwargs["user_id"], registro=self.request.banco)
+        usuario = UsuariosService.buscar(
+            registro=self.request.banco,
+            user_id=self.kwargs["user_id"],
+            db_alias=self.request.db_alias,
+        )
+        if not usuario:
+            raise Http404("Usuário não encontrado.")
+        return usuario
 
     def form_valid(self, form):
         instance = form.save(commit=False)
         instance.registro = self.request.banco
-        UsuariosService.salvar(instance=instance)
+        UsuariosService.salvar(instance=instance, db_alias=self.request.db_alias)
         messages.success(self.request, "Usuário atualizado com sucesso.")
         return redirect(reverse("licencas:listar") + f"?banco={self.request.banco}")

@@ -1,8 +1,17 @@
+from django.shortcuts import redirect
+from django.urls import reverse
 from django.views.generic import TemplateView
 
 
 class HomeView(TemplateView):
     template_name = "home.html"
+
+
+class RootRedirectView(TemplateView):
+    def get(self, request, *args, **kwargs):
+        if request.session.get("usuario_id"):
+            return redirect(reverse("home"))
+        return redirect(reverse("licencas:login"))
 
 import json
 from pathlib import Path

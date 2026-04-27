@@ -7,6 +7,6 @@
         <a href="#">Empresas</a>
         <a href="#">Filiais</a>
         <a href="#">Setores</a>
-        <a href="">Usuários Licença</a>
+        <a href="{% url 'licencas:index' %}?banco={{ request.banco|default:'rta0001' }}">Usuários Licença</a>
     </div>
 </li>
