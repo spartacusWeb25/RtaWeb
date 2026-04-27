@@ -29,3 +29,26 @@ jobs:
             python manage.py collectstatic --noinput
             sudo systemctl restart gunicorn
             sudo systemctl restart nginx
+          
+      - name: Send email on success
+        if: success()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.EMAIL_USER }}
+          password: ${{ secrets.EMAIL_PASS }}
+          subject: "✅ Deploy realizado com sucesso - RtaWeb"
+          to: leokaique7@gmail.com
+          from: RtaWeb Deploy <${{ secrets.EMAIL_USER }}>
+          body: |
+            🚀 Deploy realizado com sucesso!
+
+            Projeto: RtaWeb
+            Branch: main
+            Commit: ${{ github.sha }}
+
+            Acesse:
+            https://rtaalmeidaweb.site
+
+            Servidor atualizado e rodando.
