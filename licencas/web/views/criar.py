@@ -17,6 +17,6 @@ class UsuariosCreateView(BancoObrigatorioMixin, CreateView):
     def form_valid(self, form):
         instance = form.save(commit=False)
         instance.registro = self.request.banco
-        UsuariosService.salvar(instance=instance)
+        UsuariosService.salvar(instance=instance, db_alias=self.request.db_alias)
         messages.success(self.request, "Usuário criado com sucesso.")
         return redirect(reverse("licencas:listar") + f"?banco={self.request.banco}")

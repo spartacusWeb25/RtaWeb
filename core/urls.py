@@ -3,9 +3,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
-from licencas.views import LoginRtaView
-
-from .views import AuditoriaLogsView, HomeView
+from .views import AuditoriaLogsView, HomeView, RootRedirectView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -14,7 +12,7 @@ urlpatterns = [
     path('home/', HomeView.as_view(), name="home"),
     path("licencas/", include("licencas.urls")),
     path("auditoria/logs/", AuditoriaLogsView.as_view(), name="auditoria_logs"),
-    path("", LoginRtaView.as_view(), name="root"),
+    path("", RootRedirectView.as_view(), name="root"),
 ]
 
 # Em ambiente local, garante o serviço dos arquivos estáticos mesmo com DEBUG=False.

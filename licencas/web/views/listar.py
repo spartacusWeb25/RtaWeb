@@ -14,5 +14,6 @@ class UsuariosListView(BancoObrigatorioMixin, ListView):
     def get_queryset(self):
         return UsuariosService.listar_por_registro(
             registro=self.request.banco,
+            db_alias=self.request.db_alias,
             termo=self.request.GET.get("nome"),
         )
