@@ -34,3 +34,5 @@ class FolhaMensalService:
     @staticmethod
     def remover(*, instance):
         instance.delete(using="default")
+        
+  
