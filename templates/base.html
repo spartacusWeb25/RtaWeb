@@ -1,7 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 
-<html lang="pt-br" data-theme="light">
+<html lang="pt-br" data-bs-theme="light">
 
 <head>
     <meta charset="UTF-8">
@@ -58,7 +58,7 @@
             <form method="post" action="{% url 'licencas:logout' %}">
                 {% csrf_token %}
                 <button type="submit" class="theme-btn" title="Sair">
-                    <i class="bi bi-box-arrow-right"></i>
+                    <i class="bi bi-box-arrow-right" style="font-size: 1.2rem; color: #ff0000;"></i>
                 </button>
             </form>
 

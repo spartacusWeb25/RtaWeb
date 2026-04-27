@@ -5,10 +5,9 @@ from licencas.web.views.criar import UsuariosCreateView
 from licencas.web.views.deletar import UsuariosDeleteView
 from licencas.web.views.listar import UsuariosListView
 
-app_name = "licencas"
+app_name = "usuarios"
 
 urlpatterns = [
-    path("", UsuariosListView.as_view(), name="home"),
     path("listar/", UsuariosListView.as_view(), name="listar"),
     path("novo/", UsuariosCreateView.as_view(), name="criar"),
     path("<int:user_id>/editar/", UsuariosUpdateView.as_view(), name="atualizar"),

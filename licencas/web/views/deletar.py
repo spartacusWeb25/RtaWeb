@@ -11,7 +11,7 @@ from licencas.services import UsuariosService
 class UsuariosDeleteView(BancoObrigatorioMixin, TemplateView):
     template_name = "licencas/usuarios/confirmar_exclusao.html"
 
-    def _get_usuario(self, user_id):
+    def _get_usuario(self, user_id):    
         usuario = UsuariosService.buscar(
             registro=self.request.banco,
             user_id=user_id,
@@ -30,4 +30,4 @@ class UsuariosDeleteView(BancoObrigatorioMixin, TemplateView):
         usuario = self._get_usuario(user_id=kwargs["user_id"])
         UsuariosService.remover(instance=usuario, db_alias=self.request.db_alias)
         messages.success(request, "Usuário excluído com sucesso.")
-        return redirect(reverse("licencas:listar") + f"?banco={request.banco}")
+        return redirect(reverse("usuarios:listar") + f"?banco={request.banco}")

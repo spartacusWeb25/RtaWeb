@@ -10,7 +10,7 @@
         <form method="post">
             {% csrf_token %}
             <button type="submit" class="btn btn-danger">Excluir</button>
-            <a href="{% url 'licencas:listar' %}?banco={{ request.banco }}"
+            <a href="{% url 'usuarios:listar' %}?banco={{ request.banco }}"
                 class="btn btn-outline-secondary">Cancelar</a>
         </form>
     </div>

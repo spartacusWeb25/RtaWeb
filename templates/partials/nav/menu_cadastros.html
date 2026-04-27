@@ -1,12 +1,14 @@
 <li class="nav-item">
-    <button class="nav-btn">
-        Cadastros <i class="bi bi-chevron-down chevron"></i>
+    <button class="nav-btn"> <i class="bi bi-people-fill" style="font-size: 1.2rem;  color: #eccb6e;"></i> Cadastros <i
+            class="bi bi-chevron-down chevron"></i>
     </button>
     <div class="dropdown-panel sortable-submenu">
         <a href="#">Departamentos</a>
         <a href="#">Empresas</a>
         <a href="#">Filiais</a>
         <a href="#">Setores</a>
-        <a href="{% url 'licencas:login' %}?banco={{ request.banco|default:'rta0001' }}">Usuários Licença</a>
+        <a href="{% url 'usuarios:listar' %}?banco={{ request.banco|default:'rta0001' }}">
+            Usuários Licença
+        </a>
     </div>
 </li>

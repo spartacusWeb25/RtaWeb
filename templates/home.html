@@ -75,7 +75,7 @@
 <div class="home-shell">
 <div class="home-card">
     <div class="home-header">
-        <h1 class="home-title">Bem-vindo!!!  <p class="home-subtitle">{{ request.user.usuanome|default:request.session.usuario_nome|default:'RtaWeb' }}</p></h1>
+        <h1 class="home-title">Bem-vindo(a)!!!  <p class="home-subtitle">{{ request.user.usuanome|default:request.session.usuario_nome|default:'RtaWeb' }}</p></h1>
        
     </div>
     <img class="home-logo" src="{% static 'core/img/logo.png' %}" alt="Logo Rta Sistemas">

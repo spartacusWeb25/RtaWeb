@@ -18,7 +18,7 @@ class UsuariosUpdateView(BancoObrigatorioMixin, UpdateView):
     def get_object(self, queryset=None):
         usuario = UsuariosService.buscar(
             registro=self.request.banco,
-            user_id=self.kwargs["user_id"],
+            user_id=self.kwargs["user_id"],   
             db_alias=self.request.db_alias,
         )
         if not usuario:
@@ -30,4 +30,4 @@ class UsuariosUpdateView(BancoObrigatorioMixin, UpdateView):
         instance.registro = self.request.banco
         UsuariosService.salvar(instance=instance, db_alias=self.request.db_alias)
         messages.success(self.request, "Usuário atualizado com sucesso.")
-        return redirect(reverse("licencas:listar") + f"?banco={self.request.banco}")
+        return redirect(reverse("usuarios:listar") + f"?banco={self.request.banco}")

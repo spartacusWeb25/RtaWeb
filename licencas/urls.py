@@ -7,5 +7,5 @@ app_name = "licencas"
 urlpatterns = [
     path("login/", LoginRtaView.as_view(), name="login"),
     path("logout/", LogoutRtaView.as_view(), name="logout"),
-    path("usuarios/", include(("licencas.web.urls", "licencas"), namespace="licencas")),
+   
 ]

@@ -21,19 +21,6 @@
 
         const navToggle = document.getElementById('navToggle');
         const navMobilePanel = document.getElementById('navMobilePanel');
-        const sortMenus = ['navMenusDesktop', 'navMenusMobile'];
-
-        sortMenus.forEach((menuId) => {
-            const menu = document.getElementById(menuId);
-            if (!menu) {
-                return;
-            }
-
-            [...menu.children]
-                .sort((a, b) => a.textContent.trim().localeCompare(b.textContent.trim(), 'pt-BR'))
-                .forEach((el) => menu.appendChild(el));
-        });
-
         if (navToggle && navMobilePanel) {
             navToggle.addEventListener('click', () => {
                 navMobilePanel.classList.toggle('open');
@@ -58,5 +45,11 @@
                 });
             });
         }
+
+        document.querySelectorAll('.sortable-submenu').forEach((menu) => {
+            [...menu.children]
+                .sort((a, b) => a.textContent.trim().localeCompare(b.textContent.trim(), 'pt-BR'))
+                .forEach((el) => menu.appendChild(el));
+        });
     });
 })();

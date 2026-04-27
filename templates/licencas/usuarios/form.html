@@ -1,5 +1,6 @@
-{% load static %}
 {% extends "base.html" %}
+{% load static %}
+
 
 {% block title %}Usuário da Licença{% endblock %}
 
@@ -25,15 +26,13 @@
             <div><label class="form-label">{{ form.usua_grup.label }}</label>{{ form.usua_grup }}</div>
             <div><label class="form-label">{{ form.usua_emai.label }}</label>{{ form.usua_emai }}</div>
             <div class="d-flex gap-3 align-items-center mt-4">
-                <div class="form-check">{{ form.usua_ativ }} <label class="form-check-label ms-1">{{
-                        form.usua_ativ.label }}</label></div>
-                <div class="form-check">{{ form.super }} <label class="form-check-label ms-1">{{ form.super.label
-                        }}</label></div>
+                <div class="form-check">{{ form.usua_ativ }} <label class="form-check-label ms-1">{{ form.usua_ativ.label }}</label></div>
+                <div class="form-check">{{ form.super }} <label class="form-check-label ms-1">{{ form.super.label }}</label></div>
             </div>
         </div>
         <div class="form-actions-row">
             <button type="submit" class="btn btn-success">Salvar</button>
-            <a href="{% url 'licencas:listar' %}?banco={{ request.banco }}" class="btn btn-outline-secondary">Voltar</a>
+            <a href="{% url 'usuarios:listar' %}?banco={{ request.banco }}" class="btn btn-outline-secondary">Voltar</a>
         </div>
     </form>
 </div>
