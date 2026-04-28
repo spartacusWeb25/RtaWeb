@@ -3,8 +3,8 @@ from datetime import date
 from django.http import JsonResponse
 from django.views import View
 
-from core.mixin import BancoObrigatorioMixin
 from calendario.services import CalendarioService
+from core.mixin import BancoObrigatorioMixin
 
 
 class CalendarioEventosJsonView(BancoObrigatorioMixin, View):
@@ -12,16 +12,27 @@ class CalendarioEventosJsonView(BancoObrigatorioMixin, View):
         hoje = date.today()
         inicio_param = request.GET.get("inicio")
         fim_param = request.GET.get("fim")
+        data_param = request.GET.get("data")
         somente_hoje = request.GET.get("somente_hoje") == "1"
 
-        data_inicio = date.fromisoformat(inicio_param) if inicio_param else None
-        data_fim = date.fromisoformat(fim_param) if fim_param else None
+        try:
+            data_filtro = date.fromisoformat(data_param) if data_param else None
+            data_inicio = date.fromisoformat(inicio_param) if inicio_param else None
+            data_fim = date.fromisoformat(fim_param) if fim_param else None
+        except ValueError:
+            return JsonResponse({"erro": "Parâmetro de data inválido."}, status=400)
 
         if somente_hoje:
             eventos = CalendarioService.listar_eventos_do_dia(
                 banco=request.banco,
                 db_alias=request.db_alias,
                 data=hoje,
+            )
+        elif data_filtro:
+            eventos = CalendarioService.listar_eventos_do_dia(
+                banco=request.banco,
+                db_alias=request.db_alias,
+                data=data_filtro,
             )
         else:
             eventos = CalendarioService.listar_eventos(
@@ -47,6 +58,5 @@ class CalendarioEventosJsonView(BancoObrigatorioMixin, View):
                 "eventos": payload,
                 "total": len(payload),
                 "hoje": hoje.isoformat(),
-                "tem_eventos_hoje": any(item["data"] == hoje.isoformat() for item in payload),
             }
         )
