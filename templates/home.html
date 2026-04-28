@@ -38,6 +38,43 @@
     .calendar-event-chip { border: 1px solid var(--border-default); border-radius: 8px; padding: 8px; margin-bottom: 6px; background: var(--surface-raised); }
     .calendar-event-chip small { color: var(--text-secondary); }
 
+    .calendar-home-trigger {
+        position: fixed;
+        top: calc(var(--nav-height) + 16px);
+        right: 18px;
+        z-index: 1040;
+        border-radius: 999px;
+        padding: 8px 14px;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, .12);
+    }
+
+    .calendar-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        max-height: 280px;
+        overflow-y: auto;
+    }
+
+    .calendar-item {
+        border: 1px solid #e8e8e8;
+        border-radius: 8px;
+        padding: 10px;
+        margin-bottom: 8px;
+        background: #fff;
+        text-align: left;
+    }
+
+    .calendar-item-title {
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .calendar-item-date {
+        font-size: 13px;
+        color: #6c757d;
+    }
+
     @media (max-width: 768px) {
         .home-shell { min-height: calc(100vh - var(--nav-height) - 32px); }
         .home-card { padding: 8px 0 0; gap: 12px; }
