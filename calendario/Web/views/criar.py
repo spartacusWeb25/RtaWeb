@@ -6,7 +6,7 @@ from django.views.generic import FormView
 
 from calendario.models import Calendariorh
 from calendario.services import CalendarioService
-from calendario.web.forms import CalendarioEventoForm
+from calendario.Web.forms import CalendarioEventoForm
 from core.mixin import BancoObrigatorioMixin
 
 
