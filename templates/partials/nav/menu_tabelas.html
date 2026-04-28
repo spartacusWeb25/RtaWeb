@@ -5,8 +5,8 @@
     <div class="dropdown-panel sortable-submenu">
         <a href="#">Salário Família</a>
         <a href="#">Salário mínimo</a>
-        <a href="#">INSS</a>
-        <a href="#">IR</a>
+        <a href="{% url 'inss_list' %}" class="{% if request.resolver_match.url_name == 'inss_list' %}active{% endif %}">INSS</a>
+        <a href="{% url 'inss_empresa_list' %}" class="{% if request.resolver_match.url_name == 'inss_empresa_list' %}active{% endif %}">INSS Empresa</a>
         <a href="{% url 'irrf_list' %}">IRPF</a>
         <a href="#">PIS</a>
         <a href="#">Contribuição sindical patronal</a>

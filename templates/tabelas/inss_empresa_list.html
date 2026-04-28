@@ -1,0 +1,71 @@
+{% extends "tabelas/base_tabelas.html" %}
+
+{% block tabelas_content %}
+<div class="row g-3">
+    <div class="col-12">
+        <h2 id="title"><i class="bi bi-tablet-landscape"></i> Tabela INSS Empresa</h2>
+    </div>
+
+    <div class="col-12 d-none d-md-block">
+        <div class="table-wrapper">
+            <div class="table-scroll">
+                <table class="app-table">
+                    <thead>
+                        <tr>
+                            <th>Empresa</th>
+                            <th>Registro</th>
+                            <th>Contrib. Empresa</th>
+                            <th>RAT</th>
+                            <th>Terceiros</th>
+                            <th>FAP</th>
+                            <th>CNAE</th>
+                            <th>SIMPLES</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in tabelas %}
+                        <tr>
+                            <td>{{ t.tabe_empr }}</td>
+                            <td>{{ t.registro }}</td>
+                            <td>{{ t.tabe_cont_empr }}</td>
+                            <td>{{ t.tabe_rat }}</td>
+                            <td>{{ t.tabe_terc }}</td>
+                            <td>{{ t.tabe_fap }}</td>
+                            <td>{{ t.tabe_cnae }}</td>
+                            <td>{% if t.tabe_simp %}Sim{% else %}Não{% endif %}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8">Nada encontrado</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 d-block d-md-none">
+        <div class="list-card-view">
+            {% for t in tabelas %}
+            <article class="list-card-item">
+                <div class="list-card-head">
+                    <strong>Empresa {{ t.tabe_empr }}</strong>
+                    <span>{{ t.registro }}</span>
+                </div>
+                <div class="list-card-grid">
+                    <p><small>Contrib. Empresa</small>{{ t.tabe_cont_empr }}</p>
+                    <p><small>RAT</small>{{ t.tabe_rat }}</p>
+                    <p><small>Terceiros</small>{{ t.tabe_terc }}</p>
+                    <p><small>FAP</small>{{ t.tabe_fap }}</p>
+                    <p><small>CNAE</small>{{ t.tabe_cnae }}</p>
+                    <p><small>SIMPLES</small>{% if t.tabe_simp %}Sim{% else %}Não{% endif %}</p>
+                </div>
+            </article>
+            {% empty %}
+            <div class="list-card-empty">Nada encontrado</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
