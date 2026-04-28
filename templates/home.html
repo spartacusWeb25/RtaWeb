@@ -4,82 +4,273 @@
 
 {% block extra_css %}
 <style>
-    .home-shell {
-        width: 100%;
-        min-height: calc(100vh - var(--nav-height) - 48px);
-        display: flex;
-        align-items: flex-start;
-        justify-content: center;
-    }
+    .home-shell { width: 100%; min-height: calc(100vh - var(--nav-height) - 48px); display: flex; align-items: flex-start; justify-content: center; }
+    .home-card { width: 100%; max-width: 1200px; padding: 16px 8px 0; display: flex; flex-direction: column; align-items: center; gap: 18px; text-align: center; }
+    .home-header { width: 100%; text-align: left; }
+    .home-title { margin: 0; font-size: clamp(20px, 2.4vw, 30px); font-weight: 600; }
+    .home-subtitle { margin: 4px 0 0; color: var(--text-secondary); font-size: clamp(14px, 1.6vw, 18px); }
+    .home-logo { width: min(100%, 820px); max-height: calc(100vh - var(--nav-height) - 180px); height: auto; display: block; object-fit: contain; }
 
-    .home-card {
-        width: 100%;
-        max-width: 1200px;
-        padding: 16px 8px 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: flex-start;
-        gap: 18px;
-        text-align: center;
-    }
+    .calendar-home-trigger { position: fixed; top: calc(var(--nav-height) + 16px); right: 18px; z-index: 1040; border-radius: 999px; padding: 8px 14px; box-shadow: var(--shadow-md); }
 
-    .home-header {
-        width: 100%;
-        text-align: left;
-    }
+    .calendar-modal .modal-content { background: var(--surface-card); color: var(--text-primary); border: 1px solid var(--border-default); }
+    .calendar-modal .modal-header, .calendar-modal .calendar-section-divider { border-color: var(--border-default); }
+    .calendar-modal .form-control { background: var(--surface-input); color: var(--text-primary); border-color: var(--border-default); }
+    .calendar-modal .form-control::placeholder { color: var(--text-muted); }
+    .calendar-modal .form-label, .calendar-modal .form-check-label { color: var(--text-primary); }
 
-    .home-title {
-        margin: 0;
-        font-size: clamp(20px, 2.4vw, 30px);
-        font-weight: 600;
-    }
+    .calendar-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+    .calendar-month-title { font-weight: 600; font-size: 16px; margin: 0; }
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+    .calendar-weekday,
+    .calendar-day { border: 1px solid var(--border-default); border-radius: 8px; min-height: 74px; padding: 6px; background: var(--surface-raised); }
+    .calendar-weekday { min-height: auto; text-align: center; font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+    .calendar-day.is-outside { opacity: .4; }
+    .calendar-day.is-today { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+    .calendar-day.is-selected { background: var(--accent-subtle); }
+    .calendar-day-head { font-size: 12px; font-weight: 600; margin-bottom: 4px; color: var(--text-primary); }
+    .calendar-event-dot { display: block; width: 100%; border-radius: 6px; padding: 2px 4px; margin-bottom: 3px; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: var(--accent-subtle); color: var(--accent); }
+    .calendar-event-dot.is-descanso { background: rgba(22, 163, 74, .12); color: var(--success); }
 
-    .home-subtitle {
-        margin: 4px 0 0;
-        color: var(--text-secondary);
-        font-size: clamp(14px, 1.6vw, 18px);
-    }
-
-    .home-logo {
-        width: min(100%, 820px);
-        max-height: calc(100vh - var(--nav-height) - 180px);
-        height: auto;
-        display: block;
-        object-fit: contain;
-    }
+    .calendar-day-events { margin-top: 12px; }
+    .calendar-day-events-title { font-weight: 600; margin-bottom: 8px; }
+    .calendar-day-events-empty { color: var(--text-secondary); font-size: 13px; }
+    .calendar-event-chip { border: 1px solid var(--border-default); border-radius: 8px; padding: 8px; margin-bottom: 6px; background: var(--surface-raised); }
+    .calendar-event-chip small { color: var(--text-secondary); }
 
     @media (max-width: 768px) {
-        .home-shell {
-            min-height: calc(100vh - var(--nav-height) - 32px);
-        }
-
-        .home-card {
-            padding: 8px 0 0;
-            gap: 12px;
-        }
-
-        .home-header {
-            padding: 0 6px;
-        }
-
-        .home-logo {
-            width: min(100%, 720px);
-            max-height: calc(100vh - var(--nav-height) - 150px);
-        }
+        .home-shell { min-height: calc(100vh - var(--nav-height) - 32px); }
+        .home-card { padding: 8px 0 0; gap: 12px; }
+        .home-header { padding: 0 6px; }
+        .home-logo { width: min(100%, 720px); max-height: calc(100vh - var(--nav-height) - 150px); }
+        .calendar-home-trigger { right: 10px; top: calc(var(--nav-height) + 10px); }
+        .calendar-day { min-height: 64px; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
+<button type="button" class="btn btn-primary calendar-home-trigger" data-bs-toggle="modal" data-bs-target="#modalCalendario">
+    <i class="bi bi-calendar-event"></i> Calendário
+</button>
+
 <div class="home-shell">
 <div class="home-card">
     <div class="home-header">
         <h1 class="home-title">Bem-vindo(a)!!!  <p class="home-subtitle">{{ request.user.usuanome|default:request.session.usuario_nome|default:'RtaWeb' }}</p></h1>
-       
     </div>
     <img class="home-logo" src="{% static 'core/img/logo.png' %}" alt="Logo Rta Sistemas">
 </div>
 </div>
 
+<div class="modal fade calendar-modal" id="modalCalendario" tabindex="-1" aria-labelledby="modalCalendarioLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalCalendarioLabel">Calendário de eventos</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form class="row g-3" method="post" action="{% url 'calendario:evento_criar' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="banco" value="{{ request.banco|default:'rta0001' }}">
+                    <div class="col-md-4">
+                        <label for="id_cale_cida" class="form-label">Código</label>
+                        <input id="id_cale_cida" class="form-control" name="cale_cida" maxlength="7" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="id_cale_refe" class="form-label">Referência</label>
+                        <input id="id_cale_refe" class="form-control" name="cale_refe" maxlength="7" placeholder="AAAAMM" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="id_cale_data" class="form-label">Data</label>
+                        <input id="id_cale_data" type="date" class="form-control" name="cale_data" required>
+                    </div>
+                    <div class="col-12">
+                        <div class="form-check">
+                            <input id="id_cale_dia_desc" class="form-check-input" type="checkbox" name="cale_dia_desc">
+                            <label class="form-check-label" for="id_cale_dia_desc">Dia com descanso</label>
+                        </div>
+                    </div>
+                    <div class="col-12 d-flex justify-content-end">
+                        <button type="submit" class="btn btn-success">Adicionar evento</button>
+                    </div>
+                </form>
+
+                <hr class="calendar-section-divider">
+
+                <div class="calendar-toolbar">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="btnPrevMonth"><i class="bi bi-chevron-left"></i></button>
+                    <h6 class="calendar-month-title" id="calendarMonthTitle">-</h6>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="btnNextMonth"><i class="bi bi-chevron-right"></i></button>
+                </div>
+
+                <div id="calendarGrid" class="calendar-grid"></div>
+
+                <div class="calendar-day-events">
+                    <div class="calendar-day-events-title" id="calendarDayTitle">Eventos do dia</div>
+                    <div id="calendarDayEvents"></div>
+                    <p id="calendarDayEmpty" class="calendar-day-events-empty d-none">Nenhum evento para o dia selecionado.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    const banco = "{{ request.banco|default:'rta0001'|escapejs }}";
+    const modalEl = document.getElementById("modalCalendario");
+    const gridEl = document.getElementById("calendarGrid");
+    const monthTitleEl = document.getElementById("calendarMonthTitle");
+    const dayTitleEl = document.getElementById("calendarDayTitle");
+    const dayEventsEl = document.getElementById("calendarDayEvents");
+    const dayEmptyEl = document.getElementById("calendarDayEmpty");
+    const btnPrevMonth = document.getElementById("btnPrevMonth");
+    const btnNextMonth = document.getElementById("btnNextMonth");
+
+    if (!modalEl || !gridEl || !monthTitleEl || !dayEventsEl || !btnPrevMonth || !btnNextMonth) return;
+
+    const modal = new bootstrap.Modal(modalEl);
+    const weekDays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+    const monthLabels = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+
+    let viewDate = new Date();
+    let selectedDate = new Date();
+    let eventosMes = [];
+
+    function isoDate(dateObj) {
+        const y = dateObj.getFullYear();
+        const m = String(dateObj.getMonth() + 1).padStart(2, "0");
+        const d = String(dateObj.getDate()).padStart(2, "0");
+        return `${y}-${m}-${d}`;
+    }
+
+    async function buscarEventos(params = "") {
+        const response = await fetch(`{% url 'calendario:eventos_json' %}?banco=${encodeURIComponent(banco)}${params}`);
+        if (!response.ok) throw new Error("Falha ao buscar eventos.");
+        return response.json();
+    }
+
+    function filtrarEventosDia(dateObj) {
+        const alvo = isoDate(dateObj);
+        return eventosMes.filter((ev) => ev.data === alvo);
+    }
+
+    function renderEventosDia(dateObj) {
+        const eventosDia = filtrarEventosDia(dateObj);
+        dayEventsEl.innerHTML = "";
+        dayTitleEl.textContent = `Eventos do dia ${dateObj.toLocaleDateString('pt-BR')}`;
+
+        if (!eventosDia.length) {
+            dayEmptyEl.classList.remove("d-none");
+            return;
+        }
+
+        dayEmptyEl.classList.add("d-none");
+        eventosDia.forEach((ev) => {
+            const card = document.createElement("div");
+            card.className = "calendar-event-chip";
+            card.innerHTML = `<strong>Cód. ${ev.codigo}</strong> • Ref. ${ev.referencia}<br><small>${ev.descanso ? "Dia com descanso" : "Dia útil"}</small>`;
+            dayEventsEl.appendChild(card);
+        });
+    }
+
+    function renderCalendario() {
+        const ano = viewDate.getFullYear();
+        const mes = viewDate.getMonth();
+
+        monthTitleEl.textContent = `${monthLabels[mes]} / ${ano}`;
+        gridEl.innerHTML = "";
+
+        weekDays.forEach((d) => {
+            const head = document.createElement("div");
+            head.className = "calendar-weekday";
+            head.textContent = d;
+            gridEl.appendChild(head);
+        });
+
+        const primeiroDiaMes = new Date(ano, mes, 1);
+        const inicioGrade = new Date(primeiroDiaMes);
+        inicioGrade.setDate(primeiroDiaMes.getDate() - primeiroDiaMes.getDay());
+
+        const hojeIso = isoDate(new Date());
+        const selecionadoIso = isoDate(selectedDate);
+
+        for (let i = 0; i < 42; i++) {
+            const current = new Date(inicioGrade);
+            current.setDate(inicioGrade.getDate() + i);
+            const currentIso = isoDate(current);
+
+            const cell = document.createElement("button");
+            cell.type = "button";
+            cell.className = "calendar-day";
+            if (current.getMonth() !== mes) cell.classList.add("is-outside");
+            if (currentIso === hojeIso) cell.classList.add("is-today");
+            if (currentIso === selecionadoIso) cell.classList.add("is-selected");
+
+            const eventosDia = eventosMes.filter((ev) => ev.data === currentIso);
+            const previews = eventosDia.slice(0, 2).map((ev) => `<span class="calendar-event-dot ${ev.descanso ? 'is-descanso' : ''}">${ev.codigo}</span>`).join("");
+            const extra = eventosDia.length > 2 ? `<span class="calendar-event-dot">+${eventosDia.length - 2}</span>` : "";
+
+            cell.innerHTML = `<div class="calendar-day-head">${current.getDate()}</div>${previews}${extra}`;
+            cell.addEventListener("click", () => {
+                selectedDate = current;
+                renderCalendario();
+                renderEventosDia(current);
+            });
+
+            gridEl.appendChild(cell);
+        }
+    }
+
+    async function carregarMes() {
+        const ano = viewDate.getFullYear();
+        const mes = viewDate.getMonth();
+        const inicio = new Date(ano, mes, 1);
+        const fim = new Date(ano, mes + 1, 0);
+
+        const data = await buscarEventos(`&inicio=${isoDate(inicio)}&fim=${isoDate(fim)}`);
+        eventosMes = data.eventos || [];
+        renderCalendario();
+        renderEventosDia(selectedDate);
+    }
+
+    btnPrevMonth.addEventListener("click", async () => {
+        viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1);
+        await carregarMes();
+    });
+
+    btnNextMonth.addEventListener("click", async () => {
+        viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1);
+        await carregarMes();
+    });
+
+    modalEl.addEventListener("show.bs.modal", async () => {
+        try {
+            await carregarMes();
+        } catch (e) {
+            gridEl.innerHTML = "<p class='text-danger'>Erro ao carregar calendário.</p>";
+        }
+    });
+
+    document.addEventListener("DOMContentLoaded", async () => {
+        try {
+            const hoje = new Date();
+            selectedDate = hoje;
+            viewDate = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+
+            const dataHoje = await buscarEventos("&somente_hoje=1");
+            if ((dataHoje.eventos || []).length) {
+                await carregarMes();
+                modal.show();
+            }
+        } catch (e) {
+            // não bloqueia home
+        }
+    });
+})();
+</script>
 {% endblock %}
