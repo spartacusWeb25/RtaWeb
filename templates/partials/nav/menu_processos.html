@@ -1,0 +1,16 @@
+<li class="nav-item">
+    <button class="nav-btn"> <i class="bi bi-book-half" style="font-size: 1.2rem;  color: #ebb6ba;"></i> Processos <i
+            class="bi bi-chevron-down chevron"></i>
+    </button>
+    <div class="dropdown-panel sortable-submenu">
+        <a href="#">Lançamentos de Múltiplos Vínculos</a>
+        <a href="#">Lançamentos de Múltiplos Vínculos - Fontes Pagadoras</a>
+        <a href="#">Lançamentos de Múltiplos Vínculos - Fontes Pagadoras (Terceiros)</a>
+        <a href="#">Folha Complementar</a>
+        <a href="#">Treinamentos</a>
+        <a href="#">Outros</a>
+        <a href="{% url 'usuarios:listar' %}?banco={{ request.banco|default:'rta0001' }}">
+            Usuários Licença
+        </a>
+    </div>
+</li>

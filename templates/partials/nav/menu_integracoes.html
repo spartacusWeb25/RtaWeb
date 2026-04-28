@@ -1,0 +1,14 @@
+<li class="nav-item">
+    <button class="nav-btn"> <i class="bi bi-gear-wide-connected" style="font-size: 1.2rem;  color: #7fcec7;"></i> Integrações <i
+            class="bi bi-chevron-down chevron"></i>
+    </button>
+    <div class="dropdown-panel sortable-submenu">
+        <a href="#">Departamentos</a>
+        <a href="#">Empresas</a>
+        <a href="#">Filiais</a>
+        <a href="#">Setores</a>
+        <a href="{% url 'usuarios:listar' %}?banco={{ request.banco|default:'rta0001' }}">
+            Usuários Licença
+        </a>
+    </div>
+</li>
