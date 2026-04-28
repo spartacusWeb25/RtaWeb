@@ -1,0 +1,460 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ titulo }} — RtaWeb{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+<style>
+  .nav-tabs-scroll {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .nav-tabs-scroll .nav-link {
+    white-space: nowrap;
+  }
+
+  .tab-badge {
+    font-size: .65rem;
+    vertical-align: middle;
+  }
+
+  .form-check-label {
+    font-size: .875rem;
+  }
+
+  /* destaca campos com erro */
+  .field-error .form-control,
+  .field-error .form-select {
+    border-color: var(--bs-danger);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">
+        <i class="bi bi-person-badge"></i> {{ titulo }}
+      </h1>
+      <p class="page-subtitle">Cadastro e edição de funcionário</p>
+    </div>
+  </div>
+
+  {% if form.non_field_errors %}
+  <div class="alert alert-danger">
+    {% for erro in form.non_field_errors %}
+    <p class="mb-0">{{ erro }}</p>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <form method="post" id="form-funcionario" novalidate>
+    {% csrf_token %}
+
+    {# ------------------------------------------------------------------ #}
+    {# ABAS #}
+    {# ------------------------------------------------------------------ #}
+    <ul class="nav nav-tabs nav-tabs-scroll mb-0" id="funcTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-id" type="button">
+          <i class="bi bi-person-fill"></i> Identificação
+          {% if has_errors.identificacao %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-end" type="button">
+          <i class="bi bi-geo-alt-fill"></i> Endereço
+          {% if has_errors.endereco %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-vinc" type="button">
+          <i class="bi bi-briefcase-fill"></i> Vínculo
+          {% if has_errors.vinculo %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-sal" type="button">
+          <i class="bi bi-cash-coin"></i> Salário
+          {% if has_errors.salario %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-banco" type="button">
+          <i class="bi bi-bank2"></i> Banco / Pgto
+          {% if has_errors.banco %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-doc" type="button">
+          <i class="bi bi-file-earmark-text-fill"></i> Documentos
+          {% if has_errors.documentos %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-jorn" type="button">
+          <i class="bi bi-clock-fill"></i> Jornada
+          {% if has_errors.jornada %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-saude" type="button">
+          <i class="bi bi-heart-pulse-fill"></i> Saúde
+          {% if has_errors.saude %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-esoc" type="button">
+          <i class="bi bi-building-fill-check"></i> eSocial
+          {% if has_errors.esocial %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+    </ul>
+
+    <div class="app-form-card rounded-top-0">
+      <div class="tab-content" id="funcTabsContent">
+
+        {# ===== ABA: IDENTIFICAÇÃO ===== #}
+        <div class="tab-pane fade show active" id="tab-id" role="tabpanel">
+          <h6 class="text-muted mb-3">Dados Básicos</h6>
+          <div class="form-grid">
+            {% include "funcionarios/_field.html" with field=form.func_empr %}
+            {% include "funcionarios/_field.html" with field=form.func_fili %}
+            {% include "funcionarios/_field.html" with field=form.func_codi %}
+            {% include "funcionarios/_field.html" with field=form.func_regi %}
+            {% include "funcionarios/_field.html" with field=form.func_nome col="col-12 col-md-6" %}
+            {% include "funcionarios/_field.html" with field=form.func_sexo %}
+            {% include "funcionarios/_field.html" with field=form.func_dana %}
+            {% include "funcionarios/_field.html" with field=form.func_cpf %}
+            {% include "funcionarios/_field.html" with field=form.func_pis %}
+            {% include "funcionarios/_field.html" with field=form.func_esci %}
+            {% include "funcionarios/_field.html" with field=form.func_naci %}
+            {% include "funcionarios/_field.html" with field=form.func_raca %}
+            {% include "funcionarios/_field.html" with field=form.func_vinc %}
+            {% include "funcionarios/_field.html" with field=form.func_natu %}
+            {% include "funcionarios/_field.html" with field=form.func_uf_natu %}
+            {% include "funcionarios/_field.html" with field=form.func_pais_nasc %}
+            {% include "funcionarios/_field.html" with field=form.func_pais_naci %}
+          </div>
+
+          <h6 class="text-muted mb-3 mt-4">Contato</h6>
+          <div class="form-grid">
+            {% include "funcionarios/_field.html" with field=form.func_emai col="col-12 col-md-6" %}
+            {% include "funcionarios/_field.html" with field=form.func_celu %}
+            {% include "funcionarios/_field.html" with field=form.func_fone_dive %}
+          </div>
+
+          <h6 class="text-muted mb-3 mt-4">Status</h6>
+          <div class="row g-3">
+            {% include "funcionarios/_field_check.html" with field=form.func_inat %}
+            {% include "funcionarios/_field_check.html" with field=form.func_apre %}
+          </div>
+        </div>
+
+        {# ===== ABA: ENDEREÇO ===== #}
+        <div class="tab-pane fade" id="tab-end" role="tabpanel">
+          <div class="form-grid">
+            {% include "funcionarios/_field.html" with field=form.func_tipo_logr %}
+            {% include "funcionarios/_field.html" with field=form.func_ende col="col-12 col-md-6" %}
+            {% include "funcionarios/_field.html" with field=form.func_bair %}
+            {% include "funcionarios/_field.html" with field=form.func_cep %}
+            {% include "funcionarios/_field.html" with field=form.func_loca %}
+            {% include "funcionarios/_field.html" with field=form.func_esta %}
+            {% include "funcionarios/_field.html" with field=form.func_loca_uf %}
+            {% include "funcionarios/_field.html" with field=form.func_ibge %}
+          </div>
+        </div>
+
+        {# ===== ABA: VÍNCULO ===== #}
+        <div class="tab-pane fade" id="tab-vinc" role="tabpanel">
+          <h6 class="text-muted mb-3">Lotação</h6>
+          <div class="form-grid">
+            {% include "funcionarios/_field.html" with field=form.func_depa %}
+            {% include "funcionarios/_field.html" with field=form.func_seto %}
+            {% include "funcionarios/_field.html" with field=form.func_carg %}
+            {% include "funcionarios/_field.html" with field=form.func_catr %}
+            {% include "funcionarios/_field.html" with field=form.func_matr %}
+            {% include "funcionarios/_field.html" with field=form.func_cbo %}
+            {% include "funcionarios/_field.html" with field=form.func_grin %}
+            {% include "funcionarios/_field.html" with field=form.func_cose %}
+          </div>
+
+          <h6 class="text-muted mb-3 mt-4">Admissão / Demissão</h6>
+          <div class="form-grid">
+            {% include "funcionarios/_field.html" with field=form.func_daad %}
+            {% include "funcionarios/_field.html" with field=form.func_tiad %}
+            {% include "funcionarios/_field.html" with field=form.func_demi %}
+            {% include "funcionarios/_field.html" with field=form.func_tide %}
+            {% include "funcionarios/_field.html" with field=form.func_tipo_cont %}
+            {% include "funcionarios/_field.html" with field=form.func_data_term_cont %}
+            {% include "funcionarios/_field.html" with field=form.func_tisa %}
+            {% include "funcionarios/_field.html" with field=form.func_tisa_rais %}
+            {% include "funcionarios/_field.html" with field=form.func_fopa %}
+          </div>
+
+          <h6 class="text-muted mb-3 mt-4">Sindicato</h6>
+          <div class="form-grid">
+            {% include "funcionarios/_field.html" with field=form.func_sind %}
+            {% include "funcionarios/_field.html" with field=form.func_refe_desc_sind %}
+            {% include "funcionarios/_field_check.html" with field=form.func_func_sind %}
+          </div>
+
+          <h6 class="text-muted mb-3 mt-4">eSocial — Admissão</h6>
+          <div class="form-grid">
+            {% include "funcionarios/_field.html" with field=form.func_esoc_tipo_admi %}
+            {% include "funcionarios/_field.html" with field=form.func_esoc_indi_admi %}
+            {% include "funcionarios/_field.html" with field=form.func_natu_ativ %}
+            {% include "funcionarios/_field.html" with field=form.func_cate_esoc %}
+            {% include "funcionarios/_field.html" with field=form.func_cate_sefi %}
+            {% include "funcionarios/_field.html" with field=form.func_ocor_sefi %}
+            {% include "funcionarios/_field.html" with field=form.func_regi_prev %}
+            {% include "funcionarios/_field.html" with field=form.func_esoc_regi_jorn %}
+            {% include "funcionarios/_field.html" with field=form.func_indi_contr %}
+            {% include "funcionarios/_field.html" with field=form.func_tp_rein %}
+            {% include "funcionarios/_field.html" with field=form.func_num_proc %}
+            {% include "funcionarios/_field.html" with field=form.func_lei_anis %}
+            {% include "funcionarios/_field.html" with field=form.func_data_efet_reto %}
+            {% include "funcionarios/_field.html" with field=form.func_data_efeito %}
+            {% include "funcionarios/_field_check.html" with field=form.func_apos %}
+          </div>
+        </div>
+
+        {# ===== ABA: SALÁRIO ===== #}
+        <div class="tab-pane fade" id="tab-sal" role="tabpanel">
+          <h6 class="text-muted mb-3">Remuneração</h6>
+          <div class="form-grid">
+            {% include "funcionarios/_field.html" with field=form.func_same %}
+            {% include "funcionarios/_field.html" with field=form.func_saho %}
+            {% include "funcionarios/_field.html" with field=form.func_sala_cont %}
+            {% include "funcionarios/_field.html" with field=form.func_valo_diar %}
+            {% include "funcionarios/_field.html" with field=form.func_home %}
+            {% include "funcionarios/_field.html" with field=form.func_hose %}
+            {% include "funcionarios/_field.html" with field=form.func_jorn %}
+            {% include "funcionarios/_field.html" with field=form.func_norm %}
+            {% include "funcionarios/_field.html" with field=form.func_pens %}
+            {% include "funcionarios/_field.html" with field=form.func_alva %}
+          </div>
+
+          <h6 class="text-muted mb-3 mt-4">Adicionais</h6>
+          <div class="row g-3 mb-3">
+            {% include "funcionarios/_field_check.html" with field=form.func_adqu %}
+            {% include "funcionarios/_field_check.html" with field=form.func_insa %}
+            {% include "funcionarios/_field_check.html" with field=form.func_peri %}
+            {% include "funcionarios/_field_check.html" with field=form.func_vale_alim %}
+            {% include "funcionarios/_field_check.html" with field=form.func_vale_trans %}
+          </div>
+          <div class="form-grid">
+            {% include "funcionarios/_field.html" with field=form.func_perc_insa %}
+            {% include "funcionarios/_field.html" with field=form.func_insa_sobr %}
+            {% include "funcionarios/_field.html" with field=form.func_insa_sobr_valo %}
+            {% include "funcionarios/_field.html" with field=form.func_base_insa %}
+          </div>
+
+          <h6 class="text-muted mb-3 mt-4">Outra Remuneração</h6>
+          <div class="form-grid">
+            {% include "funcionarios/_field.html" with field=form.func_remu_outr_tpinsc %}
+            {% include "funcionarios/_field.html" with field=form.func_remu_outr_nrinsc %}
+            {% include "funcionarios/_field.html" with field=form.func_remu_outr_cate %}
+            {% include "funcionarios/_field.html" with field=form.func_remu_outr_valo %}
+            {% include "funcionarios/_field.html" with field=form.func_remu_outr_indi %}
+          </div>
+        </div>
+
+        {# ===== ABA: BANCO / PAGAMENTO ===== #}
+        <div class="tab-pane fade" id="tab-banco" role="tabpanel">
+          <h6 class="text-muted mb-3">Dados Bancários</h6>
+          <div class="form-grid">
+            {% include "funcionarios/_field.html" with field=form.func_banc_paga %}
+            {% include "funcionarios/_field.html" with field=form.func_agen %}
+            {% include "funcionarios/_field.html" with field=form.func_cont_paga %}
+            {% include "funcionarios/_field.html" with field=form.func_tipo_cred %}
+          </div>
+
+          <h6 class="text-muted mb-3 mt-4">FGTS</h6>
+          <div class="form-grid">
+            {% include "funcionarios/_field.html" with field=form.func_cont_fgts %}
+            {% include "funcionarios/_field.html" with field=form.func_daop_fgts %}
+            {% include "funcionarios/_field.html" with field=form.func_cons_fgts_inst %}
+            {% include "funcionarios/_field.html" with field=form.func_cons_fgts_contr %}
+            {% include "funcionarios/_field.html" with field=form.func_cons_fgts_even %}
+          </div>
+
+          <h6 class="text-muted mb-3 mt-4">Descontos</h6>
+          <div class="row g-3">
+            {% include "funcionarios/_field_check.html" with field=form.func_inss %}
+            {% include "funcionarios/_field_check.html" with field=form.func_fgts %}
+            {% include "funcionarios/_field_check.html" with field=form.func_irrf %}
+          </div>
+        </div>
+
+        {# ===== ABA: DOCUMENTOS ===== #}
+        <div class="tab-pane fade" id="tab-doc" role="tabpanel">
+
+          <h6 class="text-muted mb-3">CTPS</h6>
+          <div class="form-grid">
+            {% include "funcionarios/_field.html" with field=form.func_ctps %}
+            {% include "funcionarios/_field.html" with field=form.func_seri_ctps %}
+            {% include "funcionarios/_field.html" with field=form.func_esta_ctps %}
+            {% include "funcionarios/_field.html" with field=form.func_emis_ctps %}
+          </div>
+
+          <h6 class="text-muted mb-3 mt-4">RG</h6>
+          <div class="form-grid">
+            {% include "funcionarios/_field.html" with field=form.func_rege %}
+            {% include "funcionarios/_field.html" with field=form.func_rege_orga %}
+            {% include "funcionarios/_field.html" with field=form.func_rege_expe %}
+            {% include "funcionarios/_field.html" with field=form.func_rege_uf %}
+          </div>
+
+          <h6 class="text-muted mb-3 mt-4">Título de Eleitor</h6>
+          <div class="form-grid">
+            {% include "funcionarios/_field.html" with field=form.func_titu %}
+            {% include "funcionarios/_field.html" with field=form.func_digi_titu %}
+            {% include "funcionarios/_field.html" with field=form.func_zona_titu %}
+            {% include "funcionarios/_field.html" with field=form.func_seca_titu %}
+          </div>
+
+          <h6 class="text-muted mb-3 mt-4">Registro Profissional</h6>
+          <div class="form-grid">
+            {% include "funcionarios/_field.html" with field=form.func_regi_prof %}
+            {% include "funcionarios/_field.html" with field=form.func_regi_cate %}
+            {% include "funcionarios/_field.html" with field=form.func_regi_vali %}
+          </div>
+
+          <h6 class="text-muted mb-3 mt-4">CNH</h6>
+          <div class="form-grid">
+            {% include "funcionarios/_field.html" with field=form.func_cnh %}
+            {% include "funcionarios/_field.html" with field=form.func_cate %}
+            {% include "funcionarios/_field.html" with field=form.func_cnh_prim %}
+            {% include "funcionarios/_field.html" with field=form.func_cnh_emis %}
+            {% include "funcionarios/_field.html" with field=form.func_cnh_vali %}
+            {% include "funcionarios/_field.html" with field=form.func_cnh_esta %}
+          </div>
+
+          <h6 class="text-muted mb-3 mt-4">RNE / Estrangeiro</h6>
+          <div class="form-grid">
+            {% include "funcionarios/_field.html" with field=form.func_rne %}
+            {% include "funcionarios/_field.html" with field=form.func_rne_emis %}
+            {% include "funcionarios/_field.html" with field=form.func_rne_expe %}
+            {% include "funcionarios/_field.html" with field=form.func_extr_cond %}
+            {% include "funcionarios/_field.html" with field=form.func_extr_data_cheg %}
+          </div>
+          <div class="row g-3 mt-1">
+            {% include "funcionarios/_field_check.html" with field=form.func_extr_casa_bras %}
+            {% include "funcionarios/_field_check.html" with field=form.func_extr_filh_bras %}
+          </div>
+
+          <h6 class="text-muted mb-3 mt-4">Deficiência</h6>
+          <div class="form-grid">
+            {% include "funcionarios/_field.html" with field=form.func_defi %}
+            {% include "funcionarios/_field.html" with field=form.func_tipo_defi %}
+          </div>
+          <div class="row g-3 mt-1">
+            {% include "funcionarios/_field_check.html" with field=form.func_defi_cota %}
+          </div>
+        </div>
+
+        {# ===== ABA: JORNADA ===== #}
+        <div class="tab-pane fade" id="tab-jorn" role="tabpanel">
+          <h6 class="text-muted mb-3">Horários</h6>
+          <div class="form-grid">
+            {% include "funcionarios/_field.html" with field=form.func_en01 %}
+            {% include "funcionarios/_field.html" with field=form.func_sa01 %}
+            {% include "funcionarios/_field.html" with field=form.func_en02 %}
+            {% include "funcionarios/_field.html" with field=form.func_sa02 %}
+          </div>
+
+          <h6 class="text-muted mb-3 mt-4">Regimes Especiais</h6>
+          <div class="form-grid">
+            {% include "funcionarios/_field.html" with field=form.func_saba %}
+            {% include "funcionarios/_field.html" with field=form.func_domi %}
+            {% include "funcionarios/_field.html" with field=form.func_feri %}
+          </div>
+
+          <h6 class="text-muted mb-3 mt-4">Férias</h6>
+          <div class="form-grid">
+            {% include "funcionarios/_field.html" with field=form.func_dia1 %}
+            {% include "funcionarios/_field.html" with field=form.func_ven1 %}
+            {% include "funcionarios/_field.html" with field=form.func_dia2 %}
+            {% include "funcionarios/_field.html" with field=form.func_ven2 %}
+            {% include "funcionarios/_field.html" with field=form.func_temp_resi %}
+          </div>
+        </div>
+
+        {# ===== ABA: SAÚDE ===== #}
+        <div class="tab-pane fade" id="tab-saude" role="tabpanel">
+          <h6 class="text-muted mb-3">Exame Periódico</h6>
+          <div class="form-grid">
+            {% include "funcionarios/_field.html" with field=form.func_venc_exam %}
+            {% include "funcionarios/_field.html" with field=form.func_exam_data %}
+            {% include "funcionarios/_field.html" with field=form.func_exam_codi %}
+            {% include "funcionarios/_field.html" with field=form.func_exam_cnpj %}
+            {% include "funcionarios/_field.html" with field=form.func_exam_crm %}
+            {% include "funcionarios/_field.html" with field=form.func_exam_crm_uf %}
+            {% include "funcionarios/_field.html" with field=form.func_data_expi_exam_ocup %}
+            {% include "funcionarios/_field.html" with field=form.func_tipo_exam_ocup %}
+          </div>
+
+          <h6 class="text-muted mb-3 mt-4">Estágio / Aprendiz</h6>
+          <div class="form-grid">
+            {% include "funcionarios/_field.html" with field=form.func_esta_natu_esta %}
+            {% include "funcionarios/_field.html" with field=form.func_esta_nive_esta %}
+            {% include "funcionarios/_field.html" with field=form.func_esta_data_term %}
+            {% include "funcionarios/_field.html" with field=form.func_esta_inst_ensi %}
+            {% include "funcionarios/_field.html" with field=form.func_apren_contr_dire %}
+            {% include "funcionarios/_field.html" with field=form.func_apren_enti_qual %}
+          </div>
+        </div>
+
+        {# ===== ABA: eSocial ===== #}
+        <div class="tab-pane fade" id="tab-esoc" role="tabpanel">
+          <h6 class="text-muted mb-3">Identificação eSocial</h6>
+          <div class="form-grid">
+            {% include "funcionarios/_field.html" with field=form.func_esoc_tipo_insc %}
+            {% include "funcionarios/_field.html" with field=form.func_esoc_nume_insc %}
+            {% include "funcionarios/_field.html" with field=form.func_esoc_matr_ante %}
+            {% include "funcionarios/_field.html" with field=form.func_codi_lota_trib %}
+            {% include "funcionarios/_field.html" with field=form.func_cate_tpinsc %}
+            {% include "funcionarios/_field.html" with field=form.func_cate_nrinsc %}
+          </div>
+
+          <h6 class="text-muted mb-3 mt-4">Transmissão</h6>
+          <div class="form-grid">
+            {% include "funcionarios/_field.html" with field=form.func_esoc_data_tran %}
+            {% include "funcionarios/_field.html" with field=form.func_esoc_tran_obse col="col-12" %}
+          </div>
+        </div>
+
+      </div>{# /tab-content #}
+
+      {# AÇÕES #}
+      <div class="form-actions-row mt-4 pt-3 border-top">
+        <button type="submit" class="btn btn-success">
+          <i class="bi bi-floppy-fill"></i> Salvar
+        </button>
+        <a href="{% url 'funcionarios:listar' %}?banco={{ request.banco }}" class="btn btn-outline-secondary">
+          <i class="bi bi-arrow-left"></i> Voltar
+        </a>
+      </div>
+
+    </div>{# /app-form-card #}
+  </form>
+  {% endblock %}
+
+  {% block extra_js %}
+  <script>
+    // Abre automaticamente a aba que contém o primeiro campo com erro
+    document.addEventListener('DOMContentLoaded', () => {
+      const firstError = document.querySelector('.is-invalid, .field-error');
+      if (!firstError) return;
+      const pane = firstError.closest('.tab-pane');
+      if (!pane) return;
+      const trigger = document.querySelector(`[data-bs-target="#${pane.id}"]`);
+      if (trigger) trigger.click();
+    });
+  </script>
+  {% endblock %}

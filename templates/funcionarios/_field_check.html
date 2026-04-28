@@ -1,0 +1,12 @@
+{# funcionarios/_field_check.html #}
+<div class="col-auto">
+  <div class="form-check">
+    {{ field }}
+    <label class="form-check-label" for="{{ field.id_for_label }}">
+      {{ field.label }}
+    </label>
+    {% if field.errors %}
+      <div class="invalid-feedback d-block">{{ field.errors|join:', ' }}</div>
+    {% endif %}
+  </div>
+</div>

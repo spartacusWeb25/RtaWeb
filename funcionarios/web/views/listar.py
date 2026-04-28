@@ -7,7 +7,7 @@ from funcionarios.services import FuncionariosService
 
 class FuncionarioListView(BancoObrigatorioMixin, ListView):
     model = Funcionarios
-    template_name = "funcionarios/listar.html"
+    template_name = "funcionarios/funcionario_list.html"
     context_object_name = "funcionarios"
     paginate_by = 20
 

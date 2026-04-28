@@ -5,7 +5,7 @@ from django.db import connections
 D0 = Decimal("0.00")
 
 
-def money(value):
+def valores(value):
     if value is None:
         return D0
     return Decimal(value).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
@@ -172,7 +172,7 @@ class FolhaMensal:
                 }
 
             resumo = por_funcionario[chave]
-            valor = money(item["fome_valo"])
+            valor = valores(item["fome_valo"])
             tipo = cls._classificar_tipo(item)
 
             if tipo == "desconto":
@@ -193,7 +193,7 @@ class FolhaMensal:
                 "codigo": item["fome_even"],
                 "descricao": item["even_desc"],
                 "tipo": tipo,
-                "base": money(item["fome_base"]),
+                "base": valores(item["fome_base"]),
                 "percentual": item["fome_perc"],
                 "valor": valor,
                 "incide_inss": bool(item.get("even_inss")),
@@ -202,8 +202,8 @@ class FolhaMensal:
             })
 
         for resumo in por_funcionario.values():
-            resumo["fgts_estimado"] = money(resumo["base_fgts"] * Decimal("0.08"))
-            resumo["liquido"] = money(resumo["proventos"] - resumo["descontos"])
+            resumo["fgts_estimado"] = valores(resumo["base_fgts"] * Decimal("0.08"))
+            resumo["liquido"] = valores(resumo["proventos"] - resumo["descontos"])
 
         return list(por_funcionario.values())
 
@@ -256,7 +256,7 @@ class FolhaMensal:
 
     @staticmethod
     def calcular_inss_progressivo(*, base, tabela):
-        base = money(base)
+        base = valores(base)
 
         if not tabela:
             return {
@@ -267,13 +267,13 @@ class FolhaMensal:
             }
 
         faixas = [
-            (money(tabela.get("tabe_fa01")), money(tabela.get("tabe_pe01"))),
-            (money(tabela.get("tabe_fa02")), money(tabela.get("tabe_pe02"))),
-            (money(tabela.get("tabe_fa03")), money(tabela.get("tabe_pe03"))),
-            (money(tabela.get("tabe_fa04")), money(tabela.get("tabe_pe04"))),
+            (valores(tabela.get("tabe_fa01")), valores(tabela.get("tabe_pe01"))),
+            (valores(tabela.get("tabe_fa02")), valores(tabela.get("tabe_pe02"))),
+            (valores(tabela.get("tabe_fa03")), valores(tabela.get("tabe_pe03"))),
+            (valores(tabela.get("tabe_fa04")), valores(tabela.get("tabe_pe04"))),
         ]
 
-        teto = money(tabela.get("tabe_maxr"))
+        teto = valores(tabela.get("tabe_maxr"))
         if teto > 0 and base > teto:
             base_calculo = teto
         else:
@@ -290,7 +290,7 @@ class FolhaMensal:
             faixa_base = min(base_calculo, limite) - anterior
 
             if faixa_base > 0:
-                valor_faixa = money(faixa_base * (aliquota / Decimal("100")))
+                valor_faixa = valores(faixa_base * (aliquota / Decimal("100")))
                 total += valor_faixa
 
                 detalhes.append({
@@ -306,7 +306,7 @@ class FolhaMensal:
             if base_calculo <= limite:
                 break
 
-        desconto_maximo = money(tabela.get("tabe_dema"))
+        desconto_maximo = valores(tabela.get("tabe_dema"))
 
         if desconto_maximo > 0 and total > desconto_maximo:
             total = desconto_maximo
@@ -314,7 +314,7 @@ class FolhaMensal:
         return {
             "base": base,
             "base_calculo": base_calculo,
-            "valor": money(total),
+            "valor": valores(total),
             "faixas": detalhes,
             "teto": teto,
             "desconto_maximo": desconto_maximo,
@@ -322,8 +322,8 @@ class FolhaMensal:
 
     @staticmethod
     def calcular_irrf(*, base_irrf, valor_inss, dependentes, tabela):
-        base_irrf = money(base_irrf)
-        valor_inss = money(valor_inss)
+        base_irrf = valores(base_irrf)
+        valor_inss = valores(valor_inss)
 
         if not tabela:
             return {
@@ -333,10 +333,10 @@ class FolhaMensal:
                 "observacao": "Tabela IRRF não encontrada para a referência.",
             }
 
-        deducao_dependente = money(tabela.get("irrf_dede"))
+        deducao_dependente = valores(tabela.get("irrf_dede"))
         dependentes = int(dependentes or 0)
 
-        base_calculo = money(
+        base_calculo = valores(
             base_irrf
             - valor_inss
             - (deducao_dependente * Decimal(dependentes))
@@ -352,10 +352,10 @@ class FolhaMensal:
             }
 
         faixas = [
-            (money(tabela.get("irrf_fa01")), money(tabela.get("irrf_pe01")), money(tabela.get("irrf_de01"))),
-            (money(tabela.get("irrf_fa02")), money(tabela.get("irrf_pe02")), money(tabela.get("irrf_de02"))),
-            (money(tabela.get("irrf_fa03")), money(tabela.get("irrf_pe03")), money(tabela.get("irrf_de03"))),
-            (money(tabela.get("irrf_fa04")), money(tabela.get("irrf_pe04")), money(tabela.get("irrf_de04"))),
+            (valores(tabela.get("irrf_fa01")), valores(tabela.get("irrf_pe01")), valores(tabela.get("irrf_de01"))),
+            (valores(tabela.get("irrf_fa02")), valores(tabela.get("irrf_pe02")), valores(tabela.get("irrf_de02"))),
+            (valores(tabela.get("irrf_fa03")), valores(tabela.get("irrf_pe03")), valores(tabela.get("irrf_de03"))),
+            (valores(tabela.get("irrf_fa04")), valores(tabela.get("irrf_pe04")), valores(tabela.get("irrf_de04"))),
         ]
 
         aliquota = D0
@@ -370,7 +370,7 @@ class FolhaMensal:
             aliquota = perc
             deducao = ded
 
-        valor = money((base_calculo * (aliquota / Decimal("100"))) - deducao)
+        valor = valores((base_calculo * (aliquota / Decimal("100"))) - deducao)
 
         if valor < 0:
             valor = D0
@@ -411,7 +411,7 @@ class FolhaMensal:
             totais["base_fgts"] += item["base_fgts"]
             totais["fgts"] += item["fgts_estimado"]
 
-        return {k: money(v) if k != "funcionarios" else v for k, v in totais.items()}
+        return {k: valores(v) if k != "funcionarios" else v for k, v in totais.items()}
 
     @staticmethod
     def _buscar_tabela_inss(*, db_alias, referencia):
@@ -493,7 +493,7 @@ class FolhaMensal:
 
     @staticmethod
     def _valor_base_tributavel(valor, tipo):
-        valor = money(valor)
+        valor = valores(valor)
 
         if tipo == "desconto":
             return -valor

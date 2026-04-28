@@ -1,0 +1,15 @@
+{# funcionarios/_field.html #}
+{# Uso: {% include "funcionarios/_field.html" with field=form.campo col="col-12 col-md-4" %} #}
+<div class="{% if col %}{{ col }}{% else %}col-12 col-md-4{% endif %}{% if field.errors %} field-error{% endif %}">
+  <label class="form-label" for="{{ field.id_for_label }}">
+    {{ field.label }}
+    {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+  </label>
+  {{ field }}
+  {% if field.help_text %}
+    <div class="form-text">{{ field.help_text }}</div>
+  {% endif %}
+  {% if field.errors %}
+    <div class="invalid-feedback d-block">{{ field.errors|join:', ' }}</div>
+  {% endif %}
+</div>
