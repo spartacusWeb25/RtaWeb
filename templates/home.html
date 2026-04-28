@@ -49,6 +49,43 @@
         object-fit: contain;
     }
 
+    .calendar-home-trigger {
+        position: fixed;
+        top: calc(var(--nav-height) + 16px);
+        right: 18px;
+        z-index: 1040;
+        border-radius: 999px;
+        padding: 8px 14px;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, .12);
+    }
+
+    .calendar-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        max-height: 280px;
+        overflow-y: auto;
+    }
+
+    .calendar-item {
+        border: 1px solid #e8e8e8;
+        border-radius: 8px;
+        padding: 10px;
+        margin-bottom: 8px;
+        background: #fff;
+        text-align: left;
+    }
+
+    .calendar-item-title {
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .calendar-item-date {
+        font-size: 13px;
+        color: #6c757d;
+    }
+
     @media (max-width: 768px) {
         .home-shell {
             min-height: calc(100vh - var(--nav-height) - 32px);
@@ -67,19 +104,142 @@
             width: min(100%, 720px);
             max-height: calc(100vh - var(--nav-height) - 150px);
         }
+
+        .calendar-home-trigger {
+            right: 10px;
+            top: calc(var(--nav-height) + 10px);
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
+<button
+    type="button"
+    class="btn btn-primary calendar-home-trigger"
+    data-bs-toggle="modal"
+    data-bs-target="#modalCalendario"
+>
+    <i class="bi bi-calendar-event"></i> Calendário
+</button>
+
 <div class="home-shell">
 <div class="home-card">
     <div class="home-header">
         <h1 class="home-title">Bem-vindo(a)!!!  <p class="home-subtitle">{{ request.user.usuanome|default:request.session.usuario_nome|default:'RtaWeb' }}</p></h1>
-       
     </div>
     <img class="home-logo" src="{% static 'core/img/logo.png' %}" alt="Logo Rta Sistemas">
 </div>
 </div>
 
+<div class="modal fade" id="modalCalendario" tabindex="-1" aria-labelledby="modalCalendarioLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalCalendarioLabel">Calendário de eventos</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="eventoCalendarioForm" class="row g-3" method="post" action="{% url 'calendario:evento_criar' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="banco" value="{{ request.banco|default:'rta0001' }}">
+                    <div class="col-md-4">
+                        <label for="id_cale_cida" class="form-label">Código</label>
+                        <input id="id_cale_cida" class="form-control" name="cale_cida" maxlength="7" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="id_cale_refe" class="form-label">Referência</label>
+                        <input id="id_cale_refe" class="form-control" name="cale_refe" maxlength="7" placeholder="AAAAMM" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="id_cale_data" class="form-label">Data</label>
+                        <input id="id_cale_data" type="date" class="form-control" name="cale_data" required>
+                    </div>
+                    <div class="col-12">
+                        <div class="form-check">
+                            <input id="id_cale_dia_desc" class="form-check-input" type="checkbox" name="cale_dia_desc">
+                            <label class="form-check-label" for="id_cale_dia_desc">Dia com descanso</label>
+                        </div>
+                    </div>
+                    <div class="col-12 d-flex justify-content-end">
+                        <button type="submit" class="btn btn-success">Adicionar evento</button>
+                    </div>
+                </form>
+
+                <hr>
+                <h6 class="mb-3">Eventos cadastrados</h6>
+                <ul id="calendarEventList" class="calendar-list"></ul>
+                <p id="calendarEmpty" class="text-muted mb-0 d-none">Nenhum evento encontrado para o período.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    const banco = "{{ request.banco|default:'rta0001'|escapejs }}";
+    const modalEl = document.getElementById("modalCalendario");
+    const eventListEl = document.getElementById("calendarEventList");
+    const emptyEl = document.getElementById("calendarEmpty");
+
+    if (!modalEl || !eventListEl || !emptyEl) {
+        return;
+    }
+
+    const modal = new bootstrap.Modal(modalEl);
+
+    function renderEventos(eventos) {
+        eventListEl.innerHTML = "";
+        if (!eventos.length) {
+            emptyEl.classList.remove("d-none");
+            return;
+        }
+
+        emptyEl.classList.add("d-none");
+        eventos.forEach((evento) => {
+            const li = document.createElement("li");
+            li.className = "calendar-item";
+            li.innerHTML = `
+                <div class="calendar-item-title">Código: ${evento.codigo} • Referência: ${evento.referencia}</div>
+                <div class="calendar-item-date">Data: ${new Date(evento.data + 'T00:00:00').toLocaleDateString('pt-BR')} ${evento.descanso ? '• Descanso' : ''}</div>
+            `;
+            eventListEl.appendChild(li);
+        });
+    }
+
+    async function carregarEventos(params = "") {
+        const response = await fetch(`{% url 'calendario:eventos_json' %}?banco=${encodeURIComponent(banco)}${params}`);
+        if (!response.ok) {
+            throw new Error("Não foi possível carregar os eventos.");
+        }
+
+        return response.json();
+    }
+
+    modalEl.addEventListener("show.bs.modal", async () => {
+        try {
+            const data = await carregarEventos("");
+            renderEventos(data.eventos || []);
+        } catch (error) {
+            eventListEl.innerHTML = "";
+            emptyEl.textContent = "Erro ao carregar os eventos.";
+            emptyEl.classList.remove("d-none");
+        }
+    });
+
+    document.addEventListener("DOMContentLoaded", async () => {
+        try {
+            const data = await carregarEventos("&somente_hoje=1");
+            if (data.total > 0) {
+                renderEventos(data.eventos || []);
+                modal.show();
+            }
+        } catch (error) {
+            // silencioso: não bloqueia carregamento da home
+        }
+    });
+})();
+</script>
 {% endblock %}
