@@ -1,0 +1,36 @@
+{% extends "tabelas/base_tabelas.html" %}
+
+{% block tabelas_content %}
+<div class="row g-3">
+    <div class="col-12">
+        <h2 id="title"><i class="bi bi-tablet-landscape"></i> Consulta SQL IRRF</h2>
+    </div>
+
+    <div class="col-12">
+        {% if registro %}
+        <div class="table-wrapper">
+            <div class="table-scroll">
+                <table class="app-table">
+                    <thead>
+                        <tr>
+                            <th>Campo</th>
+                            <th>Valor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for campo, valor in registro.items %}
+                        <tr>
+                            <td>{{ campo }}</td>
+                            <td>{{ valor }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+        <div class="list-card-empty">Informe o parâmetro <code>?ref=AAAAMM</code> para consulta.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

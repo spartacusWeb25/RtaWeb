@@ -1,0 +1,72 @@
+{% extends "tabelas/base_tabelas.html" %}
+
+{% block tabelas_content %}
+<div class="row g-3">
+    <div class="col-12">
+        <h2 id="title"><i class="bi bi-tablet-landscape"></i> Tabela INSS</h2>
+    </div>
+
+    <div class="col-12 d-none d-md-block">
+        <div class="table-wrapper">
+            <div class="table-scroll">
+                <table class="app-table">
+                    <thead>
+                        <tr>
+                            <th>Referência</th>
+                            <th>Faixas (01-02)</th>
+                            <th>Faixas (03-04)</th>
+                            <th>Alíquota (01)</th>
+                            <th>Alíquota (02)</th>
+                            <th>Alíquota (03)</th>
+                            <th>Alíquota (04)</th>
+                            <th>Teto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in tabelas %}
+                        <tr>
+                            <td>{{ t.tabe_refe }}</td>
+                            <td>{{ t.tabe_fa01 }} - {{ t.tabe_fa02 }}</td>
+                            <td>{{ t.tabe_fa03 }} - {{ t.tabe_fa04 }}</td>
+                            <td>{{ t.tabe_pe01 }}</td>
+                            <td>{{ t.tabe_pe02 }}</td>
+                            <td>{{ t.tabe_pe03 }}</td>
+                            <td>{{ t.tabe_pe04 }}</td>
+                            <td>{{ t.tabe_maxr }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8">Nada encontrado</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 d-block d-md-none">
+        <div class="list-card-view">
+            {% for t in tabelas %}
+            <article class="list-card-item">
+                <div class="list-card-head">
+                    <strong>Tabela INSS</strong>
+                    <span>{{ t.tabe_refe }}</span>
+                </div>
+                <div class="list-card-grid">
+                    <p><small>Faixas 1-2</small>{{ t.tabe_fa01 }} - {{ t.tabe_fa02 }}</p>
+                    <p><small>Faixas 3-4</small>{{ t.tabe_fa03 }} - {{ t.tabe_fa04 }}</p>
+                    <p><small>Alíq 1</small>{{ t.tabe_pe01 }}</p>
+                    <p><small>Alíq 2</small>{{ t.tabe_pe02 }}</p>
+                    <p><small>Alíq 3</small>{{ t.tabe_pe03 }}</p>
+                    <p><small>Alíq 4</small>{{ t.tabe_pe04 }}</p>
+                    <p><small>Teto</small>{{ t.tabe_maxr }}</p>
+                </div>
+            </article>
+            {% empty %}
+            <div class="list-card-empty">Nada encontrado</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
