@@ -7,12 +7,15 @@
 {% block extra_css %}
 <link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
 <link href="{% static 'core/css/list-cards.css' %}" rel="stylesheet">
+<link href="{% static 'core/css/tabelas-layout.css' %}" rel="stylesheet">
+
 {% endblock %}
 
 {% block content %}
 <div class="page-header">
     <div>
-        <h1 class="page-title"><i class="bi bi-people-fill"></i> Funcionários</h1>
+        <h1 id="title"><i class="bi bi-people-fill"></i> Funcionários</h1>
+        <p id="subtitle"><i class="bi bi-filter"></i> Consulta e filtro de registros de funcionários</p>
     
     </div>
 </div>
@@ -25,9 +28,9 @@
             <input class="form-control" type="text" name="nome" value="{{ request.GET.nome|default:'' }}" placeholder="Pesquisar por nome">
         </div>
         <div class="form-actions-row">
-            <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search"></i> Filtrar</button>
-            <a href="?banco={{ request.banco }}" class="btn btn-outline-secondary btn-sm">Limpar</a>
-            <a href="{% url 'funcionarios:criar' %}?banco={{ request.banco }}" class="btn btn-success btn-sm"><i class="bi bi-plus-lg"></i> Novo</a>
+            <button type="submit" class="btn"><i class="bi bi-search" id="botao-filtrar"></i></button>
+            <a href="?banco={{ request.banco }}" class="btn btn-outline-secondary btn-sm" id="botao-limpar">Limpar</a>
+            <a href="{% url 'funcionarios:criar' %}?banco={{ request.banco }}" class="btn btn-success btn-sm" id="botao-novo"><i class="bi bi-plus-lg"></i> Novo</a>
         </div>
     </form>
 </div>
@@ -90,3 +93,4 @@
     {% endfor %}
 </div>
 {% endblock %}
+

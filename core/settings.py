@@ -95,6 +95,7 @@ INSTALLED_APPS = [
     'folhamensal',
     'funcionarios',
     'licencas',
+    'tabelas',
 ]
 
 MIDDLEWARE = [

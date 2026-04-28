@@ -1,0 +1,147 @@
+#title {
+  font-size: 30px;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+#subtitle {
+  font-size: 12px;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+
+#botao-filtrar {
+  margin-right: 10px;
+  background: linear-gradient(90deg, rgb(82, 80, 80), rgb(170, 157, 157));
+  color: var(--text-primary);
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+#botao-filtrar:hover {
+  background: linear-gradient(90deg, rgb(120, 118, 118), rgb(255, 255, 255));
+  color: rgb(0, 0, 0);
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+#botao-limpar {
+  margin-right: 10px;
+  background: linear-gradient(90deg, rgb(176, 155, 224), rgb(143, 48, 187));
+  color: black;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+#botao-limpar:hover {
+  background: linear-gradient(90deg, rgb(255, 255, 255), rgb(255, 255, 255));
+  color: rgb(0, 0, 0);
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+#botao-novo {
+  margin-right: 10px;
+  background: linear-gradient(90deg, rgb(179, 238, 209), rgb(65, 117, 91));
+  color: black;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+#botao-novo:hover {
+  background: linear-gradient(90deg, rgb(1, 80, 36), rgb(255, 255, 255));
+  color: rgb(0, 0, 0);
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.tabelas-page {
+  width: calc(100vw - 56px);
+  margin-left: calc(50% - 50vw + 48px);
+  padding: 14px 16px 0 0;
+}
+
+/* ===== LAYOUT ===== */
+.tabelas-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+/* ===== SIDEBAR ===== */
+.tabelas-sidebar-wrap {
+  width: 220px;
+  flex: 0 0 220px;
+}
+
+.sidebar {
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 16px;
+  min-height: 75vh;
+}
+
+.sidebar h4 {
+  font-size: 16px;
+  margin-bottom: 16px;
+}
+
+.sidebar a {
+  display: block;
+  color: var(--text-muted);
+  text-decoration: none;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+  color: var(--text-primary);
+  background: var(--surface-hover);
+}
+
+/* ===== MAIN ===== */
+.tabelas-main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ===== MOBILE ===== */
+@media (max-width: 768px) {
+  .tabelas-page {
+    width: 100%;
+    margin-left: 0;
+    padding: 10px;
+  }
+
+  .tabelas-row {
+    flex-direction: column;
+  }
+
+  .tabelas-sidebar-wrap {
+    display: none;
+  }
+}

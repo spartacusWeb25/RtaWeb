@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+<link href="{% static 'core/css/list-cards.css' %}" rel="stylesheet">
+<link href="{% static 'core/css/tabelas-layout.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="tabelas-page">
+    <div class="tabelas-row">
+
+        <aside class="tabelas-sidebar-wrap d-none d-md-block">
+            <div class="sidebar">
+                <h4><i class="bi bi-tablet-landscape"></i> Tabelas</h4>
+
+                <a href="#">Salário Família</a>
+                <a href="#">Salário mínimo</a>
+                <a href="#">INSS</a>
+                <a href="#">IR</a>
+                <a href="{% url 'irrf_list' %}" class="{% if request.resolver_match.url_name == 'irrf_list' %}active{% endif %}">IRPF</a>
+                <a href="#">PIS</a>
+                <a href="#">Contribuição sindical patronal</a>
+                <a href="#">Cédulas e Moedas</a>
+                <a href="#">Índices mensais</a>
+                <a href="#">Índices para FGTS</a>
+                <a href="#">Vencimentos</a>
+                <a href="#">Planos de saúde</a>
+            </div>
+        </aside>
+
+        <main class="tabelas-main">
+
+            <div class="d-md-none mb-3">
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="#" class="btn btn-outline-secondary btn-sm">Salário Família</a>
+                    <a href="#" class="btn btn-outline-secondary btn-sm">Salário mínimo</a>
+                    <a href="#" class="btn btn-outline-secondary btn-sm">INSS</a>
+                    <a href="#" class="btn btn-outline-secondary btn-sm">IR</a>
+                    <a href="{% url 'irrf_list' %}" class="btn btn-outline-primary btn-sm">IRPF</a>
+                    <a href="#" class="btn btn-outline-secondary btn-sm">PIS</a>
+                </div>
+            </div>
+
+            {% block tabelas_content %}{% endblock %}
+
+        </main>
+
+    </div>
+</div>
+{% endblock %}

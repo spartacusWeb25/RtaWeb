@@ -6,13 +6,14 @@
 {% block extra_css %}
 <link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
 <link href="{% static 'core/css/list-cards.css' %}" rel="stylesheet">
+<link href="{% static 'core/css/tabelas-layout.css' %}" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
 <div class="page-header">
     <div>
-        <h1 class="page-title">Usuários por Registro</h1>
-        <p class="page-subtitle">Gestão de usuários da licença ativa</p>
+        <h1 id="title"><i class="bi bi-person-fill-gear" style="color: rgb(96, 158, 158);"></i> Usuários por Registro</h1>
+        <p id="subtitle">Gestão de usuários da licença ativa</p>
     </div>
 </div>
 
@@ -32,9 +33,9 @@
         </div>
 
         <div class="form-actions-row">
-            <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
-            <a href="?banco={{ banco }}" class="btn btn-outline-secondary btn-sm">Limpar</a>
-            <a href="{% url 'usuarios:criar' %}?banco={{ banco }}" class="btn btn-success btn-sm">Novo</a>
+            <button type="submit" class="btn btn-primary btn-sm" id="botao-filtrar"><i class="bi bi-filter"></i> Filtrar</button>
+            <a href="?banco={{ banco }}" class="btn btn-outline-secondary btn-sm" id="botao-limpar"><i class="bi bi-eraser"></i> Limpar</a>
+            <a href="{% url 'usuarios:criar' %}?banco={{ banco }}" class="btn btn-success btn-sm" id="botao-novo"><i class="bi bi-plus"></i> Novo Usuário</a>
         </div>
     </form>
 </div>

@@ -9,7 +9,7 @@ class FolhaMensalListView(BancoObrigatorioMixin, ListView):
     model = Folhamensal
     template_name = "folha/folha_mensal_listar.html"
     context_object_name = "folhas"
-    paginate_by = 50
+    paginate_by = 25
 
     def get_queryset(self):
         # A conferência consome os dados em `dados` via serviço SQL consolidado.

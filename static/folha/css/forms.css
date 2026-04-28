@@ -71,11 +71,11 @@
 
 .page-header {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-    gap: 10px;
+    justify-content: center;
+}
+
+.page-header > div {
+    text-align: center;
 }
 
 .page-title {
@@ -83,10 +83,25 @@
     font-weight: 600;
     color: var(--text-primary);
     margin: 0;
+    text-align: center;
 }
 
 .page-subtitle {
     font-size: 13px;
     color: var(--text-muted);
     margin-top: 2px;
+    text-align: center;
+}
+
+
+#title-folha {
+  font-size: 30px;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+#subtitle-folha {
+  font-size: 12px;
+  margin-bottom: 24px;
+  text-align: center;
 }

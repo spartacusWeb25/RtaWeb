@@ -8,14 +8,17 @@
 <link href="{% static 'folha/css/list.css' %}" rel="stylesheet">
 <link href="{% static 'core/css/list-cards.css' %}" rel="stylesheet">
 <link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+<link href="{% static 'core/css/tabelas-layout.css' %}" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
 
+
+
 <div class="page-header">
     <div>
-        <h1 class="page-title">Conferência da Folha Mensal</h1>
-        <p class="page-subtitle">Resumo por funcionário com INSS, IRRF, FGTS e líquido</p>
+        <h2 class="title-folha" id="title-folha">Conferência da Folha Mensal</h2>
+        <span class="subtitle-folha" id="subtitle-folha">Resumo por funcionário com INSS, IRRF, FGTS e líquido</span>
     </div>
 </div>
 
@@ -26,47 +29,35 @@
         <div class="filter-grid">
             <div class="filter-field">
                 <label class="filter-label">Referência</label>
-                <input class="form-control form-control-sm"
-                       type="text"
-                       name="referencia"
-                       placeholder="YYYYMM"
-                       value="{{ request.GET.referencia }}">
+                <input class="form-control form-control-sm" type="text" name="referencia" placeholder="YYYYMM"
+                    value="{{ request.GET.referencia }}">
             </div>
 
             <div class="filter-field">
                 <label class="filter-label">Empresa</label>
-                <input class="form-control form-control-sm"
-                       type="number"
-                       name="empresa"
-                       placeholder="Código"
-                       value="{{ request.GET.empresa }}">
+                <input class="form-control form-control-sm" type="number" name="empresa" placeholder="Código"
+                    value="{{ request.GET.empresa }}">
             </div>
 
             <div class="filter-field">
                 <label class="filter-label">Filial</label>
-                <input class="form-control form-control-sm"
-                       type="number"
-                       name="filial"
-                       placeholder="Código"
-                       value="{{ request.GET.filial }}">
+                <input class="form-control form-control-sm" type="number" name="filial" placeholder="Código"
+                    value="{{ request.GET.filial }}">
             </div>
 
 
             <div class="filter-field">
                 <label class="filter-label">Funcionário</label>
-                <input class="form-control form-control-sm"
-                       type="number"
-                       name="funcionario"
-                       placeholder="Código"
-                       value="{{ request.GET.funcionario }}">
+                <input class="form-control form-control-sm" type="number" name="funcionario" placeholder="Código"
+                    value="{{ request.GET.funcionario }}">
             </div>
 
             <div class="filter-actions">
-                <button type="submit" class="btn-primary">
+                <button type="submit" class="btn-primary" id="botao-iltrar">
                     <i class="bi bi-search"></i> Conferir
                 </button>
 
-                <a href="?banco={{ request.banco }}" class="btn-ghost">
+                <a href="?banco={{ request.banco }}" class="btn-ghost" id="botao-limpar">
                     <i class="bi bi-x-lg"></i> Limpar
                 </a>
             </div>

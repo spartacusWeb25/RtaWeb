@@ -7,6 +7,7 @@
 {% block extra_css %}
 <link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
 <link href="{% static 'core/css/list-cards.css' %}" rel="stylesheet">
+<link href="{% static 'core/css/tabelas-layout.css' %}" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -14,8 +15,8 @@
 
 <div class="page-header">
     <div>
-        <h1 class="page-title">Auditoria de Logs HTTP</h1>
-        <p class="page-subtitle">Filtre por usuário e método normalizado</p>
+        <h1 id="title">Auditoria de Logs HTTP</h1>
+        <p id="subtitle">Filtre por usuário e método normalizado</p>
     </div>
 </div>
 
