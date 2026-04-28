@@ -3,7 +3,7 @@ from core.consultas import BancoConsulta
 
 # Create your models here.
 class Tabelainss(models.Model):
-    tabe_refe = models.CharField(max_length=6)
+    tabe_refe = models.CharField(max_length=6, primary_key=True)
     tabe_fa01 = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
     tabe_pe01 = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
     tabe_fa02 = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
@@ -38,7 +38,7 @@ class Tabelainssempresa(models.Model):
     _log_time = models.TimeField(blank=True, null=True)
     tabe_grps_fpas = models.CharField(max_length=8, blank=True, null=True)
     tabe_fap = models.DecimalField(max_digits=5, decimal_places=4, blank=True, null=True)
-    registro = models.CharField(max_length=14)
+    registro = models.CharField(max_length=14, primary_key=True)
     
     
     objects = BancoConsulta()
