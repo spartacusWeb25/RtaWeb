@@ -14,6 +14,7 @@ urlpatterns = [
     path("licencas/usuarios/", include("licencas.web.urls")),
     path("tabelas/", include("tabelas.urls")),
     path("auditoria/logs/", AuditoriaLogsView.as_view(), name="auditoria_logs"),
+    path("calendario/", include("calendario.urls")),
     path("", RootRedirectView.as_view(), name="root"),
 ]
 

@@ -67,18 +67,6 @@ class Caged(models.Model):
         db_table = 'caged'
 
 
-class Calendariorh(models.Model):
-    registro = models.CharField(max_length=14)
-    cale_cida = models.CharField(max_length=7)
-    cale_refe = models.CharField(max_length=7)
-    cale_data = models.DateField()
-    cale_dia_desc = models.BooleanField(blank=True, null=True)
-    _log_data = models.DateField(blank=True, null=True)
-    _log_time = models.TimeField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'calendariorh'
 
 
 class Cargos(models.Model):
@@ -368,48 +356,6 @@ class Eventos(models.Model):
         managed = False
         db_table = 'eventos'
 
-
-class EventosCopy(models.Model):
-    registro = models.CharField(max_length=14)
-    even_codi = models.IntegerField()
-    even_desc = models.CharField(max_length=60, blank=True, null=True)
-    even_irrf = models.BooleanField(blank=True, null=True)
-    even_inss = models.BooleanField(blank=True, null=True)
-    even_safa = models.BooleanField(blank=True, null=True)
-    even_fgts = models.BooleanField(blank=True, null=True)
-    even_refl = models.BooleanField(blank=True, null=True)
-    even_medi = models.BooleanField(blank=True, null=True)
-    even_insa = models.BooleanField(blank=True, null=True)
-    even_peri = models.BooleanField(blank=True, null=True)
-    even_rais = models.BooleanField(blank=True, null=True)
-    even_tipo = models.CharField(max_length=1, blank=True, null=True)
-    even_form = models.CharField(max_length=1, blank=True, null=True)
-    even_peva = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    even_dedu = models.BooleanField(blank=True, null=True)
-    even_dere = models.CharField(max_length=2, blank=True, null=True)
-    even_bpis = models.BooleanField(blank=True, null=True)
-    even_naol = models.BooleanField(blank=True, null=True)
-    even_notu = models.BooleanField(blank=True, null=True)
-    even_gps = models.BooleanField(blank=True, null=True)
-    even_dirf = models.BooleanField(blank=True, null=True)
-    even_cont = models.BooleanField(blank=True, null=True)
-    even_bloq = models.BooleanField(blank=True, null=True)
-    even_hera = models.BooleanField(blank=True, null=True)
-    even_csra = models.BooleanField(blank=True, null=True)
-    even_cara = models.BooleanField(blank=True, null=True)
-    even_verb_resc = models.CharField(max_length=6, blank=True, null=True)
-    even_plsa = models.BooleanField(blank=True, null=True)
-    even_cnpj_plsa = models.CharField(max_length=14, blank=True, null=True)
-    even_nome_plsa = models.CharField(max_length=150, blank=True, null=True)
-    even_rans_plsa = models.CharField(max_length=6, blank=True, null=True)
-    _log_data = models.DateField(blank=True, null=True)
-    _log_time = models.TimeField(blank=True, null=True)
-    even_empr = models.IntegerField()
-    even_do_sist = models.BooleanField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'eventos_copy'
 
 
 class EventosPadrao(models.Model):
@@ -1295,16 +1241,6 @@ class Linhavaletransporte(models.Model):
         db_table = 'linhavaletransporte'
 
 
-class Mensagensrh(models.Model):
-    registro = models.CharField(max_length=14)
-    mens_empr = models.IntegerField()
-    mens_mes = models.IntegerField()
-    mens_linh_1 = models.CharField(max_length=100, blank=True, null=True)
-    mens_linh_2 = models.CharField(max_length=100, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'mensagensrh'
 
 
 class Paisesesocial(models.Model):
@@ -1455,7 +1391,7 @@ class Sefipmes(models.Model):
 
 
 class Setoresrh(models.Model):
-    registro = models.CharField(max_length=14)
+    registro = models.CharField(max_length=14, primary_key=True)
     seto_empr = models.IntegerField()
     seto_codi = models.IntegerField()
     seto_desc = models.CharField(max_length=60, blank=True, null=True)
@@ -1471,7 +1407,7 @@ class Setoresrh(models.Model):
 
 
 class Sindicatos(models.Model):
-    registro = models.CharField(max_length=14)
+    registro = models.CharField(max_length=14, primary_key=True)
     sind_codi = models.IntegerField()
     sind_nome = models.CharField(max_length=100, blank=True, null=True)
     sind_cnpj = models.CharField(max_length=14, blank=True, null=True)
@@ -1500,70 +1436,6 @@ class Sindicatos(models.Model):
         db_table = 'sindicatos'
 
 
-class Tabelainss(models.Model):
-    tabe_refe = models.CharField(max_length=6)
-    tabe_fa01 = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    tabe_pe01 = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    tabe_fa02 = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    tabe_pe02 = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    tabe_fa03 = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    tabe_pe03 = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    tabe_fa04 = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    tabe_pe04 = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    tabe_dema = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    tabe_maxr = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    _log_data = models.DateField(blank=True, null=True)
-    _log_time = models.TimeField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'tabelainss'
-
-
-class Tabelainssempresa(models.Model):
-    tabe_empr = models.IntegerField()
-    tabe_cont_empr = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    tabe_rat = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    tabe_terc = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    tabe_prop_auto = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    tabe_grps_terc = models.IntegerField(blank=True, null=True)
-    tabe_grps_rat = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    tabe_cnae = models.CharField(max_length=10, blank=True, null=True)
-    tabe_simp = models.BooleanField(blank=True, null=True)
-    _log_data = models.DateField(blank=True, null=True)
-    _log_time = models.TimeField(blank=True, null=True)
-    tabe_grps_fpas = models.CharField(max_length=8, blank=True, null=True)
-    tabe_fap = models.DecimalField(max_digits=5, decimal_places=4, blank=True, null=True)
-    registro = models.CharField(max_length=14)
-
-    class Meta:
-        managed = False
-        db_table = 'tabelainssempresa'
-
-
-class Tabelairrf(models.Model):
-    irrf_refe = models.CharField(max_length=6)
-    irrf_fa01 = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    irrf_pe01 = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    irrf_fa02 = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    irrf_pe02 = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    irrf_fa03 = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    irrf_pe03 = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    irrf_fa04 = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    irrf_pe04 = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    irrf_de01 = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    irrf_de02 = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    irrf_de03 = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    irrf_de04 = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    irrf_dede = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    irrf_isen = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    irrf_demi = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    _log_data = models.DateField(blank=True, null=True)
-    _log_time = models.DateField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'tabelairrf'
 
 
 class Tipodemissaocaged(models.Model):
@@ -1594,7 +1466,7 @@ class Tipodemissaosefip(models.Model):
 
 
 class Valerefeicao(models.Model):
-    registro = models.CharField(max_length=14)
+    registro = models.CharField(max_length=14, primary_key=True)
     vare_empr = models.IntegerField()
     vare_refe = models.CharField(max_length=6)
     vare_sa01 = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
