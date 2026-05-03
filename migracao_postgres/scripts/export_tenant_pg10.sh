@@ -8,8 +8,9 @@ DB_USER="${DB_USER:-rtaweb0001}"
 DB_NAME="${DB_NAME:-rtaweb0001}"
 CNPJ="$1"
 
+
 if [ -z "$CNPJ" ]; then
-  echo "Uso: ./export_tenant_pg10.sh 22553164000189"
+  echo "Uso: ./scripts/export_tenant_pg10.sh 22553164000189"
   exit 1
 fi
 
@@ -19,7 +20,7 @@ OUT_FILE="$OUT_DIR/tenant_${CNPJ}_${DATA}.sql"
 
 mkdir -p "$OUT_DIR"
 
-echo "-- Dump filtrado do tenant $CNPJ" > "$OUT_FILE"
+echo "-- Dump filtrado por registro = $CNPJ" > "$OUT_FILE"
 echo "BEGIN;" >> "$OUT_FILE"
 
 TABLES=$(psql \
@@ -28,7 +29,7 @@ TABLES=$(psql \
   -U "$DB_USER" \
   -d "$DB_NAME" \
   -Atc "
-    SELECT table_schema || '.' || table_name
+    SELECT table_schema || '|' || table_name
     FROM information_schema.columns
     WHERE column_name = 'registro'
       AND table_schema = 'public'
@@ -37,22 +38,57 @@ TABLES=$(psql \
   "
 )
 
-for TABLE in $TABLES; do
-  echo "Exportando $TABLE..."
+for ITEM in $TABLES; do
+  SCHEMA=$(echo "$ITEM" | cut -d'|' -f1)
+  TABLE=$(echo "$ITEM" | cut -d'|' -f2)
 
-  echo "" >> "$OUT_FILE"
-  echo "-- Tabela $TABLE" >> "$OUT_FILE"
+  echo "Exportando ${SCHEMA}.${TABLE}..."
 
-  pg_dump \
+  COLUMNS=$(psql \
     -h "$DB_HOST" \
     -p "$DB_PORT" \
     -U "$DB_USER" \
     -d "$DB_NAME" \
-    --data-only \
-    --column-inserts \
-    --table="$TABLE" \
-    --where="registro = '$CNPJ'" \
-    >> "$OUT_FILE"
+    -Atc "
+      SELECT string_agg(quote_ident(column_name), ', ' ORDER BY ordinal_position)
+      FROM information_schema.columns
+      WHERE table_schema = '$SCHEMA'
+        AND table_name = '$TABLE';
+    "
+  )
+
+  COUNT_ROWS=$(psql \
+    -h "$DB_HOST" \
+    -p "$DB_PORT" \
+    -U "$DB_USER" \
+    -d "$DB_NAME" \
+    -Atc "
+      SELECT COUNT(*)
+      FROM \"$SCHEMA\".\"$TABLE\"
+      WHERE registro = '$CNPJ';
+    "
+  )
+
+  if [ "$COUNT_ROWS" -gt 0 ]; then
+    echo "-- ${SCHEMA}.${TABLE} | linhas: ${COUNT_ROWS}" >> "$OUT_FILE"
+    echo "COPY \"$SCHEMA\".\"$TABLE\" ($COLUMNS) FROM stdin;" >> "$OUT_FILE"
+
+    psql \
+      -h "$DB_HOST" \
+      -p "$DB_PORT" \
+      -U "$DB_USER" \
+      -d "$DB_NAME" \
+      -Atc "
+        COPY (
+          SELECT $COLUMNS
+          FROM \"$SCHEMA\".\"$TABLE\"
+          WHERE registro = '$CNPJ'
+        ) TO STDOUT;
+      " >> "$OUT_FILE"
+
+    echo "\." >> "$OUT_FILE"
+    echo "" >> "$OUT_FILE"
+  fi
 done
 
 echo "COMMIT;" >> "$OUT_FILE"
