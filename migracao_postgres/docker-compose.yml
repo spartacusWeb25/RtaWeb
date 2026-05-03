@@ -1,0 +1,42 @@
+services:
+  postgres16:
+    image: postgres:16
+    container_name: postgres16_migrado
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      TZ: America/Sao_Paulo
+    ports:
+      - '5433:5432'
+    volumes:
+      - postgres16_data:/var/lib/postgresql/data
+      - ./backups:/backups
+    networks:
+      - postgres_net
+
+  pg_backup:
+    image: postgres:16
+    container_name: postgres16_backup
+    restart: always
+    depends_on:
+      - postgres16
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      TZ: America/Sao_Paulo
+    volumes:
+      - ./backups:/backups
+      - ./scripts/backup_pg16_auto.sh:/backup_pg16_auto.sh
+    entrypoint: ['bash', '/backup_pg16_auto.sh']
+    networks:
+      - postgres_net
+
+volumes:
+  postgres16_data:
+
+networks:
+  postgres_net:
+    driver: bridge
