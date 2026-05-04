@@ -1,15 +1,17 @@
-from licencas.models import LicencasRta, Logado, Usuarios
+from licencas.models import Licencas, Logado, Usuarios
 
 
 class LoginRtaService:
     @staticmethod
     def autenticar(*, registro, usuario, senha, ip):
-        licenca = LicencasRta.objects.using("licencas").filter(
+        registro = "".join(filter(str.isdigit, str(registro)))
+
+        licenca = Licencas.objects.using("licencas").filter(
             lice_docu=registro,
         ).first()
 
         if not licenca:
-            return False, "Não autorizado", None
+            return False, f"Licença não encontrada para o documento {registro}", None
 
         if licenca.lice_bloq:
             return False, "Licença bloqueada", None
@@ -40,12 +42,13 @@ class LoginRtaService:
             ativo=True,
             ip=ip,
         )
+
         return True, "Login realizado com sucesso", {
             "banco": registro,
-            "licenca_nome": licenca.lice_banc,
+            "registro": registro,
+            "licenca_nome": licenca.lice_nome,
             "usuario_id": user.id,
             "usuario_nome": user.usua_login,
             "usuario_grupo": user.usua_grup,
             "usuario_super": user.super,
-
         }

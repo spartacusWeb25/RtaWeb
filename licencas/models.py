@@ -2,16 +2,20 @@ from django.db import models
 
 
 
-class LicencasRta(models.Model):
+class Licencas(models.Model):
     lice_docu = models.CharField(max_length=20, primary_key=True)
-    lice_banc = models.CharField(max_length=50)
-    lice_senh = models.CharField(max_length=100)
-    lice_prov = models.CharField(max_length=100, blank=True, null=True)
+    lice_nome = models.CharField(max_length=100, blank=True, null=True)
+    lice_usua = models.IntegerField(blank=True, null=True)
+    lice_empr = models.IntegerField(blank=True, null=True)
+    lice_fili = models.IntegerField(blank=True, null=True)
     lice_bloq = models.BooleanField(default=False)
+    lice_moti_bloq = models.CharField(max_length=255, blank=True, null=True)
+    lice_data_bloq = models.DateField(blank=True, null=True)
+    lice_sist = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
         managed = False
-        db_table = "licencasrta"
+        db_table = "licencas"
 
 
 class Usuarios(models.Model):
