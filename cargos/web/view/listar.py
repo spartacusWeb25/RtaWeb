@@ -1,0 +1,20 @@
+from django.views.generic import ListView
+
+from core.mixin import BancoObrigatorioMixin
+from ...models import Cargos
+from cargos.services.listar import ListarCargosService
+
+class CargosListView(BancoObrigatorioMixin, ListView):
+    model = Cargos
+    template_name = "cargos/cargos_list.html"
+    context_object_name = "cargos"
+    paginate_by = 20
+    
+    def get_queryset(self):
+        referencia = self.request.GET.get("ref")
+        return ListarCargosService.listar(
+            banco=self.request.banco,
+            db_alias=self.request.db_alias,
+            referencia=referencia,
+        )
+        

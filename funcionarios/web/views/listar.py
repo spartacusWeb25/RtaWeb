@@ -1,18 +1,20 @@
-from django.views.generic import ListView
+from django.views.generic import ListView  
 
 from core.mixin import BancoObrigatorioMixin
-from funcionarios.models import Funcionarios
-from funcionarios.services import FuncionariosService
+from ...models import Funcionarios
+from funcionarios.services.listar import ListarFuncionariosService   
 
 
 class FuncionarioListView(BancoObrigatorioMixin, ListView):
     model = Funcionarios
-    template_name = "funcionarios/funcionario_list.html"
     context_object_name = "funcionarios"
-    paginate_by = 20
-
+    template_name = "funcionarios/listar.html"
+    paginate_by = 20   
+    
     def get_queryset(self):
-        return FuncionariosService.listar_por_banco(
+        referencia = self.request.GET.get("ref")
+        return ListarFuncionariosService.listar(
             banco=self.request.banco,
-            termo=self.request.GET.get("nome"),
+            db_alias=self.request.db_alias,
+            referencia=referencia,
         )

@@ -196,6 +196,7 @@ class Funcionarios(models.Model):
     func_vale_trans = models.BooleanField(blank=True, null=True)
 
     objects = BancoConsulta()
+    
     class Meta:
         managed = False
         db_table = 'funcionarios'

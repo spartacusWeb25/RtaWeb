@@ -1,5 +1,5 @@
 from django.db import models
-
+from core.consultas import BancoConsulta
 
 class Adi(models.Model):
     id = models.AutoField(primary_key=True)
@@ -29,6 +29,8 @@ class Adtodecimo(models.Model):
     adto_obse = models.TextField(blank=True, null=True)
     _log_data = models.DateField(blank=True, null=True)
     _log_time = models.TimeField(blank=True, null=True)
+
+    objects = BancoConsulta()
 
     class Meta:
         managed = False
