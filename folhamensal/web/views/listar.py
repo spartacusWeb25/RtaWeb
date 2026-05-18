@@ -4,7 +4,6 @@ from core.mixin import BancoObrigatorioMixin
 from folhamensal.models import Folhamensal
 from folhamensal.services.listar import ListarFolhaMensalService
 
-
 class FolhaMensalListarView(BancoObrigatorioMixin, ListView):
     model = Folhamensal
     template_name = "folha/folha_mensal_list.html"

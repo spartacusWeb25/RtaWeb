@@ -87,6 +87,7 @@ logger.warning("🧠 BASE USADA: %s", "LOCAL" if USE_LOCAL_DB else "REMOTA")
 INSTALLED_APPS = [
     'core',
     'calendario',
+    'setores',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
