@@ -12,7 +12,7 @@ class FuncionarioListView(BancoObrigatorioMixin, ListView):
     paginate_by = 20   
     
     def get_queryset(self):
-        referencia = self.request.GET.get("ref")
+        referencia = self.request.GET.get("nome") or self.request.GET.get("ref")
         return ListarFuncionariosService.listar(
             banco=self.request.banco,
             db_alias=self.request.db_alias,

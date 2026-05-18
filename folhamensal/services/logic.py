@@ -1,38 +1,27 @@
 from folhamensal.models import Folhamensal
 
+from .criar import FolhaMensalEditarService, FolhaMensalRemoverService, FolhaMensalSalvarService
+
 
 class FolhaMensalService:
     @staticmethod
-    def listar(*, banco, referencia=None, empresa=None, filial=None, funcionario=None):
-        qs = Folhamensal.objects.do_banco(banco)
-
-        if referencia:
-            qs = qs.filter(fome_refe=referencia)
-        if empresa:
-            qs = qs.filter(fome_empr=empresa)
-        if filial:
-            qs = qs.filter(fome_fili=filial)
-        if funcionario:
-            qs = qs.filter(fome_func=funcionario)
-
-        return qs.order_by("fome_func", "fome_even")
-
-    @staticmethod
-    def buscar(*, banco, fome_func, fome_refe, fome_even):
-        return Folhamensal.objects.filter(
-            registro=banco,
+    def buscar_unico(*, banco, db_alias, fome_empr, fome_fili, fome_func, fome_refe, fome_even):
+        return FolhaMensalEditarService.buscar_unico(
+            banco=banco,
+            db_alias=db_alias,
+            fome_empr=fome_empr,
+            fome_fili=fome_fili,
             fome_func=fome_func,
             fome_refe=fome_refe,
             fome_even=fome_even,
-        ).first()
+        )
 
     @staticmethod
-    def salvar(*, instance):
-        instance.save(using="default")
-        return instance
+    def salvar(*, instance: Folhamensal, db_alias: str) -> Folhamensal:
+        return FolhaMensalSalvarService.salvar(instance=instance, db_alias=db_alias)
 
     @staticmethod
-    def remover(*, instance):
-        instance.delete(using="default")
+    def remover(*, instance: Folhamensal, db_alias: str) -> None:
+        FolhaMensalRemoverService.remover(instance=instance, db_alias=db_alias)
         
   
