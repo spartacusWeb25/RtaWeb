@@ -97,7 +97,27 @@ INSTALLED_APPS = [
     'funcionarios',
     'licencas',
     'tabelas',
-
+    'adtodecimo',
+    'afastamentos', 
+    'cargos',
+    'dadosrescisao', 
+    'dependentesrh',
+    'empresas',
+    'eventos',
+    'ferias',
+    'folhaadtodecimo',
+    'folhadecimo',
+    'folhaquinzenal',
+    'folharescisao',
+    'horarios',
+    'lancamentosfolha',
+    'sindicatos',
+    'tabelainss',
+    'tabelairrf',
+    'tabelasalafami',
+    'tabelasalarial',
+    'tabelasalariominimo',
+    'usuarios',
 ]
 
 MIDDLEWARE = [

@@ -5,7 +5,7 @@ from folhamensal.models import Folhamensal
 from folhamensal.services import FolhaMensalService
 
 
-class FolhaMensalListarView(BancoObrigatorioMixin, ListView):
+class FolhaMensalListView(BancoObrigatorioMixin, ListView):
     model = Folhamensal
     template_name = "folha/folha_mensal_list.html"
     context_object_name = "folhas"

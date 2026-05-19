@@ -3,7 +3,7 @@ from core.mixin import BancoObrigatorioMixin
 from ...models import Lancamentosfolha
 from lancamentosfolha.services.listar import ListarLancamentosFolhaService          
 
-class LancamentofolhaListView(BancoObrigatorioMixin, ListView):
+class LancamentosfolhaListView(BancoObrigatorioMixin, ListView):
     model = Lancamentosfolha
     context_object_name = "lancamentosfolha"
     template_name = "lancamentosfolha/listar.html"
