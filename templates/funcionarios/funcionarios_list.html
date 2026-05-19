@@ -16,21 +16,51 @@
     <div>
         <h1 id="title"><i class="bi bi-people-fill"></i> Funcionários</h1>
         <p id="subtitle"><i class="bi bi-filter"></i> Consulta e filtro de registros de funcionários</p>
-    
+
     </div>
 </div>
 
 <div class="app-form-card mb-3">
     <form method="get" class="form-grid form-grid-compact">
         <input type="hidden" name="banco" value="{{ request.banco }}">
+
         <div>
-            <label class="form-label">Nome</label>
-            <input class="form-control" type="text" name="nome" value="{{ request.GET.nome|default:'' }}" placeholder="Pesquisar por nome">
+            <label class="form-label">Referência</label>
+            <input class="form-control" type="text" name="referencia" value="{{ referencia }}">
         </div>
+
+        <div>
+            <label class="form-label">Funcionário</label>
+            <input class="form-control" type="text" name="funcionario" value="{{ funcionario }}">
+        </div>
+
+        <div>
+            <label class="form-label">Evento</label>
+            <input class="form-control" type="text" name="evento" value="{{ evento }}">
+        </div>
+
+        <div>
+            <label class="form-label">Ordenar</label>
+            <select name="ordenar" class="form-control">
+                <option value="">Padrão</option>
+                <option value="referencia" {% if ordenar == "referencia" %}selected{% endif %}>Referência</option>
+                <option value="referencia_desc" {% if ordenar == "referencia_desc" %}selected{% endif %}>Referência desc
+                </option>
+                <option value="funcionario" {% if ordenar == "funcionario" %}selected{% endif %}>Funcionário</option>
+                <option value="evento" {% if ordenar == "evento" %}selected{% endif %}>Evento</option>
+                <option value="valor" {% if ordenar == "valor" %}selected{% endif %}>Menor valor</option>
+                <option value="valor_desc" {% if ordenar == "valor_desc" %}selected{% endif %}>Maior valor</option>
+            </select>
+        </div>
+
         <div class="form-actions-row">
-            <button type="submit" class="btn"><i class="bi bi-search" id="botao-filtrar"></i></button>
-            <a href="?banco={{ request.banco }}" class="btn btn-outline-secondary btn-sm" id="botao-limpar">Limpar</a>
-            <a href="{% url 'funcionarios:criar' %}?banco={{ request.banco }}" class="btn btn-success btn-sm" id="botao-novo"><i class="bi bi-plus-lg"></i> Novo</a>
+            <button type="submit" class="btn">
+                <i class="bi bi-search" id="botao-filtrar"></i>
+            </button>
+
+            <a href="?banco={{ request.banco }}" class="btn btn-outline-secondary btn-sm">
+                Limpar
+            </a>
         </div>
     </form>
 </div>
@@ -57,8 +87,10 @@
                     <td>{{ item.func_seto|default:'-' }}</td>
                     <td>{{ item.func_carg|default:'-' }}</td>
                     <td>
-                        <a class="btn btn-sm btn-outline-primary" href="{% url 'funcionarios:atualizar' item.func_codi %}?banco={{ request.banco }}">Editar</a>
-                        <a class="btn btn-sm btn-outline-danger" href="{% url 'funcionarios:deletar' item.func_codi %}?banco={{ request.banco }}">Excluir</a>
+                        <a class="btn btn-sm btn-outline-primary"
+                            href="{% url 'funcionarios:atualizar' item.func_codi %}?banco={{ request.banco }}">Editar</a>
+                        <a class="btn btn-sm btn-outline-danger"
+                            href="{% url 'funcionarios:deletar' item.func_codi %}?banco={{ request.banco }}">Excluir</a>
                     </td>
                 </tr>
                 {% empty %}
@@ -79,13 +111,21 @@
             <span>#{{ item.func_codi }}</span>
         </div>
         <div class="list-card-grid">
-            <div><small>CPF</small><p>{{ item.func_cpf|default:'-' }}</p></div>
-            <div><small>Setor</small><p>{{ item.func_seto|default:'-' }}</p></div>
-            <div><small>Cargo</small><p>{{ item.func_carg|default:'-' }}</p></div>
+            <div><small>CPF</small>
+                <p>{{ item.func_cpf|default:'-' }}</p>
+            </div>
+            <div><small>Setor</small>
+                <p>{{ item.func_seto|default:'-' }}</p>
+            </div>
+            <div><small>Cargo</small>
+                <p>{{ item.func_carg|default:'-' }}</p>
+            </div>
         </div>
         <div class="list-card-actions">
-            <a class="btn btn-sm btn-outline-primary" href="{% url 'funcionarios:atualizar' item.func_codi %}?banco={{ request.banco }}">Editar</a>
-            <a class="btn btn-sm btn-outline-danger" href="{% url 'funcionarios:deletar' item.func_codi %}?banco={{ request.banco }}">Excluir</a>
+            <a class="btn btn-sm btn-outline-primary"
+                href="{% url 'funcionarios:atualizar' item.func_codi %}?banco={{ request.banco }}">Editar</a>
+            <a class="btn btn-sm btn-outline-danger"
+                href="{% url 'funcionarios:deletar' item.func_codi %}?banco={{ request.banco }}">Excluir</a>
         </div>
     </article>
     {% empty %}
@@ -93,4 +133,3 @@
     {% endfor %}
 </div>
 {% endblock %}
-

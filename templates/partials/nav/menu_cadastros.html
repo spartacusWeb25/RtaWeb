@@ -6,7 +6,8 @@
         <a href="#">Departamentos</a>
         <a href="#">Empresas</a>
         <a href="#">Filiais</a>
-        <a href="#">Setores</a>
+        <a href="{% url 'setores:setoresrh_listar' %}?banco={{ request.banco|default:'rta0001' }}">
+            Setores</a>
         <a href="{% url 'usuarios:listar' %}?banco={{ request.banco|default:'rta0001' }}">
             Usuários Licença
         </a>

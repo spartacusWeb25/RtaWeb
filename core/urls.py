@@ -15,6 +15,7 @@ urlpatterns = [
     path("tabelas/", include("tabelas.urls")),
     path("auditoria/logs/", AuditoriaLogsView.as_view(), name="auditoria_logs"),
     path("calendario/", include("calendario.urls")),
+    path("setores/", include("setores.web.urls")),
     path("", RootRedirectView.as_view(), name="root"),
     path("adtodecimo/", include("adtodecimo.web.urls")),
     path("afastamentos/", include("afastamentos.web.urls")),

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    {% if modo_edicao %}
+    <h3>Editar Setor</h3>
+    {% else %}
+    <h3>Novo Setor</h3>
+    {% endif %}
+
+
+    <form method="post" class="card p-3">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <button type="submit" class="btn btn-primary">
+            Salvar
+        </button>
+    </form>
+</div>
+{% endblock %}

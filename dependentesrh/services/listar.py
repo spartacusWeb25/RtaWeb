@@ -1,9 +1,10 @@
-from django.db import connections
 from dependentesrh.models import Dependentesrh
 
 
 class ListarDependentesRhService:
-    def listar(*, banco : str, db_alias : str, referencia : str):
-        return Dependentesrh.objects.using(db_alias).all().limit(100)
-        if not referencia:
-            return Dependentesrh.objects.using(db_alias).all().limit(100)
+    def listar(*, banco: str, db_alias: str, referencia: str | None):
+        qs = Dependentesrh.objects.using(db_alias).filter(registro=banco)
+        if referencia:
+            qs = qs.filter(dependente__icontains=referencia.strip())
+        return qs.order_by("dependente")[:100]
+        

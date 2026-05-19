@@ -13,10 +13,11 @@
 
 {% block content %}
 <div class="page-header">
-    
+
     <div>
         <h2 class="title-folha" id="title-folha"><i class="bi bi-people-fill"></i> Folha Mensal</h2>
-        <span class="subtitle-folha" id="subtitle-folha"><i class="bi bi-filter"></i> Consulta e filtro de registros de folha</span>
+        <span class="subtitle-folha" id="subtitle-folha"><i class="bi bi-filter"></i> Consulta e filtro de registros de
+            folha</span>
 
     </div>
 </div>
@@ -55,6 +56,8 @@
                     Filtrar</button>
                 <a href="?banco={{ request.banco }}" class="btn-ghost" id="botao-limpar"><i class="bi bi-x-lg"></i>
                     Limpar</a>
+                <a href="{% url 'folha:folha_mensal_criar' %}?banco={{ request.banco }}" class="btn btn-success btn-sm"
+                    id="botao-novo"><i class="bi bi-plus"></i> Novo</a>
             </div>
         </div>
     </form>
@@ -89,9 +92,9 @@
                     <td>{{ item.fome_valo }}</td>
                     <td>
                         <a class="btn btn-sm btn-outline-primary"
-                            href="{% url 'folha:folha_mensal_atualizar' item.fome_func item.fome_refe item.fome_even %}?banco={{ request.banco }}">Editar</a>
+                            href="{% url 'folha:folha_mensal_atualizar' item.fome_empr item.fome_fili item.fome_func item.fome_refe item.fome_even %}?banco={{ request.banco }}">Editar</a>
                         <a class="btn btn-sm btn-outline-danger"
-                            href="{% url 'folha:folha_mensal_deletar' item.fome_func item.fome_refe item.fome_even %}?banco={{ request.banco }}">Excluir</a>
+                            href="{% url 'folha:folha_mensal_deletar' item.fome_empr item.fome_fili item.fome_func item.fome_refe item.fome_even %}?banco={{ request.banco }}">Excluir</a>
                     </td>
                 </tr>
                 {% empty %}
@@ -168,9 +171,9 @@
         </div>
         <div class="list-card-actions">
             <a class="btn btn-sm btn-outline-primary"
-                href="{% url 'folha:folha_mensal_atualizar' item.fome_func item.fome_refe item.fome_even %}?banco={{ request.banco }}">Editar</a>
+                href="{% url 'folha:folha_mensal_atualizar' item.fome_empr item.fome_fili item.fome_func item.fome_refe item.fome_even %}?banco={{ request.banco }}">Editar</a>
             <a class="btn btn-sm btn-outline-danger"
-                href="{% url 'folha:folha_mensal_deletar' item.fome_func item.fome_refe item.fome_even %}?banco={{ request.banco }}">Excluir</a>
+                href="{% url 'folha:folha_mensal_deletar' item.fome_empr item.fome_fili item.fome_func item.fome_refe item.fome_even %}?banco={{ request.banco }}">Excluir</a>
         </div>
     </article>
     {% empty %}
