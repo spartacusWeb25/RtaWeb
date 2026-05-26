@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block title %}Tabela Salário Familia — RtaWeb{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+<link href="{% static 'core/css/list-cards.css' %}" rel="stylesheet">
+<link href="{% static 'core/css/tabelas-layout.css' %}" rel="stylesheet">
+
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 id="title"><i class="bi bi-people-fill"></i> Tabela Salário Familia</h1>
+        <p id="subtitle"><i class="bi bi-filter"></i> Consulta e filtro de registros de Tabela salário familia</p>
+
+    </div>
+</div>
+
+<div class="app-form-card mb-3">
+    <form method="get" class="form-grid form-grid-compact">
+        <input type="hidden" name="banco" value="{{ request.banco }}">
+
+        <div>
+            <label class="form-label">Referência</label>
+            <input class="form-control" type="text" name="referencia" value="{{ referencia }}">
+        </div>
+        
+
+        <div>
+            <label class="form-label">Ordenar</label>
+            <select name="ordenar" class="form-control">
+                <option value="">Padrão</option>
+                <option value="referencia" {% if ordenar == "referencia" %}selected{% endif %}>Referência</option>
+                </option>
+            </select>
+        </div>
+
+        <div class="form-actions-row">
+            <button type="submit" class="btn">
+                <i class="bi bi-search" id="botao-filtrar"></i>
+            </button>
+
+            <a href="?banco={{ request.banco }}" class="btn btn-outline-secondary btn-sm">
+                Limpar
+            </a>
+        </div>
+    </form>
+</div>
+
+<div class="table-wrapper desktop-table-only">
+    <div class="table-scroll">
+        <table class="app-table">
+            <thead>
+                <tr>
+                    <th>Referência</th>
+                    <th>Base</th>
+                    <th>Valor</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in tabelasalafami %}
+                <tr>
+                    <td>{{ item.safa_refe }}</td>
+                    <td>{{ item.safa_fa01 }}</td>
+                    <td>{{ item.safa_co01 }}</td>
+                    <td>
+                        <a class="btn btn-sm btn-outline-primary"
+                            href="{% url 'funcionarios:atualizar' item.func_codi %}?banco={{ request.banco }}">Editar</a>
+                        <a class="btn btn-sm btn-outline-danger"
+                            href="{% url 'funcionarios:deletar' item.func_codi %}?banco={{ request.banco }}">Excluir</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr class="empty-row">
+                    <td colspan="6"><i class="bi bi-inbox empty-icon"></i>Nenhum registro encontrado</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="list-card-view mobile-card-only">
+    {% for item in tabelasalafami %}
+    <article class="list-card-item">
+        <div class="list-card-head">
+            <strong>{{ item.safa_refe }}</strong>
+            <span>{{ item.safa_fa01 }}</span>
+        </div>
+        <div class="list-card-grid">
+            <div><small>Referência</small>
+                <p>{{ item.safa_refe }}</p>
+            </div>
+            <div><small>Base</small>
+                <p>{{ item.safa_fa01 }}</p>
+            </div>
+            <div><small>Valor</small>
+                <p>{{ item.safa_co01 }}</p>
+            </div>
+        </div>
+        <div class="list-card-actions">
+            <a class="btn btn-sm btn-outline-primary"
+                href="{% url 'funcionarios:atualizar' item.func_codi %}?banco={{ request.banco }}">Editar</a>
+            <a class="btn btn-sm btn-outline-danger"
+                href="{% url 'funcionarios:deletar' item.func_codi %}?banco={{ request.banco }}">Excluir</a>
+        </div>
+    </article>
+    {% empty %}
+    <div class="list-card-empty">Nenhum registro encontrado</div>
+    {% endfor %}
+</div>
+{% endblock %}

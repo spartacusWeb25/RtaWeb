@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block title %}Tabela IRRF — RtaWeb{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+<link href="{% static 'core/css/list-cards.css' %}" rel="stylesheet">
+<link href="{% static 'core/css/tabelas-layout.css' %}" rel="stylesheet">
+
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 id="title"><i class="bi bi-people-fill"></i> Tabela IRRF</h1>
+        <p id="subtitle"><i class="bi bi-filter"></i> Consulta e filtro de registros de Tabela IRRF</p>
+
+    </div>
+</div>
+
+<div class="app-form-card mb-3">
+    <form method="get" class="form-grid form-grid-compact">
+        <input type="hidden" name="banco" value="{{ request.banco }}">
+
+        <div>
+            <label class="form-label">Referência</label>
+            <input class="form-control" type="text" name="referencia" value="{{ referencia }}">
+        </div>
+        
+
+        <div>
+            <label class="form-label">Ordenar</label>
+            <select name="ordenar" class="form-control">
+                <option value="">Padrão</option>
+                <option value="referencia" {% if ordenar == "referencia" %}selected{% endif %}>Referência</option>
+                </option>
+            </select>
+        </div>
+
+        <div class="form-actions-row">
+            <button type="submit" class="btn">
+                <i class="bi bi-search" id="botao-filtrar"></i>
+            </button>
+
+            <a href="?banco={{ request.banco }}" class="btn btn-outline-secondary btn-sm">
+                Limpar
+            </a>
+        </div>
+    </form>
+</div>
+<div class="row g-3">
+    <div class="col-12">
+        <h2 id="title"><i class="bi bi-tablet-landscape"></i> Tabela IRRF</h2>
+    </div>
+
+    <div class="col-12 d-none d-md-block">
+        <div class="table-wrapper">
+            <div class="table-scroll">
+                <table class="app-table">
+                    <thead>
+                        <tr>
+                            <th>Referência</th>
+                            <th>Faixa 01</th>
+                            <th>Alíquota 01</th>
+                            <th>Dedução Faixa 01</th>
+                            <th>Faixa 02</th>
+                            <th>Alíquota 02</th>
+                            <th>Dedução Faixa 02</th>
+                            <th>Faixa 03</th>
+                            <th>Alíquota 03</th>
+                            <th>Dedução Faixa 03</th>
+                            <th>Faixa 04</th>
+                            <th>Alíquota 04</th>
+                            <th>Dedução Faixa 04</th>   
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in tabelairrf %}
+                        <tr>
+                            <td>{{ t.irrf_refe }}</td>
+                            <td>{{ t.irrf_fa01 }}</td>
+                            <td>{{ t.irrf_pe01 }}</td>
+                            <td>{{ t.irrf_de01 }}</td>
+                            <td>{{ t.irrf_fa02 }}</td>
+                            <td>{{ t.irrf_pe02 }}</td>
+                            <td>{{ t.irrf_de02 }}</td>   
+                            <td>{{ t.irrf_fa03 }}</td>
+                            <td>{{ t.irrf_pe03 }}</td>
+                            <td>{{ t.irrf_de03 }}</td>
+                            <td>{{ t.irrf_fa04 }}</td>
+                            <td>{{ t.irrf_pe04 }}</td>
+                            <td>{{ t.irrf_de04 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8">Nenhum registro encontrado</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 d-block d-md-none">
+        <div class="list-card-view">
+            {% for t in tabelairrf %}
+            <article class="list-card-item">
+                <div class="list-card-head">
+                    <strong>Tabela IRRF</strong>
+                    <span>{{ t.tabe_refe }}</span>
+                </div>
+                <div class="list-card-grid">
+                    <p><small>Faixa 01</small>{{ t.irrf_fa01 }}</p>
+                    <p><small>Alíq 01</small>{{ t.irrf_pe01 }}</p>
+                    <p><small>Dedução Faixa 01</small>{{ t.irrf_de01 }}</p>
+                    <p><small>Faixa 02</small>{{ t.irrf_fa02 }}</p>
+                    <p><small>Alíq 02</small>{{ t.irrf_pe02 }}</p>
+                    <p><small>Dedução Faixa 02</small>{{ t.irrf_de02 }}</p>
+                    <p><small>Faixa 03</small>{{ t.irrf_fa03 }}</p>
+                    <p><small>Alíq 03</small>{{ t.irrf_pe03 }}</p>  
+                    <p><small>Dedução Faixa 03</small>{{ t.irrf_de03 }}</p>
+                    <p><small>Faixa 04</small>{{ t.irrf_fa04 }}</p>
+                    <p><small>Alíq 04</small>{{ t.irrf_pe04 }}</p>
+                    <p><small>Dedução Faixa 04</small>{{ t.irrf_de04 }}</p>   
+                </div>
+            </article>
+            {% empty %}
+            <div class="list-card-empty">Nenhum registro encontrado</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block title %}Lançamentos Manuais Folha Mensal — RtaWeb{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+<link href="{% static 'core/css/list-cards.css' %}" rel="stylesheet">
+<link href="{% static 'core/css/tabelas-layout.css' %}" rel="stylesheet">
+
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 id="title"><i class="bi bi-people-fill"></i> Lançamentos Manuais Folha Mensal</h1>
+        <p id="subtitle"><i class="bi bi-filter"></i> Consulta e filtro de registros de lançamentos manuais folha mensal</p>
+
+    </div>
+</div>
+
+<div class="app-form-card mb-3">
+    <form method="get" class="form-grid form-grid-compact">
+        <input type="hidden" name="banco" value="{{ request.banco }}">
+
+        <div>
+            <label class="form-label">Referência</label>
+            <input class="form-control" type="text" name="lafo_refe" value="{{ lafo_refe }}">
+        </div>
+
+        <div>
+            <label class="form-label">Código Funcionário</label>
+            <input class="form-control" type="text" name="lafo_func" value="{{ lafo_func }}">
+        </div>
+
+        <div>
+            <label class="form-label">Código Evento</label>
+            <input class="form-control" type="text" name="lafo_even" value="{{ lafo_even }}">
+        </div>
+
+        <div>
+            <label class="form-label">Ordenar</label>
+            <select name="ordenar" class="form-control">
+                <option value="">Padrão</option>
+                <option value="referencia" {% if ordenar == "referencia" %}selected{% endif %}>Código</option>
+                <option value="referencia_desc" {% if ordenar == "referencia_desc" %}selected{% endif %}>Descrição
+                </option>
+                <option value="valor" {% if ordenar == "valor" %}selected{% endif %}>Menor valor</option>
+                <option value="valor_desc" {% if ordenar == "valor_desc" %}selected{% endif %}>Maior valor</option>
+            </select>
+        </div>
+
+        <div class="form-actions-row">
+            <button type="submit" class="btn">
+                <i class="bi bi-search" id="botao-filtrar"></i>
+            </button>
+
+            <a href="?banco={{ request.banco }}" class="btn btn-outline-secondary btn-sm">
+                Limpar
+            </a>
+        </div>
+    </form>
+</div>
+
+<div class="table-wrapper desktop-table-only">
+    <div class="table-scroll">
+        <table class="app-table">
+            <thead>
+                <tr>
+                    <th>Referência</th>
+                    <th>Funcionário</th>
+                    <th>Evento</th>
+                    <th>Base</th>
+                    <th>Valor</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in lancamentosfolha %}
+                <tr>
+                    <td>{{ item.lafo_refe }}</td>
+                    <td>{{ item.lafo_func|default:'-' }}</td>
+                    <td>{{ item.lafo_even|default:'-' }}</td>
+                    <td>{{ item.lafo_base|default:'-' }}</td>
+                    <td>{{ item.lafo_valo|default:'-' }}</td>
+                    <td>
+                        <a class="btn btn-sm btn-outline-primary"
+                            href="{% url 'lancamentosfolha:atualizar' item.lafo_refe %}?banco={{ request.banco }}">Editar</a>
+                        <a class="btn btn-sm btn-outline-danger"
+                            href="{% url 'lancamentosfolha:deletar' item.lafo_refe %}?banco={{ request.banco }}">Excluir</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr class="empty-row">
+                    <td colspan="6"><i class="bi bi-inbox empty-icon"></i>Nenhum registro encontrado</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="list-card-view mobile-card-only">
+    {% for item in lancamentosfolha %}
+    <article class="list-card-item">
+        <div class="list-card-head">
+            <strong>{{ item.lafo_refe|default:'Sem nome' }}</strong>
+            <span>#{{ item.lafo_refe }}</span>
+        </div>
+        <div class="list-card-grid">
+            <div><small>Funcionário</small>
+                <p>{{ item.lafo_func|default:'-' }}</p>
+            </div>
+            <div><small>Evento</small>
+                <p>{{ item.lafo_even|default:'-' }}</p>
+            </div>
+            <div><small>Base</small>
+                <p>{{ item.lafo_base|default:'-' }}</p>
+            </div>
+            <div><small>Valor</small>
+                <p>{{ item.lafo_valo|default:'-' }}</p>
+            </div>
+        </div>
+        <div class="list-card-actions">
+            <a class="btn btn-sm btn-outline-primary"
+                href="{% url 'lancamentosfolha:atualizar' item.lafo_refe %}?banco={{ request.banco }}">Editar</a>
+            <a class="btn btn-sm btn-outline-danger"
+                href="{% url 'lancamentosfolha:deletar' item.lafo_refe %}?banco={{ request.banco }}">Excluir</a>  
+        </div>
+    </article>
+    {% empty %}
+    <div class="list-card-empty">Nenhum registro encontrado</div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -2,7 +2,7 @@ from django.db import models
 from core.consultas import BancoConsulta
 
 class Horarios(models.Model):
-    registro = models.ForeignKey('Profissionais', models.DO_NOTHING, db_column='registro')
+    registro = models.CharField(max_length=14, db_column='registro')
     hora_prof = models.IntegerField()
     hora_dia = models.IntegerField()
     hora_inic_1 = models.TimeField(blank=True, null=True)

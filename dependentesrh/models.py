@@ -2,7 +2,7 @@ from django.db import models
 from core.consultas import BancoConsulta
 
 class Dependentesrh(models.Model):
-    registro = models.ForeignKey('Funcionarios', models.DO_NOTHING, db_column='registro', primary_key=True)
+    registro = models.CharField(max_length=14, db_column='registro', primary_key=True)
     depe_empr = models.IntegerField()
     depe_func = models.IntegerField()
     depe_nome = models.CharField(max_length=60, blank=True, null=True)

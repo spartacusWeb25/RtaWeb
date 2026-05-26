@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block title %}Tabela Salário Minimo — RtaWeb{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+<link href="{% static 'core/css/list-cards.css' %}" rel="stylesheet">
+<link href="{% static 'core/css/tabelas-layout.css' %}" rel="stylesheet">
+
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 id="title"><i class="bi bi-cash-stack"></i> Tabela salário mínimo</h1>
+        <p id="subtitle"><i class="bi bi-filter"></i> Consulta e filtro de registros de Salário Mínimo</p>
+    </div>
+</div>
+
+<div class="app-form-card mb-3">
+    <form method="get" class="form-grid form-grid-compact">
+        <input type="hidden" name="banco" value="{{ request.banco }}">
+
+        <div>
+            <label class="form-label">Referência</label>
+            <input class="form-control" type="text" name="ref" value="{{ request.GET.ref }}">
+        </div>
+
+         <div>
+            <label class="form-label">Ordenar</label>
+            <select name="ordenar" class="form-control">
+                <option value="">Padrão</option>
+                <option value="referencia" {% if ordenar == "referencia" %}selected{% endif %}>Referência</option>
+                </option>
+            </select>
+        </div>
+
+        <div class="form-actions-row">
+            <button type="submit" class="btn">
+                <i class="bi bi-search" id="botao-filtrar"></i>
+            </button>
+
+            <a href="?banco={{ request.banco }}" class="btn btn-outline-secondary btn-sm">
+                Limpar
+            </a>
+        </div>
+    </form>
+</div>
+
+<div class="table-wrapper desktop-table-only">
+    <div class="table-scroll">
+        <table class="app-table">
+            <thead>
+                <tr>
+                    <th>Referência</th>
+                    <th>Mínimo Federal</th>
+                    <th>Mínimo Estadual</th>
+                    <th>Ref 01</th>
+                    <th>Ref 02</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in tabelasalariominimo %}
+                <tr>
+                    <td>{{ item.registro }}</td>
+                    <td>R$ {{ item.refe_sala_mini_fede|default:'0.00' }}</td>
+                    <td>R$ {{ item.refe_sala_mini_esta|default:'0.00' }}</td>
+                    <td>R$ {{ item.refe_sala_ref1|default:'0.00' }}</td>
+                    <td>R$ {{ item.refe_sala_ref2|default:'0.00' }}</td>
+                    <td>
+                        <span class="text-muted">Ações indisponíveis</span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr class="empty-row">
+                    <td colspan="6"><i class="bi bi-inbox empty-icon"></i>Nenhum registro encontrado</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="list-card-view mobile-card-only">
+    {% for item in tabelasalariominimo %}
+    <article class="list-card-item">
+        <div class="list-card-head">
+            <strong>Referência: {{ item.registro }}</strong>
+        </div>
+        <div class="list-card-grid">
+            <div><small>Mínimo Federal</small>
+                <p>R$ {{ item.refe_sala_mini_fede|default:'0.00' }}</p>
+            </div>
+            <div><small>Mínimo Estadual</small>
+                <p>R$ {{ item.refe_sala_mini_esta|default:'0.00' }}</p>
+            </div>
+            <div><small>Ref 01</small>
+                <p>R$ {{ item.refe_sala_ref1|default:'0.00' }}</p>
+            </div>
+            <div><small>Ref 02</small>
+                <p>R$ {{ item.refe_sala_ref2|default:'0.00' }}</p>
+            </div>
+        </div>
+    </article>
+    {% empty %}
+    <div class="list-card-empty">Nenhum registro encontrado</div>
+    {% endfor %}
+</div>
+{% endblock %}

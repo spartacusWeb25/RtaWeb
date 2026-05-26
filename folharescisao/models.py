@@ -2,7 +2,7 @@ from django.db import models
 from core.consultas import BancoConsulta
 
 class Folharescisao(models.Model):
-    registro = models.ForeignKey('Funcionarios', models.DO_NOTHING, db_column='registro', primary_key=True)
+    registro = models.CharField(max_length=14, db_column='registro', primary_key=True)
     fome_empr = models.IntegerField()
     fome_fili = models.IntegerField()
     fome_func = models.IntegerField()

@@ -11,7 +11,7 @@ class Usuarios(models.Model):
     usua_grup = models.IntegerField(blank=True, null=True)
     field_log_data = models.DateField(db_column='_log_data', blank=True, null=True)  # Field renamed because it started with '_'.   
     field_log_time = models.TimeField(db_column='_log_time', blank=True, null=True)  # Field renamed because it started with '_'.   
-    registro = models.ForeignKey('Grusuarios', models.DO_NOTHING, db_column='registro', primary_key=True)
+    registro = models.CharField(max_length=14, db_column='registro', primary_key=True)
     super = models.BooleanField(blank=True, null=True)
 
     objects = BancoConsulta()   
