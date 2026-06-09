@@ -6,7 +6,7 @@ from afastamentos.services.listar import ListarAfastamentosService
 
 class AfastamentosListView(BancoObrigatorioMixin, ListView):
     model = Afastamentos
-    template_name = "afastamentos/afastamentos_list.html"
+    template_name = "afastamentos/listar.html"
     context_object_name = "afastamentos"
     paginate_by = 20
     

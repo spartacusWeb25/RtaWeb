@@ -5,7 +5,7 @@ from ferias.services.listar import ListarFeriasService
 
 class FeriasListView(BancoObrigatorioMixin, ListView):
     model = Ferias
-    template_name = "ferias/ferias_list.html"
+    template_name = "ferias/listar.html"
     context_object_name = "ferias"
     paginate_by = 20
     

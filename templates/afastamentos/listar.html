@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block title %}Afastamentos — RtaWeb{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+<link href="{% static 'core/css/list-cards.css' %}" rel="stylesheet">
+<link href="{% static 'core/css/tabelas-layout.css' %}" rel="stylesheet">
+
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 id="title"><i class="bi bi-people-fill"></i> Afastamentos</h1>
+        <p id="subtitle"><i class="bi bi-filter"></i> Consulta e filtro de registros de afastamentos</p>               
+
+    </div>
+</div>
+
+<div class="app-form-card mb-3">
+    <form method="get" class="form-grid form-grid-compact">
+        <input type="hidden" name="banco" value="{{ request.banco }}">
+
+        <div>
+            <label class="form-label">Referência</label>
+            <input class="form-control" type="text" name="referencia" value="{{ request.GET.referencia }}">
+        </div>
+
+        <div class="form-actions-row">
+            <button type="submit" class="btn">
+                <i class="bi bi-search" id="botao-filtrar"></i>
+            </button>
+
+            <a href="?banco={{ request.banco }}" class="btn btn-outline-secondary btn-sm">
+                Limpar
+            </a>
+        </div>
+    </form>
+</div>
+
+<div class="table-wrapper desktop-table-only">
+    <div class="table-scroll">
+        <table class="app-table">
+            <thead>
+                    <tr>
+                    <th>Referência</th>
+                    <th>Funcionário</th>
+                    <th>Data Saída</th>
+                    <th>Data Retorno</th>
+                    <th>Tipo</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in afastamentos %}
+                <tr>
+                    <td>{{ item.registro }}</td>
+                    <td>{{ item.afas_func }}</td>
+                    <td>{{ item.afas_said|default:'-' }}</td>
+                    <td>{{ item.afas_reto|default:'-' }}</td>
+                    <td>{{ item.afas_tipo|default:'-' }}</td>
+                    <td><span class="text-muted">Ações indisponíveis</span></td>
+                </tr>
+                {% empty %}
+                <tr class="empty-row">
+                    <td colspan="6"><i class="bi bi-inbox empty-icon"></i>Nenhum registro encontrado</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="list-card-view mobile-card-only">
+    {% for item in afastamentos %}
+    <article class="list-card-item">
+        <div class="list-card-head">
+            <strong>Referência: {{ item.registro|default:'Sem referência' }}</strong>
+        </div>
+        <div class="list-card-grid">
+            <div><small>Funcionário</small>
+                <p>{{ item.afas_func }}</p>
+            </div>
+            <div><small>Data Saída</small>
+                <p>{{ item.afas_said|default:'-' }}</p>
+            </div>
+            <div><small>Data Retorno</small>
+                <p>{{ item.afas_reto|default:'-' }}</p>
+            </div>
+            <div><small>Tipo</small>
+                <p>{{ item.afas_tipo|default:'-' }}</p>
+            </div>
+        </div>
+    </article>
+    {% empty %}
+    <div class="list-card-empty">Nenhum registro encontrado</div>
+    {% endfor %}
+</div>
+{% endblock %}

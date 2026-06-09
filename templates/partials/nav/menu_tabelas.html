@@ -3,17 +3,9 @@
             class="bi bi-chevron-down chevron"></i>
     </button>
     <div class="dropdown-panel sortable-submenu">
-        <a href="{% url 'tabelasalafami:listar' %}?banco={{ request.banco }}">Salário Família</a>
+        <a href="{% url 'tabelasalafami:salafami_listar' %}?banco={{ request.banco }}">Salário Família</a>
         <a href="{% url 'tabelasalariominimo:listar' %}?banco={{ request.banco }}">Salário mínimo</a>
         <a href="{% url 'inss_list' %}" class="{% if request.resolver_match.url_name == 'inss_list' %}active{% endif %}">INSS</a>
-        <a href="{% url 'inss_empresa_list' %}" class="{% if request.resolver_match.url_name == 'inss_empresa_list' %}active{% endif %}">INSS Empresa</a>
         <a href="{% url 'irrf_list' %}">IRPF</a>
-        <a href="#">PIS</a>
-        <a href="#">Contribuição sindical patronal</a>
-        <a href="#">Cédulas e Moedas</a>
-        <a href="#">índices mensais</a>
-        <a href="#">índices para FGTS</a>
-        <a href="#">Vencimentos</a>
-        <a href="#">Planos de saúde</a>
     </div>
 </li>

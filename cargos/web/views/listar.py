@@ -6,12 +6,12 @@ from cargos.services.listar import ListarCargosService
 
 class CargosListView(BancoObrigatorioMixin, ListView):
     model = Cargos
-    template_name = "cargos/cargos_list.html"
+    template_name = "cargos/listar.html"
     context_object_name = "cargos"
     paginate_by = 20
     
     def get_queryset(self):
-        referencia = self.request.GET.get("ref")
+        referencia = self.request.GET.get("referencia")
         return ListarCargosService.listar(
             banco=self.request.banco,
             db_alias=self.request.db_alias,

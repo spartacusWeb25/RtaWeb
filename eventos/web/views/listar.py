@@ -5,7 +5,7 @@ from eventos.services.listar import ListarEventosService
 
 class EventosListView(BancoObrigatorioMixin, ListView):
     model = Eventos
-    template_name = "eventos/eventos_list.html"
+    template_name = "eventos/listar.html"
     context_object_name = "eventos"
     paginate_by = 20
     
