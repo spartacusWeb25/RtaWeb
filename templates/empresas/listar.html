@@ -8,105 +8,97 @@
 <link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
 <link href="{% static 'core/css/list-cards.css' %}" rel="stylesheet">
 <link href="{% static 'core/css/tabelas-layout.css' %}" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/botoes.css' %}">
+<link rel="stylesheet" href="{% static 'css/buscas.css' %}">
+<link rel="stylesheet" href="{% static 'css/tabelas.css' %}">
 
 {% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div>
-        <h1 id="title"><i class="bi bi-people-fill"></i> Empresas</h1>
-        <p id="subtitle"><i class="bi bi-filter"></i> Consulta e filtro de registros de empresas</p>    
-
+<div class="container mt-4">
+    <div class="d-flex justify-content-center align-items-center mb-3">
+        <h3><i class="bi bi-people-fill"></i> Empresas</h3>
     </div>
-</div>
 
-<div class="app-form-card mb-3">
-    <form method="get" class="form-grid form-grid-compact">
-        <input type="hidden" name="banco" value="{{ request.banco }}">
+    <div class="filtros-acoes mb-3">
+        <button class="botao botao-detalhar botao-filtro-toggle" type="button" data-bs-toggle="collapse"
+            data-bs-target="#filtrosCollapse" id="btn-filtros" aria-expanded="false" aria-controls="filtrosCollapse">
+            <i class="bi bi-funnel"></i> Filtros
+        </button>
+    </div>
 
-        <div>
-            <label class="form-label">Código</label>
-            <input class="form-control" type="text" name="referencia" value="{{ empr_empr }}">
-        </div>
+    <div class="app-form-card mb-3 collapse filtros-collapse" id="filtrosCollapse">
+        <form method="get" class="form-grid form-grid-compact">
+            <input type="hidden" name="banco" value="{{ request.banco }}">
 
-        <div>
-            <label class="form-label">Descrição</label>
-            <input class="form-control" type="text" name="descricao" value="{{ empr_nome }}">
-        </div>
+            <div class="form-group">
+                <label class="form-label">Código</label>
+                <input class="form-control" type="text" name="referencia" value="{{ empr_empr }}">
+            </div>
 
-        <div>
-            <label class="form-label">Filial</label>
-            <input class="form-control" type="text" name="empresas" value="{{ empr_fili }}">
-        </div>
+            <div class="form-group">
+                <label class="form-label">Descrição</label>
+                <input class="form-control" type="text" name="descricao" value="{{ empr_nome }}">
+            </div>
 
-        <div>
-            <label class="form-label">Ordenar</label>
-            <select name="ordenar" class="form-control">
-                <option value="">Padrão</option>
-                <option value="referencia" {% if ordenar == "referencia" %}selected{% endif %}>Código</option>
-                <option value="referencia_desc" {% if ordenar == "referencia_desc" %}selected{% endif %}>Referência desc
-                </option>
-                <option value="funcionario" {% if ordenar == "funcionario" %}selected{% endif %}>Descrição</option>
-                <option value="valor" {% if ordenar == "valor" %}selected{% endif %}>Menor valor</option>
-                <option value="valor_desc" {% if ordenar == "valor_desc" %}selected{% endif %}>Maior valor</option>
-            </select>
-        </div>
+            <div class="form-group">
+                <label class="form-label">Filial</label>
+                <input class="form-control" type="text" name="empresas" value="{{ empr_fili }}">
+            </div>
 
-        <div class="form-actions-row">
-            <button type="submit" class="btn">
-                <i class="bi bi-search" id="botao-filtrar"></i>
-            </button>
+            <div class="form-group">
+                <label class="form-label">Ordenar</label>
+                <select name="ordenar" class="form-control">
+                    <option value="">Padrão</option>
+                    <option value="referencia" {% if ordenar == "referencia" %}selected{% endif %}>Código</option>
+                    <option value="referencia_desc" {% if ordenar == "referencia_desc" %}selected{% endif %}>Referência desc</option>
+                    <option value="funcionario" {% if ordenar == "funcionario" %}selected{% endif %}>Descrição</option>
+                    <option value="valor" {% if ordenar == "valor" %}selected{% endif %}>Menor valor</option>
+                    <option value="valor_desc" {% if ordenar == "valor_desc" %}selected{% endif %}>Maior valor</option>
+                </select>
+            </div>
 
-            <a href="?banco={{ request.banco }}" class="btn btn-outline-secondary btn-sm">
-                Limpar
-            </a>
-        </div>
-    </form>
-</div>
+            <div class="form-group d-flex align-items-end">
+                <a href="?banco={{ request.banco }}" class="botao botao-limpar">
+                    <i class="bi bi-eraser"></i> Limpar
+                </a>
+            </div>
 
-<div class="table-wrapper desktop-table-only">
-    <div class="table-scroll">
-        <table class="app-table">
+            <div class="form-group">
+                <button type="submit" class="botao botao-buscar">
+                    <i class="bi bi-search"></i> Buscar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {% if empresas %}
+    <div class="table-responsive">
+        <table class="tabela-moderna">
             <thead>
                 <tr>
-                    <th>Código</th>
-                    <th>Descrição</th>
-                    <th>Ações</th>
+                    <th><i class="bi bi-hash"></i> Código</th>
+                    <th><i class="bi bi-card-text"></i> Descrição</th>
+                    <th><i class="bi bi-gear"></i> Ações</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody data-infinite-scroll-items>
                 {% for item in empresas %}
                 <tr>
-                    <td>{{ item.empr_empr }}</td>
-                    <td>{{ item.empr_nome|default:'-' }}</td>
-                    <td><span class="text-muted">Ações indisponíveis</span></td>
-                </tr>
-                {% empty %}
-                <tr class="empty-row">
-                    <td colspan="3"><i class="bi bi-inbox empty-icon"></i>Nenhum registro encontrado</td>
+                    <td data-label="Código">{{ item.empr_empr }}</td>
+                    <td data-label="Descrição">{{ item.empr_nome|default:'-' }}</td>
+                    <td data-label="Ações"><span class="text-muted">Indisponível</span></td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-</div>
 
-<div class="list-card-view mobile-card-only">
-    {% for item in empresas %}
-    <article class="list-card-item">
-        <div class="list-card-head">
-            <strong>{{ item.empr_nome|default:'Sem descricao' }}</strong>
-            <span>#{{ item.empr_empr }}</span>
-        </div>
-        <div class="list-card-grid">
-            <div><small>Descrição</small>
-                <p>{{ item.empr_nome|default:'-' }}</p>
-            </div>
-        </div>
-
-    </article>
-    {% empty %}
-    <div class="list-card-empty">Nenhum registro encontrado</div> 
-    {% endfor %}
+    {% include "partials/componentes/infinite_scroll.html" %}
+    {% else %}
+    <div class="alert alert-warning">
+        Nenhum registro encontrado.
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

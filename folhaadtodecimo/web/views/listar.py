@@ -1,9 +1,9 @@
 from django.views.generic import ListView
-from core.mixin import BancoObrigatorioMixin
+from core.mixin import BancoObrigatorioMixin, InfiniteScrollMixin
 from ...models import Folhaadtodecimo
 from folhaadtodecimo.services.listar import ListarFolhaAdtodecimoService
 
-class FolhaAdtodecimoListView(BancoObrigatorioMixin, ListView):
+class FolhaAdtodecimoListView(BancoObrigatorioMixin, InfiniteScrollMixin, ListView):
     model = Folhaadtodecimo
     template_name = "folhaadtodecimo/listar.html"
     context_object_name = "folhaadtodecimo"

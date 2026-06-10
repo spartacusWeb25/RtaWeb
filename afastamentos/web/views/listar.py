@@ -1,10 +1,10 @@
 from django.views.generic import ListView
 
-from core.mixin import BancoObrigatorioMixin
+from core.mixin import BancoObrigatorioMixin, InfiniteScrollMixin
 from ...models import Afastamentos
 from afastamentos.services.listar import ListarAfastamentosService
 
-class AfastamentosListView(BancoObrigatorioMixin, ListView):
+class AfastamentosListView(BancoObrigatorioMixin, InfiniteScrollMixin, ListView):
     model = Afastamentos
     template_name = "afastamentos/listar.html"
     context_object_name = "afastamentos"

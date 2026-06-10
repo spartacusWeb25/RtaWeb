@@ -1,10 +1,10 @@
 from django.views.generic import ListView
 
-from core.mixin import BancoObrigatorioMixin
+from core.mixin import BancoObrigatorioMixin, InfiniteScrollMixin
 from ...models import Dependentesrh
 from dependentesrh.services.listar import ListarDependentesRhService
 
-class DependentesRhListView(BancoObrigatorioMixin, ListView):
+class DependentesRhListView(BancoObrigatorioMixin, InfiniteScrollMixin, ListView):
     model = Dependentesrh
     template_name = "dependentesrh/listar.html"
     context_object_name = "dependentesrh"

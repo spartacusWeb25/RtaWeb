@@ -8,95 +8,81 @@
 <link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
 <link href="{% static 'core/css/list-cards.css' %}" rel="stylesheet">
 <link href="{% static 'core/css/tabelas-layout.css' %}" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/botoes.css' %}">
+<link rel="stylesheet" href="{% static 'css/buscas.css' %}">
+<link rel="stylesheet" href="{% static 'css/tabelas.css' %}">
 
 {% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div>
-        <h1 id="title"><i class="bi bi-people-fill"></i> Afastamentos</h1>
-        <p id="subtitle"><i class="bi bi-filter"></i> Consulta e filtro de registros de afastamentos</p>               
-
+<div class="container mt-4">
+    <div class="d-flex justify-content-center align-items-center mb-3">
+        <h3><i class="bi bi-people-fill"></i> Afastamentos</h3>
     </div>
-</div>
 
-<div class="app-form-card mb-3">
-    <form method="get" class="form-grid form-grid-compact">
-        <input type="hidden" name="banco" value="{{ request.banco }}">
+    <div class="filtros-acoes mb-3">
+        <button class="botao botao-detalhar botao-filtro-toggle" type="button" data-bs-toggle="collapse"
+            data-bs-target="#filtrosCollapse" id="btn-filtros" aria-expanded="false" aria-controls="filtrosCollapse">
+            <i class="bi bi-funnel"></i> Filtros
+        </button>
+    </div>
 
-        <div>
-            <label class="form-label">Referência</label>
-            <input class="form-control" type="text" name="referencia" value="{{ request.GET.referencia }}">
-        </div>
+    <div class="app-form-card mb-3 collapse filtros-collapse" id="filtrosCollapse">
+        <form method="get" class="form-grid form-grid-compact">
+            <input type="hidden" name="banco" value="{{ request.banco }}">
 
-        <div class="form-actions-row">
-            <button type="submit" class="btn">
-                <i class="bi bi-search" id="botao-filtrar"></i>
-            </button>
+            <div class="form-group">
+                <label class="form-label">Referência</label>
+                <input class="form-control" type="text" name="referencia" value="{{ request.GET.referencia }}">
+            </div>
 
-            <a href="?banco={{ request.banco }}" class="btn btn-outline-secondary btn-sm">
-                Limpar
-            </a>
-        </div>
-    </form>
-</div>
+            <div class="form-group d-flex align-items-end">
+                <a href="?banco={{ request.banco }}" class="botao botao-limpar">
+                    <i class="bi bi-eraser"></i> Limpar
+                </a>
+            </div>
 
-<div class="table-wrapper desktop-table-only">
-    <div class="table-scroll">
-        <table class="app-table">
+            <div class="form-group">
+                <button type="submit" class="botao botao-buscar">
+                    <i class="bi bi-search"></i> Buscar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {% if afastamentos %}
+    <div class="table-responsive">
+        <table class="tabela-moderna">
             <thead>
-                    <tr>
-                    <th>Referência</th>
-                    <th>Funcionário</th>
-                    <th>Data Saída</th>
-                    <th>Data Retorno</th>
-                    <th>Tipo</th>
-                    <th>Ações</th>
+                <tr>
+                    <th><i class="bi bi-hash"></i> Referência</th>
+                    <th><i class="bi bi-person"></i> Funcionário</th>
+                    <th><i class="bi bi-box-arrow-right"></i> Data Saída</th>
+                    <th><i class="bi bi-box-arrow-in-left"></i> Data Retorno</th>
+                    <th><i class="bi bi-tag"></i> Tipo</th>
+                    <th><i class="bi bi-gear"></i> Ações</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody data-infinite-scroll-items>
                 {% for item in afastamentos %}
                 <tr>
-                    <td>{{ item.registro }}</td>
-                    <td>{{ item.afas_func }}</td>
-                    <td>{{ item.afas_said|default:'-' }}</td>
-                    <td>{{ item.afas_reto|default:'-' }}</td>
-                    <td>{{ item.afas_tipo|default:'-' }}</td>
-                    <td><span class="text-muted">Ações indisponíveis</span></td>
-                </tr>
-                {% empty %}
-                <tr class="empty-row">
-                    <td colspan="6"><i class="bi bi-inbox empty-icon"></i>Nenhum registro encontrado</td>
+                    <td data-label="Referência">{{ item.registro }}</td>
+                    <td data-label="Funcionário">{{ item.afas_func }}</td>
+                    <td data-label="Data Saída">{{ item.afas_said|default:'-' }}</td>
+                    <td data-label="Data Retorno">{{ item.afas_reto|default:'-' }}</td>
+                    <td data-label="Tipo">{{ item.afas_tipo|default:'-' }}</td>
+                    <td data-label="Ações"><span class="text-muted">Indisponível</span></td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-</div>
 
-<div class="list-card-view mobile-card-only">
-    {% for item in afastamentos %}
-    <article class="list-card-item">
-        <div class="list-card-head">
-            <strong>Referência: {{ item.registro|default:'Sem referência' }}</strong>
-        </div>
-        <div class="list-card-grid">
-            <div><small>Funcionário</small>
-                <p>{{ item.afas_func }}</p>
-            </div>
-            <div><small>Data Saída</small>
-                <p>{{ item.afas_said|default:'-' }}</p>
-            </div>
-            <div><small>Data Retorno</small>
-                <p>{{ item.afas_reto|default:'-' }}</p>
-            </div>
-            <div><small>Tipo</small>
-                <p>{{ item.afas_tipo|default:'-' }}</p>
-            </div>
-        </div>
-    </article>
-    {% empty %}
-    <div class="list-card-empty">Nenhum registro encontrado</div>
-    {% endfor %}
+    {% include "partials/componentes/infinite_scroll.html" %}
+    {% else %}
+    <div class="alert alert-warning">
+        Nenhum registro encontrado.
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

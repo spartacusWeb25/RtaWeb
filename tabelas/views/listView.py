@@ -1,13 +1,13 @@
 from django.views.generic import ListView
 
-from core.mixin import BancoObrigatorioMixin
+from core.mixin import BancoObrigatorioMixin, InfiniteScrollMixin
 from tabelas.models import Tabelainss, Tabelainssempresa, Tabelairrf
 from tabelas.services.service_tabela_inss import ServiceTabelaInss
 from tabelas.services.service_tabela_inss_empresa import ServiceTabelaInssEmpresa
 from tabelas.services.service_tabela_irrf import ServiceTabelaIrf
 
 
-class TabelaIrrfListView(BancoObrigatorioMixin, ListView):
+class TabelaIrrfListView(BancoObrigatorioMixin, InfiniteScrollMixin, ListView):
     model = Tabelairrf
     template_name = "tabelas/irrf_list.html"
     context_object_name = "tabelas"
@@ -22,7 +22,7 @@ class TabelaIrrfListView(BancoObrigatorioMixin, ListView):
         )
 
 
-class TabelaInssListView(BancoObrigatorioMixin, ListView):
+class TabelaInssListView(BancoObrigatorioMixin, InfiniteScrollMixin, ListView):
     model = Tabelainss
     template_name = "tabelas/inss_list.html"
     context_object_name = "tabelas"
@@ -37,7 +37,7 @@ class TabelaInssListView(BancoObrigatorioMixin, ListView):
         )
 
 
-class TabelaInssEmpresaListView(BancoObrigatorioMixin, ListView):
+class TabelaInssEmpresaListView(BancoObrigatorioMixin, InfiniteScrollMixin, ListView):
     model = Tabelainssempresa
     template_name = "tabelas/inss_empresa_list.html"
     context_object_name = "tabelas"

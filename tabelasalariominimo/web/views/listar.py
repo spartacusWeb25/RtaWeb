@@ -1,9 +1,9 @@
 from django.views.generic import ListView  
-from core.mixin import BancoObrigatorioMixin
+from core.mixin import BancoObrigatorioMixin, InfiniteScrollMixin
 from ...models import Tabelasalariominimo
 from tabelasalariominimo.services.listar import ListarTabelasalariominimoService     
         
-class TabelasalariominimoListView(BancoObrigatorioMixin, ListView):
+class TabelasalariominimoListView(BancoObrigatorioMixin, InfiniteScrollMixin, ListView):
     model = Tabelasalariominimo
     context_object_name = "tabelasalariominimo"
     template_name = "tabelasalariominimo/listar.html"

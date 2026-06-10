@@ -1,11 +1,11 @@
 from django.views.generic import ListView  
 
-from core.mixin import BancoObrigatorioMixin
+from core.mixin import BancoObrigatorioMixin, InfiniteScrollMixin
 from ...models import Tabelainss
 from tabelainss.services.listar import ListarTabelainssService     
 
 
-class TabelainssListView(BancoObrigatorioMixin, ListView):
+class TabelainssListView(BancoObrigatorioMixin, InfiniteScrollMixin, ListView):
     model = Tabelainss
     context_object_name = "tabelainss"
     template_name = "tabelainss/listar.html"
