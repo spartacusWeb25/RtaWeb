@@ -68,3 +68,30 @@
     font-size: 13px;
     color: var(--text-muted);
 }
+
+.infinite-scroll {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 14px 0 6px;
+}
+
+.infinite-scroll-status {
+    font-size: 13px;
+    color: var(--text-muted);
+    padding: 6px 10px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-default);
+    background: var(--surface-card);
+    box-shadow: var(--shadow-sm);
+    display: none;
+}
+
+.infinite-scroll.is-loading .infinite-scroll-status {
+    display: inline-flex;
+}
+
+.infinite-scroll-sentinel {
+    height: 1px;
+    width: 1px;
+}

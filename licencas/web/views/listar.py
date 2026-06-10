@@ -1,11 +1,11 @@
 from django.views.generic import ListView
 
-from core.mixin import BancoObrigatorioMixin
+from core.mixin import BancoObrigatorioMixin, InfiniteScrollMixin
 from licencas.models import Usuarios
 from licencas.services import UsuariosService
 
 
-class UsuariosListView(BancoObrigatorioMixin, ListView):
+class UsuariosListView(BancoObrigatorioMixin, InfiniteScrollMixin, ListView):
     model = Usuarios
     template_name = "licencas/usuarios/listar.html"
     context_object_name = "usuarios"

@@ -4,7 +4,7 @@
 
 git status
 git add .
-git commit -m "finaliza feature X"
+git commit -m "finalização do padrão das listagens com cards e listas dinamicas com filtros mais aparentes"
 
 
 2️⃣ Atualiza tua branch com o que já existe na main
