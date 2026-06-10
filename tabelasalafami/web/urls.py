@@ -7,5 +7,5 @@ app_name = "tabelasalafami"
 
 
 urlpatterns = [
-    path('', TabelasalafamiListView.as_view(), name='listar'),
+    path('', TabelasalafamiListView.as_view(), name='salafami_listar'),
 ]

@@ -6,7 +6,7 @@ from dadosrescisao.services.listar import ListarDadosRescisaoService
 
 class DadosRescisaoListView(BancoObrigatorioMixin, ListView):
     model = Dadosrescisao
-    template_name = "dadosrescisao/dadosrescisao_list.html"
+    template_name = "dadosrescisao/listar.html"
     context_object_name = "dadosrescisaos"
     paginate_by = 20
     

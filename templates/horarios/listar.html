@@ -25,18 +25,13 @@
         <input type="hidden" name="banco" value="{{ request.banco }}">
 
         <div>
-            <label class="form-label">Código</label>
-            <input class="form-control" type="text" name="sind_codi" value="{{ sind_codi }}">
+            <label class="form-label">profissional</label>
+            <input class="form-control" type="text" name="hora_prof" value="{{ hora_prof }}">
         </div>
 
         <div>
-            <label class="form-label">Descrição</label>
-            <input class="form-control" type="text" name="sind_nome" value="{{ sind_nome }}">
-        </div>
-
-        <div>
-            <label class="form-label">CNPJ</label>
-            <input class="form-control" type="text" name="sind_cnpj" value="{{ sind_cnpj }}">
+            <label class="form-label">hora dia </label>
+            <input class="form-control" type="text" name="hora_dia" value="{{ hora_dia }}">
         </div>
 
         <div>
@@ -68,27 +63,21 @@
         <table class="app-table">
             <thead>
                 <tr>
-                    <th>Código</th>
-                    <th>Descrição</th>
-                    <th>CNPJ</th>
-                    <th>Cidade</th>
-                    <th>UF</th>
+                    <th>hora profissional</th>
+                    <th>hora dia </th>
                     <th>Ações</th>
                 </tr>
             </thead>
             <tbody>
-                {% for item in sindicatos %}
+                {% for item in horarios %}
                 <tr>
-                    <td>{{ item.sind_codi }}</td>
-                    <td>{{ item.sind_nome|default:'-' }}</td>
-                    <td>{{ item.sind_cnpj|default:'-' }}</td>
-                    <td>{{ item.sind_cida|default:'-' }}</td>
-                    <td>{{ item.sind_esta|default:'-' }}</td>
+                    <td>{{ item.hora_prof }}</td>
+                    <td>{{ item.hora_dia }}</td>
                     <td>
                         <a class="btn btn-sm btn-outline-primary"
-                            href="{% url 'sindicatos:atualizar' item.sind_codi %}?banco={{ request.banco }}">Editar</a>
+                            href="{% url 'horarios:atualizar' item.id %}?banco={{ request.banco }}">Editar</a>
                         <a class="btn btn-sm btn-outline-danger"
-                            href="{% url 'sindicatos:deletar' item.sind_codi %}?banco={{ request.banco }}">Excluir</a>
+                            href="{% url 'horarios:deletar' item.id %}?banco={{ request.banco }}">Excluir</a>
                     </td>
                 </tr>
                 {% empty %}
@@ -102,28 +91,28 @@
 </div>
 
 <div class="list-card-view mobile-card-only">
-    {% for item in sindicatos %}
+    {% for item in horarios %}
     <article class="list-card-item">
         <div class="list-card-head">
-            <strong>{{ item.sind_nome|default:'Sem nome' }}</strong>
-            <span>#{{ item.sind_codi }}</span>
+            <strong>{{ item.hora_prof }}</strong>
+            <span>#{{ item.id }}</span>         
         </div>
         <div class="list-card-grid">
             <div><small>CNPJ</small>
-                <p>{{ item.sind_cnpj|default:'-' }}</p>
+                <p>{{ item.hora_dia }}</p>
             </div>
-            <div><small>Cidade</small>
-                <p>{{ item.sind_cida|default:'-' }}</p>
+            <div><small>UF dia</small>
+                <p>{{ item.hora_prof }}</p>
             </div>
             <div><small>UF</small>
-                <p>{{ item.sind_esta|default:'-' }}</p>
+                <p>{{ item.hora_dia }}</p>
             </div>
         </div>
         <div class="list-card-actions">
             <a class="btn btn-sm btn-outline-primary"
-                href="{% url 'sindicatos:atualizar' item.sind_codi %}?banco={{ request.banco }}">Editar</a>
+                href="{% url 'horarios:atualizar' item.id %}?banco={{ request.banco }}">Editar</a>
             <a class="btn btn-sm btn-outline-danger"
-                href="{% url 'sindicatos:deletar' item.sind_codi %}?banco={{ request.banco }}">Excluir</a>  
+                href="{% url 'horarios:deletar' item.id %}?banco={{ request.banco }}">Excluir</a>   
         </div>
     </article>
     {% empty %}

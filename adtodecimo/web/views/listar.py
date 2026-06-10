@@ -7,7 +7,7 @@ from adtodecimo.services.listar import ListarAdtoDecimoService
 
 class AdtodecimoListView(BancoObrigatorioMixin, ListView):
     model = Adtodecimo
-    template_name = "adtodecimo/adtodecimo_list.html"
+    template_name = "adtodecimo/listar.html"
     context_object_name = "adtodecimos"
     paginate_by = 20
     

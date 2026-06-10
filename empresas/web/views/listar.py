@@ -5,7 +5,7 @@ from empresas.services.listar import ListarEmpresasService
 
 class EmpresasListView(BancoObrigatorioMixin, ListView):
     model = Empresas
-    template_name = "empresas/empresas_list.html"
+    template_name = "empresas/listar.html"
     context_object_name = "empresas"
     paginate_by = 20
     

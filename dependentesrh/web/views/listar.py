@@ -6,7 +6,7 @@ from dependentesrh.services.listar import ListarDependentesRhService
 
 class DependentesRhListView(BancoObrigatorioMixin, ListView):
     model = Dependentesrh
-    template_name = "dependentesrh/dependentesrh_list.html"
+    template_name = "dependentesrh/listar.html"
     context_object_name = "dependentesrh"
     paginate_by = 20
     

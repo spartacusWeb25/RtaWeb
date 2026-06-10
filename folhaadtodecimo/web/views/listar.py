@@ -5,7 +5,7 @@ from folhaadtodecimo.services.listar import ListarFolhaAdtodecimoService
 
 class FolhaAdtodecimoListView(BancoObrigatorioMixin, ListView):
     model = Folhaadtodecimo
-    template_name = "folhaadtodecimo/folhaadtodecimo_list.html"
+    template_name = "folhaadtodecimo/listar.html"
     context_object_name = "folhaadtodecimo"
     paginate_by = 20
     

@@ -15,18 +15,10 @@
             <div class="sidebar">
                 <h4><i class="bi bi-tablet-landscape"></i> Tabelas</h4>
 
-                <a href="#">Salário Família</a>
-                <a href="#">Salário mínimo</a>
+                <a href="{% url 'tabelasalafami:salafami_listar' %}?banco={{ request.banco }}">Salário Família</a>
+                <a href="{% url 'tabelasalariominimo:listar' %}?banco={{ request.banco }}">Salário mínimo</a>
                 <a href="{% url 'inss_list' %}" class="{% if request.resolver_match.url_name == 'inss_list' %}active{% endif %}">INSS</a>
-                <a href="{% url 'inss_empresa_list' %}" class="{% if request.resolver_match.url_name == 'inss_empresa_list' %}active{% endif %}">INSS Empresa</a>
                 <a href="{% url 'irrf_list' %}" class="{% if request.resolver_match.url_name == 'irrf_list' %}active{% endif %}">IRPF</a>
-                <a href="#">PIS</a>
-                <a href="#">Contribuição sindical patronal</a>
-                <a href="#">Cédulas e Moedas</a>
-                <a href="#">Índices mensais</a>
-                <a href="#">Índices para FGTS</a>
-                <a href="#">Vencimentos</a>
-                <a href="#">Planos de saúde</a>
             </div>
         </aside>
 
@@ -34,8 +26,8 @@
 
             <div class="d-md-none mb-3">
                 <div class="d-flex flex-wrap gap-2">
-                    <a href="#" class="btn btn-outline-secondary btn-sm">Salário Família</a>
-                    <a href="#" class="btn btn-outline-secondary btn-sm">Salário mínimo</a>
+                    <a href="{% url 'tabelasalafami:salafami_listar' %}?banco={{ request.banco }}" class="btn btn-outline-secondary btn-sm">Salário Família</a>
+                    <a href="{% url 'tabelasalariominimo:listar' %}?banco={{ request.banco }}" class="btn btn-outline-secondary btn-sm">Salário mínimo</a>
                     <a href="{% url 'inss_list' %}" class="btn btn-outline-primary btn-sm">INSS</a>
                     <a href="{% url 'inss_empresa_list' %}" class="btn btn-outline-primary btn-sm">INSS Empresa</a>
                     <a href="{% url 'irrf_list' %}" class="btn btn-outline-primary btn-sm">IRPF</a>
