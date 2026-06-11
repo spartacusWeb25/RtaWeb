@@ -2,7 +2,7 @@
     <button class="nav-btn"> <i class="bi bi-tablet-landscape" style="font-size: 1.2rem;  color: #14ff91;"></i> Tabelas <i
             class="bi bi-chevron-down chevron"></i>
     </button>
-    <div class="dropdown-panel sortable-submenu">
+    <div class="dropdown-panel">
         <a href="{% url 'tabelasalafami:salafami_listar' %}?banco={{ request.banco }}">Salário Família</a>
         <a href="{% url 'tabelasalariominimo:listar' %}?banco={{ request.banco }}">Salário mínimo</a>
         <a href="{% url 'inss_list' %}" class="{% if request.resolver_match.url_name == 'inss_list' %}active{% endif %}">INSS</a>

@@ -3,26 +3,19 @@
 {% block content %}
 <div class="container mt-4">
     {% if modo_edicao %}
-    <h5>Editar Setor</h5>
+    <h1>Editar Tabela Salário Familia</h1>
     {% else %}
-    <h5>Novo Setor</h5>
+    <h4>Nova Tabela Salário Familia</h4>
     {% endif %}
 
 
     <form method="post" class="card p-3">
         {% csrf_token %}
         {{ form.as_p }}
-        
+
         <button type="submit" class="btn btn-primary">
             Salvar
         </button>
     </form>
 </div>
 {% endblock %}
-
-
-<p>
-    Para criar um novo setor, preencha os campos abaixo e clique em Salvar.
-</p>
-
-<table>

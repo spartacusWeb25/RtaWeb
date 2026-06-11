@@ -39,10 +39,6 @@ function sortMainMenus() {
       })
     })
 
-    sortMainMenus()
-
-
-
     const navToggle = document.getElementById('navToggle')
     const navMobilePanel = document.getElementById('navMobilePanel')
     if (navToggle && navMobilePanel) {
