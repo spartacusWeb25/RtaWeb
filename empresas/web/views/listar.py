@@ -1,9 +1,9 @@
 from django.views.generic import ListView
-from core.mixin import BancoObrigatorioMixin
+from core.mixin import BancoObrigatorioMixin, InfiniteScrollMixin
 from ...models import Empresas
 from empresas.services.listar import ListarEmpresasService
 
-class EmpresasListView(BancoObrigatorioMixin, ListView):
+class EmpresasListView(BancoObrigatorioMixin, InfiniteScrollMixin, ListView):
     model = Empresas
     template_name = "empresas/listar.html"
     context_object_name = "empresas"

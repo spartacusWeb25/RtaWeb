@@ -8,131 +8,114 @@
 <link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
 <link href="{% static 'core/css/list-cards.css' %}" rel="stylesheet">
 <link href="{% static 'core/css/tabelas-layout.css' %}" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/botoes.css' %}">
+<link rel="stylesheet" href="{% static 'css/buscas.css' %}">
+<link rel="stylesheet" href="{% static 'css/tabelas.css' %}">
 
 {% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div>
-        <h1 id="title"><i class="bi bi-people-fill"></i> Folha Rescisão</h1>
-        <p id="subtitle"><i class="bi bi-filter"></i> Consulta e filtro de registros de folha de rescisão</p>
-
+<div class="container mt-4">
+    <div class="d-flex justify-content-center align-items-center mb-3">
+        <h3><i class="bi bi-people-fill"></i> Folha Rescisão</h3>
     </div>
-</div>
 
-<div class="app-form-card mb-3">
-    <form method="get" class="form-grid form-grid-compact">
-        <input type="hidden" name="banco" value="{{ request.banco }}">
+    <div class="filtros-acoes mb-3">
+        <button class="botao botao-detalhar botao-filtro-toggle" type="button" data-bs-toggle="collapse"
+            data-bs-target="#filtrosCollapse" id="btn-filtros" aria-expanded="false" aria-controls="filtrosCollapse">
+            <i class="bi bi-funnel"></i> Filtros
+        </button>
+    </div>
 
-        <div>
-            <label class="form-label">Referência</label>
-            <input class="form-control" type="text" name="referencia" value="{{ referencia }}">
-        </div>
+    <div class="app-form-card mb-3 collapse filtros-collapse" id="filtrosCollapse">
+        <form method="get" class="form-grid form-grid-compact">
+            <input type="hidden" name="banco" value="{{ request.banco }}">
 
-        <div>
-            <label class="form-label">Funcionário</label>
-            <input class="form-control" type="text" name="funcionario" value="{{ fome_func }}">
-        </div>
+            <div class="form-group">
+                <label class="form-label">Referência</label>
+                <input class="form-control" type="text" name="referencia" value="{{ referencia }}">
+            </div>
 
-        <div>
-            <label class="form-label">Evento</label>
-            <input class="form-control" type="text" name="evento" value="{{ fome_even }}">
-        </div>
+            <div class="form-group">
+                <label class="form-label">Funcionário</label>
+                <input class="form-control" type="text" name="funcionario" value="{{ fome_func }}">
+            </div>
 
-        <div>
-            <label class="form-label">Ordenar</label>
-            <select name="ordenar" class="form-control">
-                <option value="">Padrão</option>
-                <option value="referencia" {% if ordenar == "referencia" %}selected{% endif %}>Referência</option>
-                <option value="referencia_desc" {% if ordenar == "referencia_desc" %}selected{% endif %}>Referência desc
-                </option>
-                <option value="funcionario" {% if ordenar == "funcionario" %}selected{% endif %}>Funcionário</option>
-                <option value="evento" {% if ordenar == "evento" %}selected{% endif %}>Evento</option>
-                <option value="valor" {% if ordenar == "valor" %}selected{% endif %}>Menor valor</option>
-                <option value="valor_desc" {% if ordenar == "valor_desc" %}selected{% endif %}>Maior valor</option>
-            </select>
-        </div>
+            <div class="form-group">
+                <label class="form-label">Evento</label>
+                <input class="form-control" type="text" name="evento" value="{{ fome_even }}">
+            </div>
 
-        <div class="form-actions-row">
-            <button type="submit" class="btn">
-                <i class="bi bi-search" id="botao-filtrar"></i>
-            </button>
+            <div class="form-group">
+                <label class="form-label">Ordenar</label>
+                <select name="ordenar" class="form-control">
+                    <option value="">Padrão</option>
+                    <option value="referencia" {% if ordenar=="referencia" %}selected{% endif %}>Referência</option>
+                    <option value="referencia_desc" {% if ordenar=="referencia_desc" %}selected{% endif %}>Referência
+                        desc</option>
+                    <option value="funcionario" {% if ordenar=="funcionario" %}selected{% endif %}>Funcionário</option>
+                    <option value="evento" {% if ordenar=="evento" %}selected{% endif %}>Evento</option>
+                    <option value="valor" {% if ordenar=="valor" %}selected{% endif %}>Menor valor</option>
+                    <option value="valor_desc" {% if ordenar=="valor_desc" %}selected{% endif %}>Maior valor</option>
+                </select>
+            </div>
 
-            <a href="?banco={{ request.banco }}" class="btn btn-outline-secondary btn-sm">
-                Limpar
-            </a>
-        </div>
-    </form>
-</div>
+            <div class="form-group d-flex align-items-end">
+                <a href="?banco={{ request.banco }}" class="botao botao-limpar">
+                    <i class="bi bi-eraser"></i> Limpar
+                </a>
+            </div>
 
-<div class="table-wrapper desktop-table-only">
-    <div class="table-scroll">
-        <table class="app-table">
+            <div class="form-group">
+                <button type="submit" class="botao botao-buscar">
+                    <i class="bi bi-search"></i> Buscar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {% if folhasrescisao %}
+    <div class="table-responsive">
+        <table class="tabela-moderna">
             <thead>
                 <tr>
-                    <th>Referência</th>
-                    <th>Funcionário</th>
-                    <th>Evento</th>
-                    <th>Base</th>
-                    <th>Valor</th>
-                    <th>Ações</th>
+                    <th><i class="bi bi-hash"></i> Referência</th>
+                    <th><i class="bi bi-person"></i> Funcionário</th>
+                    <th><i class="bi bi-lightning"></i> Evento</th>
+                    <th><i class="bi bi-calculator"></i> Base</th>
+                    <th><i class="bi bi-cash-stack"></i> Valor</th>
+                    <th><i class="bi bi-gear"></i> Ações</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody data-infinite-scroll-items>
                 {% for item in folhasrescisao %}
                 <tr>
-                    <td>{{ item.fome_refe }}</td>
-                    <td>{{ item.fome_func|default:'-' }}</td>
-                    <td>{{ item.fome_even|default:'-' }}</td>
-                    <td>{{ item.fome_base|default:'-' }}</td>
-                    <td>{{ item.fome_valo|default:'-' }}</td>
-                    <td>
-                        <a class="btn btn-sm btn-outline-primary"
-                            href="{% url 'folhasrescisao:atualizar' item.id %}?banco={{ request.banco }}">Editar</a>
-                        <a class="btn btn-sm btn-outline-danger"
-                            href="{% url 'folhasrescisao:deletar' item.id %}?banco={{ request.banco }}">Excluir</a> 
+                    <td data-label="Referência">{{ item.fome_refe }}</td>
+                    <td data-label="Funcionário">{{ item.fome_func|default:'-' }}</td>
+                    <td data-label="Evento">{{ item.fome_even|default:'-' }}</td>
+                    <td data-label="Base">{{ item.fome_base|default:'-' }}</td>
+                    <td data-label="Valor">{{ item.fome_valo|default:'-' }}</td>
+                    <td data-label="Ações" class="tabela-acoes">
+                        <a class="botao botao-editar"
+                            href="{% url 'folhasrescisao:atualizar' item.id %}?banco={{ request.banco }}">
+                            <i class="bi bi-pencil"></i> Editar
+                        </a>
+                        <a class="botao botao-remover"
+                            href="{% url 'folhasrescisao:deletar' item.id %}?banco={{ request.banco }}">
+                            <i class="bi bi-trash"></i> Excluir
+                        </a>
                     </td>
-                </tr>
-                {% empty %}
-                <tr class="empty-row">
-                    <td colspan="6"><i class="bi bi-inbox empty-icon"></i>Nenhum registro encontrado</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-</div>
 
-<div class="list-card-view mobile-card-only">
-    {% for item in folhasrescisao %}
-    <article class="list-card-item">
-        <div class="list-card-head">
-            <strong>{{ item.fome_refe|default:'Sem referencia' }}</strong>
-            <span>#{{ item.id }}</span>
-        </div>
-        <div class="list-card-grid">
-            <div><small>Funcionário</small>
-                <p>{{ item.fome_func|default:'-' }}</p>
-            </div>
-            <div><small>Evento</small>
-                <p>{{ item.fome_even|default:'-' }}</p>
-            </div>
-            <div><small>Base</small>
-                <p>{{ item.fome_base|default:'-' }}</p>
-            </div>
-            <div><small>Valor</small>
-                <p>{{ item.fome_valo|default:'-' }}</p>
-            </div>
-        </div>
-        <div class="list-card-actions">
-            <a class="btn btn-sm btn-outline-primary"
-                href="{% url 'folhasrescisao:atualizar' item.id %}?banco={{ request.banco }}">Editar</a>
-            <a class="btn btn-sm btn-outline-danger"
-                href="{% url 'folhasrescisao:deletar' item.id %}?banco={{ request.banco }}">Excluir</a>
-        </div>
-    </article>
-    {% empty %}
-    <div class="list-card-empty">Nenhum registro encontrado</div>
-    {% endfor %}
+    {% include "partials/componentes/infinite_scroll.html" %}
+    {% else %}
+    <div class="alert alert-warning">
+        Nenhum registro encontrado.
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

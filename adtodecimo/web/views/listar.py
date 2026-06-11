@@ -1,11 +1,11 @@
 from django.views.generic import ListView
 
-from core.mixin import BancoObrigatorioMixin
+from core.mixin import BancoObrigatorioMixin, InfiniteScrollMixin
 from ...models import Adtodecimo
 from adtodecimo.services.listar import ListarAdtoDecimoService
 
 
-class AdtodecimoListView(BancoObrigatorioMixin, ListView):
+class AdtodecimoListView(BancoObrigatorioMixin, InfiniteScrollMixin, ListView):
     model = Adtodecimo
     template_name = "adtodecimo/listar.html"
     context_object_name = "adtodecimos"

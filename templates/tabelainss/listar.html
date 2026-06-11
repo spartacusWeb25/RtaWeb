@@ -8,57 +8,62 @@
 <link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
 <link href="{% static 'core/css/list-cards.css' %}" rel="stylesheet">
 <link href="{% static 'core/css/tabelas-layout.css' %}" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/botoes.css' %}">
+<link rel="stylesheet" href="{% static 'css/buscas.css' %}">
+<link rel="stylesheet" href="{% static 'css/tabelas.css' %}">
 
 {% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div>
-        <h1 id="title"><i class="bi bi-people-fill"></i> Tabela INSS</h1>
-        <p id="subtitle"><i class="bi bi-filter"></i> Consulta e filtro de registros de Tabela INSS</p>
-
+<div class="container mt-4">
+    <div class="d-flex justify-content-center align-items-center mb-3">
+        <h3><i class="bi bi-tablet-landscape"></i> Tabela INSS</h3>
     </div>
-</div>
 
-<div class="app-form-card mb-3">
-    <form method="get" class="form-grid form-grid-compact">
-        <input type="hidden" name="banco" value="{{ request.banco }}">
-
-        <div>
-            <label class="form-label">Referência</label>
-            <input class="form-control" type="text" name="referencia" value="{{ referencia }}">
-        </div>
-        
-
-        <div>
-            <label class="form-label">Ordenar</label>
-            <select name="ordenar" class="form-control">
-                <option value="">Padrão</option>
-                <option value="referencia" {% if ordenar == "referencia" %}selected{% endif %}>Referência</option>
-                </option>
-            </select>
-        </div>
-
-        <div class="form-actions-row">
-            <button type="submit" class="btn">
-                <i class="bi bi-search" id="botao-filtrar"></i>
-            </button>
-
-            <a href="?banco={{ request.banco }}" class="btn btn-outline-secondary btn-sm">
-                Limpar
-            </a>
-        </div>
-    </form>
-</div>
-<div class="row g-3">
-    <div class="col-12">
-        <h2 id="title"><i class="bi bi-tablet-landscape"></i> Tabela INSS</h2>
+    <div class="filtros-acoes mb-3">
+        <button class="botao botao-detalhar botao-filtro-toggle" type="button" data-bs-toggle="collapse"
+            data-bs-target="#filtrosCollapse" id="btn-filtros" aria-expanded="false" aria-controls="filtrosCollapse">
+            <i class="bi bi-funnel"></i> Filtros
+        </button>
     </div>
+
+    <div class="app-form-card mb-3 collapse filtros-collapse" id="filtrosCollapse">
+        <form method="get" class="form-grid form-grid-compact">
+            <input type="hidden" name="banco" value="{{ request.banco }}">
+
+            <div class="form-group">
+                <label class="form-label">Referência</label>
+                <input class="form-control" type="text" name="referencia" value="{{ referencia }}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Ordenar</label>
+                <select name="ordenar" class="form-control">
+                    <option value="">Padrão</option>
+                    <option value="referencia" {% if ordenar == "referencia" %}selected{% endif %}>Referência</option>
+                </select>
+            </div>
+
+            <div class="form-group d-flex align-items-end">
+                <a href="?banco={{ request.banco }}" class="botao botao-limpar">
+                    <i class="bi bi-eraser"></i> Limpar
+                </a>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="botao botao-buscar">
+                    <i class="bi bi-search"></i> Buscar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="row g-3">
 
     <div class="col-12 d-none d-md-block">
         <div class="table-wrapper">
             <div class="table-scroll">
-                <table class="app-table">
+                <table class="tabela-moderna">
                     <thead>
                         <tr>
                             <th>Referência</th>
@@ -68,12 +73,12 @@
                             <th>Alíquota 02</th>
                             <th>Faixa 03</th>
                             <th>Alíquota 03</th>
-                            <th>Faixa 04</</th>
+                            <th>Faixa 04</th>
                             <th>Alíquota 04</th>
                             <th>Teto</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody data-infinite-scroll-items>
                         {% for t in tabelainss %}
                         <tr>
                             <td>{{ t.tabe_refe }}</td>
@@ -123,5 +128,8 @@
             {% endfor %}
         </div>
     </div>
+</div>
+
+    {% include "partials/componentes/infinite_scroll.html" %}
 </div>
 {% endblock %}

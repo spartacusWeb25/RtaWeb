@@ -1,4 +1,12 @@
 {% extends "tabelas/base_tabelas.html" %}
+{% load static %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/botoes.css' %}">
+<link rel="stylesheet" href="{% static 'css/buscas.css' %}">
+<link rel="stylesheet" href="{% static 'css/tabelas.css' %}">
+{% endblock %}
 
 {% block tabelas_content %}
 <div class="row g-3">
@@ -9,7 +17,7 @@
     <div class="col-12 d-none d-md-block">
         <div class="table-wrapper">
             <div class="table-scroll">
-                <table class="app-table">
+                <table class="tabela-moderna">
                     <thead>
                         <tr>
                             <th>Referência</th>
@@ -22,7 +30,7 @@
                             <th>Teto</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody data-infinite-scroll-items>
                         {% for t in tabelas %}
                         <tr>
                             <td>{{ t.tabe_refe }}</td>
@@ -69,4 +77,5 @@
         </div>
     </div>
 </div>
+{% include "partials/componentes/infinite_scroll.html" %}
 {% endblock %}

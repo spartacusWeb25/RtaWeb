@@ -1,9 +1,9 @@
 from django.views.generic import ListView  
-from core.mixin import BancoObrigatorioMixin
+from core.mixin import BancoObrigatorioMixin, InfiniteScrollMixin
 from ...models import Tabelairrf
 from tabelairrf.services.listar import ListarTabelairrfService     
        
-class TabelairrfListView(BancoObrigatorioMixin, ListView):
+class TabelairrfListView(BancoObrigatorioMixin, InfiniteScrollMixin, ListView):
     model = Tabelairrf
     context_object_name = "tabelairrf"
     template_name = "tabelairrf/listar.html"

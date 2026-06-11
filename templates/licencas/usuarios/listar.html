@@ -5,132 +5,94 @@
 
 {% block extra_css %}
 <link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
-<link href="{% static 'core/css/list-cards.css' %}" rel="stylesheet">
 <link href="{% static 'core/css/tabelas-layout.css' %}" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/botoes.css' %}">
+<link rel="stylesheet" href="{% static 'css/buscas.css' %}">
+<link rel="stylesheet" href="{% static 'css/tabelas.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div>
-        <h1 id="title"><i class="bi bi-person-fill-gear" style="color: rgb(96, 158, 158);"></i> Usuários por Registro</h1>
-        <p id="subtitle">Gestão de usuários da licença ativa</p>
+<div class="container mt-4">
+    <div class="d-flex justify-content-center align-items-center mb-3">
+        <h3><i class="bi bi-person-fill-gear"></i> Usuários por Registro</h3>
     </div>
-</div>
 
-<div class="app-form-card mb-3">
-    <form method="get" class="form-grid form-grid-compact">
-        <input type="hidden" name="banco" value="{{ banco }}">
+    <div class="filtros-acoes mb-3">
+        <a href="{% url 'usuarios:criar' %}?banco={{ banco }}" class="botao botao-adicionar">
+            <i class="bi bi-plus"></i> Novo Usuário
+        </a>
+        <button class="botao botao-detalhar botao-filtro-toggle" type="button" data-bs-toggle="collapse"
+            data-bs-target="#filtrosCollapse" id="btn-filtros" aria-expanded="false" aria-controls="filtrosCollapse">
+            <i class="bi bi-funnel"></i> Filtros
+        </button>
+    </div>
 
-        <div>
-            <label class="form-label">Nome</label>
-            <input
-                class="form-control"
-                type="text"
-                name="nome"
-                value="{{ request.GET.nome|default:'' }}"
-                placeholder="Pesquisar por nome"
-            >
-        </div>
+    <div class="app-form-card mb-3 collapse filtros-collapse" id="filtrosCollapse">
+        <form method="get" class="form-grid form-grid-compact">
+            <input type="hidden" name="banco" value="{{ banco }}">
 
-        <div class="form-actions-row">
-            <button type="submit" class="btn btn-primary btn-sm" id="botao-filtrar"><i class="bi bi-filter"></i> Filtrar</button>
-            <a href="?banco={{ banco }}" class="btn btn-outline-secondary btn-sm" id="botao-limpar"><i class="bi bi-eraser"></i> Limpar</a>
-            <a href="{% url 'usuarios:criar' %}?banco={{ banco }}" class="btn btn-success btn-sm" id="botao-novo"><i class="bi bi-plus"></i> Novo Usuário</a>
-        </div>
-    </form>
-</div>
+            <div class="form-group">
+                <label class="form-label">Nome</label>
+                <input class="form-control" type="text" name="nome" value="{{ request.GET.nome|default:'' }}"
+                    placeholder="Pesquisar por nome">
+            </div>
 
-<div class="table-wrapper desktop-table-only">
-    <div class="table-scroll">
-        <table class="app-table">
+            <div class="form-group d-flex align-items-end">
+                <a href="?banco={{ banco }}" class="botao botao-limpar">
+                    <i class="bi bi-eraser"></i> Limpar
+                </a>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="botao botao-buscar">
+                    <i class="bi bi-search"></i> Buscar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {% if usuarios %}
+    <div class="table-responsive">
+        <table class="tabela-moderna">
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Nome</th>
-                    <th>Login</th>
-                    <th>Ativo</th>
-                    <th>Grupo</th>
-                    <th>Ações</th>
+                    <th><i class="bi bi-hash"></i> ID</th>
+                    <th><i class="bi bi-person"></i> Nome</th>
+                    <th><i class="bi bi-person-badge"></i> Login</th>
+                    <th><i class="bi bi-check-circle"></i> Ativo</th>
+                    <th><i class="bi bi-diagram-3"></i> Grupo</th>
+                    <th><i class="bi bi-gear"></i> Ações</th>
                 </tr>
             </thead>
-
-            <tbody>
+            <tbody data-infinite-scroll-items>
                 {% for u in usuarios %}
                 <tr>
-                    <td>{{ u.id }}</td>
-                    <td>{{ u.usua_nome|default:'-' }}</td>
-                    <td>{{ u.usua_login|default:'-' }}</td>
-                    <td>{% if u.usua_ativ %}Sim{% else %}Não{% endif %}</td>
-                    <td>{{ u.usua_grup|default:'-' }}</td>
-                    <td>
-                        <a
-                            class="btn btn-sm btn-outline-primary"
-                            href="{% url 'usuarios:atualizar' user_id=u.id %}?banco={{ banco }}"
-                        >
-                            Editar
+                    <td data-label="ID">{{ u.id }}</td>
+                    <td data-label="Nome">{{ u.usua_nome|default:'-' }}</td>
+                    <td data-label="Login">{{ u.usua_login|default:'-' }}</td>
+                    <td data-label="Ativo">{% if u.usua_ativ %}Sim{% else %}Não{% endif %}</td>
+                    <td data-label="Grupo">{{ u.usua_grup|default:'-' }}</td>
+                    <td data-label="Ações" class="tabela-acoes">
+                        <a class="botao botao-editar"
+                            href="{% url 'usuarios:atualizar' user_id=u.id %}?banco={{ banco }}">
+                            <i class="bi bi-pencil"></i> Editar
                         </a>
-
-                        <a
-                            class="btn btn-sm btn-outline-danger"
-                            href="{% url 'usuarios:deletar' user_id=u.id %}?banco={{ banco }}"
-                        >
-                            Excluir
+                        <a class="botao botao-remover"
+                            href="{% url 'usuarios:deletar' user_id=u.id %}?banco={{ banco }}">
+                            <i class="bi bi-trash"></i> Excluir
                         </a>
                     </td>
-                </tr>
-                {% empty %}
-                <tr class="empty-row">
-                    <td colspan="6">Nenhum usuário encontrado</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-</div>
 
-<div class="list-card-view mobile-card-only">
-    {% for u in usuarios %}
-    <article class="list-card-item">
-        <div class="list-card-head">
-            <strong>{{ u.usua_nome|default:u.usua_login }}</strong>
-            <span>#{{ u.id }}</span>
-        </div>
-
-        <div class="list-card-grid">
-            <div>
-                <small>Login</small>
-                <p>{{ u.usua_login|default:'-' }}</p>
-            </div>
-
-            <div>
-                <small>Ativo</small>
-                <p>{% if u.usua_ativ %}Sim{% else %}Não{% endif %}</p>
-            </div>
-
-            <div>
-                <small>Grupo</small>
-                <p>{{ u.usua_grup|default:'-' }}</p>
-            </div>
-        </div>
-
-        <div class="list-card-actions">
-            <a
-                class="btn btn-sm btn-outline-primary"
-                href="{% url 'usuarios:atualizar' user_id=u.id %}?banco={{ banco }}"
-            >
-                Editar
-            </a>
-
-            <a
-                class="btn btn-sm btn-outline-danger"
-                href="{% url 'usuarios:deletar' user_id=u.id %}?banco={{ banco }}"
-            >
-                Excluir
-            </a>
-        </div>
-    </article>
-    {% empty %}
-    <div class="list-card-empty">Nenhum usuário encontrado</div>
-    {% endfor %}
+    {% include "partials/componentes/infinite_scroll.html" %}
+    {% else %}
+    <div class="alert alert-warning">
+        Nenhum usuário encontrado.
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
