@@ -1,3 +1,5 @@
+from urllib.parse import urlencode
+
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.urls import reverse
@@ -52,8 +54,7 @@ class TabelasalafamiUpdateView(BancoObrigatorioMixin, FormView):
             dados=dados,
         )
 
-        messages.success(self.request, "Salário familia atualizado com sucesso.")
-        return redirect(self.get_success_url())
+        return redirect(self.get_feedback_url(self.kwargs["safa_refe"]))
 
     def get_success_url(self):
         return reverse("tabelasalafami:salafami_listar") + f"?banco={self.request.banco}"
@@ -61,4 +62,23 @@ class TabelasalafamiUpdateView(BancoObrigatorioMixin, FormView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["modo_edicao"] = True
+        safa_refe_editada = self.request.GET.get("editado_ref", "").strip()
+        context["mensagem_sucesso_form"] = ""
+        context["redirect_delay_ms"] = 1800
+        context["redirect_url"] = self.get_success_url()
+
+        if safa_refe_editada:
+            context["mensagem_sucesso_form"] = (
+                f"Referência {safa_refe_editada} atualizada com sucesso."
+            )
+
         return context
+
+    def get_feedback_url(self, safa_refe):
+        query = urlencode(
+            {
+                "banco": self.request.banco,
+                "editado_ref": safa_refe,
+            }
+        )
+        return f"{reverse('tabelasalafami:salafami_editar', kwargs={'safa_refe': safa_refe})}?{query}"

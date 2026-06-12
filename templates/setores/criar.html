@@ -1,5 +1,35 @@
 {% extends "base.html" %}
 
+{% block extra_css %}
+<style>
+    .setores-form {
+        background: var(--surface-card);
+        border: 1px solid var(--border-default);
+        color: var(--text-primary);
+    }
+
+    .setores-form p {
+        margin-bottom: 1rem;
+    }
+
+    .setores-form label {
+        display: block;
+        margin-bottom: 0.4rem;
+        color: var(--text-secondary);
+        font-weight: 600;
+    }
+
+    .setores-form input,
+    .setores-form select,
+    .setores-form textarea {
+        width: 100%;
+        background: var(--surface-input);
+        color: var(--text-primary);
+        border: 1px solid var(--border-default);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
     {% if modo_edicao %}
@@ -8,8 +38,7 @@
     <h5>Novo Setor</h5>
     {% endif %}
 
-
-    <form method="post" class="card p-3">
+    <form method="post" class="card p-3 setores-form">
         {% csrf_token %}
         {{ form.as_p }}
         

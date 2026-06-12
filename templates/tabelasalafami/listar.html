@@ -21,6 +21,9 @@
     </div>
 
     <div class="filtros-acoes mb-3">
+        <a href="{% url 'tabelasalafami:salafami_criar' %}?banco={{ request.banco }}" class="botao botao-adicionar">
+            <i class="bi bi-plus"></i> Nova tabela Salário Família
+        </a>
         <button class="botao botao-detalhar botao-filtro-toggle" type="button" data-bs-toggle="collapse"
             data-bs-target="#filtrosCollapse" id="btn-filtros" aria-expanded="false" aria-controls="filtrosCollapse">
             <i class="bi bi-funnel"></i> Filtros
@@ -75,7 +78,23 @@
                     <td data-label="Referência">{{ item.safa_refe }}</td>
                     <td data-label="Base">{{ item.safa_fa01 }}</td>
                     <td data-label="Valor">{{ item.safa_co01 }}</td>
-                    <td data-label="Ações"><span class="text-muted">Indisponível</span></td>
+                    <td data-label="Ações" class="tabela-acoes">
+
+                        <a href="{% url 'tabelasalafami:salafami_editar' safa_refe=item.safa_refe %}?banco={{ request.banco }}"
+                            class="botao botao-editar">
+                            <i class="bi bi-pencil"></i> Editar
+                        </a>
+
+                        <form method="post"
+                            action="{% url 'tabelasalafami:salafami_deletar' safa_refe=item.safa_refe %}?banco={{ request.banco }}"
+                            style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="botao botao-remover"
+                                onclick="return confirm('Deseja realmente excluir este salário familiar?');">
+                                <i class="bi bi-trash"></i> Excluir
+                            </button>
+                        </form>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>

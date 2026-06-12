@@ -13,6 +13,6 @@ app_name = "tabelasalafami"
 urlpatterns = [
     path('', TabelasalafamiListView.as_view(), name='salafami_listar'),
     path("criar/", TabelasalafamiCreateView.as_view(), name="salafami_criar"),
-    path("editar/<str:empresa>/<str:codigo>/", TabelasalafamiUpdateView.as_view(), name="salafami_editar"),
-    path("deletar/<str:empresa>/<str:codigo>/", TabelasalafamiDeleteView.as_view(), name="salafami_deletar"), 
+    path("editar/<str:safa_refe>/", TabelasalafamiUpdateView.as_view(), name="salafami_editar"),
+    path("deletar/<str:safa_refe>/", TabelasalafamiDeleteView.as_view(), name="salafami_deletar"),
 ]

@@ -1,6 +1,7 @@
+from urllib.parse import urlencode
+
 from django.views.generic import FormView
 from django.urls import reverse
-from django.contrib import messages
 from django.shortcuts import redirect
 
 from core.mixin import BancoObrigatorioMixin
@@ -19,8 +20,30 @@ class TabelasalafamiCreateView(BancoObrigatorioMixin, FormView):
             dados=form.cleaned_data,
         )
 
-        messages.success(self.request, "Salário familia criado com sucesso.")
-        return redirect(self.get_success_url())
+        return redirect(self.get_feedback_url(form.cleaned_data["safa_refe"]))
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        safa_refe_salva = self.request.GET.get("salvo_ref", "").strip()
+        context["mensagem_sucesso_form"] = ""
+        context["redirect_delay_ms"] = 1800
+        context["redirect_url"] = self.get_success_url()
+
+        if safa_refe_salva:
+            context["mensagem_sucesso_form"] = (
+                f"Referência {safa_refe_salva} gravada com sucesso."
+            )
+
+        return context
 
     def get_success_url(self):
         return reverse("tabelasalafami:salafami_listar") + f"?banco={self.request.banco}"
+
+    def get_feedback_url(self, safa_refe):
+        query = urlencode(
+            {
+                "banco": self.request.banco,
+                "salvo_ref": safa_refe,
+            }
+        )
+        return f"{reverse('tabelasalafami:salafami_criar')}?{query}"

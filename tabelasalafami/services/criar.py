@@ -10,14 +10,10 @@ class SalaFamiCriarService:
     def criar(*, banco, db_alias, dados):
         from tabelasalafami.models import Tabelasalafami
 
-        chave = TabelaSalaFamiChaveService.montar_chave(
-            banco=banco,
-            dados=dados,
-        )
+        dados = dict(dados)
+        chave = TabelaSalaFamiChaveService.montar_chave(banco=banco, dados=dados)
 
         if not all(chave.values()):
             return
 
-        Tabelasalafami.objects.using(db_alias).create(
-            **chave,
-        )
+        return Tabelasalafami.objects.using(db_alias).create(**dados)
