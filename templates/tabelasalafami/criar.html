@@ -1,6 +1,8 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block extra_css %}
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
 <style>
     .tabelasalafami-form {
         background: var(--surface-card);
@@ -33,7 +35,7 @@
 {% block content %}
 <div class="container mt-4">
     {% if modo_edicao %}
-    <h1>Editar Tabela Salário Familia</h1>
+    <h4>Editar Tabela Salário Familia</h4>
     {% else %}
     <h4>Nova Tabela Salário Familia</h4>
     {% endif %}
@@ -46,11 +48,37 @@
 
     <form method="post" class="card p-3 tabelasalafami-form">
         {% csrf_token %}
-        {{ form.as_p }}
+        {{ form.non_field_errors }}
 
-        <button type="submit" class="btn btn-primary">
-            Salvar
-        </button>
+        <div class="row g-3">
+            <div class="col-12">
+                <label for="{{ form.safa_refe.id_for_label }}">{{ form.safa_refe.label }}</label>
+                {{ form.safa_refe }}
+                {{ form.safa_refe.errors }}
+            </div>
+
+            <div class="col-12">
+                <label for="{{ form.safa_fa01.id_for_label }}">{{ form.safa_fa01.label }}</label>
+                {{ form.safa_fa01 }}
+                {{ form.safa_fa01.errors }}
+            </div>
+
+            <div class="col-12">
+                <label for="{{ form.safa_co01.id_for_label }}">{{ form.safa_co01.label }}</label>
+                {{ form.safa_co01 }}
+                {{ form.safa_co01.errors }}
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 mt-3">
+            <button type="submit" class="btn btn-primary btn-sm">
+                Salvar
+            </button>
+            <a class="btn btn-outline-secondary btn-sm"
+                href="{% url 'tabelasalafami:salafami_listar' %}?banco={{ request.banco }}">
+                Cancelar
+            </a>
+        </div>
     </form>
 </div>
 {% endblock %}

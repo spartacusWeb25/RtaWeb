@@ -1,6 +1,8 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block extra_css %}
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
 <style>
     .tabelasalafami-form {
         background: var(--surface-card);
@@ -32,7 +34,7 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h1>Editar Tabela Salário Familia</h1>
+    <h4>Editar Tabela Salário Familia</h4>
 
     {% if mensagem_sucesso_form %}
     <div class="alert alert-success mt-3" role="alert">
@@ -44,9 +46,15 @@
         {% csrf_token %}
         {{ form.as_p }}
 
-        <button type="submit" class="btn btn-primary">
-            Salvar
-        </button>
+        <div class="d-flex justify-content-end gap-2 mt-3">
+            <button type="submit" class="btn btn-primary btn-sm">
+                Salvar
+            </button>
+            <a class="btn btn-outline-secondary btn-sm"
+                href="{% url 'tabelasalafami:salafami_listar' %}?banco={{ request.banco }}">
+                Cancelar
+            </a>
+        </div>
     </form>
 </div>
 {% endblock %}

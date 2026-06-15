@@ -11,6 +11,27 @@
 <link rel="stylesheet" href="{% static 'css/botoes.css' %}">
 <link rel="stylesheet" href="{% static 'css/buscas.css' %}">
 <link rel="stylesheet" href="{% static 'css/tabelas.css' %}">
+<style>
+    #confirmDeleteModal .modal-content {
+        background: var(--surface-card);
+        color: var(--text-primary);
+        border: 1px solid var(--border-default);
+    }
+
+    #confirmDeleteModal .modal-header,
+    #confirmDeleteModal .modal-footer {
+        border-color: var(--border-default);
+    }
+
+    #confirmDeleteModal .modal-title,
+    #confirmDeleteModal .modal-body {
+        color: var(--text-primary);
+    }
+
+    [data-theme='dark'] #confirmDeleteModal .btn-close {
+        filter: invert(1) grayscale(100%);
+    }
+</style>
 
 {% endblock %}
 
@@ -66,8 +87,8 @@
         <table class="tabela-moderna">
             <thead>
                 <tr>
-                    <th><i class="bi bi-hash"></i> Referência</th>
-                    <th><i class="bi bi-calculator"></i> Base</th>
+                    <th><i class="bi bi-hash d-none"></i> Referência</th>
+                    <th><i class="bi bi-calculator"></i> Salário Família</th>
                     <th><i class="bi bi-cash-stack"></i> Valor</th>
                     <th><i class="bi bi-gear"></i> Ações</th>
                 </tr>
@@ -76,8 +97,8 @@
                 {% for item in tabelasalafami %}
                 <tr>
                     <td data-label="Referência">{{ item.safa_refe }}</td>
-                    <td data-label="Base">{{ item.safa_fa01 }}</td>
-                    <td data-label="Valor">{{ item.safa_co01 }}</td>
+                    <td data-label="Salário Família">R$ {{ item.safa_fa01|floatformat:2 }}</td>
+                    <td data-label="Valor">R$ {{ item.safa_co01|floatformat:2 }}</td>   
                     <td data-label="Ações" class="tabela-acoes">
 
                         <a href="{% url 'tabelasalafami:salafami_editar' safa_refe=item.safa_refe %}?banco={{ request.banco }}"
@@ -89,8 +110,7 @@
                             action="{% url 'tabelasalafami:salafami_deletar' safa_refe=item.safa_refe %}?banco={{ request.banco }}"
                             style="display:inline;">
                             {% csrf_token %}
-                            <button type="submit" class="botao botao-remover"
-                                onclick="return confirm('Deseja realmente excluir este salário familiar?');">
+                            <button type="button" class="botao botao-remover" data-confirm-delete data-ref="{{ item.safa_refe }}">
                                 <i class="bi bi-trash"></i> Excluir
                             </button>
                         </form>
@@ -107,5 +127,65 @@
         Nenhum registro encontrado.
     </div>
     {% endif %}
+
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmar exclusão</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body" id="confirmDeleteModalBody">
+                    Deseja realmente excluir este registro?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger btn-sm" id="confirmDeleteModalConfirm">Excluir</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        let pendingDeleteForm = null;
+
+        function openDeleteModal(formEl, ref) {
+            pendingDeleteForm = formEl;
+            const bodyEl = document.getElementById('confirmDeleteModalBody');
+            if (bodyEl) {
+                bodyEl.textContent = ref
+                    ? `Deseja realmente excluir o salário família da referência ${ref}?`
+                    : 'Deseja realmente excluir este registro?';
+            }
+
+            if (!window.bootstrap) return;
+            const modalEl = document.getElementById('confirmDeleteModal');
+            if (!modalEl) return;
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+        }
+
+        document.addEventListener('click', (event) => {
+            const btn = event.target.closest('[data-confirm-delete]');
+            if (!btn) return;
+            const formEl = btn.closest('form');
+            if (!formEl) return;
+            event.preventDefault();
+            openDeleteModal(formEl, btn.getAttribute('data-ref') || '');
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const confirmBtn = document.getElementById('confirmDeleteModalConfirm');
+            if (!confirmBtn) return;
+            confirmBtn.addEventListener('click', () => {
+                if (!pendingDeleteForm) return;
+                pendingDeleteForm.submit();
+            });
+        });
+    })();
+</script>
 {% endblock %}
