@@ -1,8 +1,8 @@
-{% extends "base.html" %}
+{% extends "tabelas/base_tabelas.html" %}
 {% load static %}
 
 
-{% block title %}Tabela INSS — RtaWeb{% endblock %}
+{% block title %}Tabela INSS — RtaWeb{% endblock %} 
 
 {% block extra_css %}
 <link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
@@ -11,16 +11,87 @@
 <link rel="stylesheet" href="{% static 'css/botoes.css' %}">
 <link rel="stylesheet" href="{% static 'css/buscas.css' %}">
 <link rel="stylesheet" href="{% static 'css/tabelas.css' %}">
+<style>
+    #confirmDeleteModal .modal-content {
+        background: var(--surface-card);
+        color: var(--text-primary);
+        border: 1px solid var(--border-default);
+    }
+
+    #confirmDeleteModal .modal-header,
+    #confirmDeleteModal .modal-footer {
+        border-color: var(--border-default);
+    }
+
+    #confirmDeleteModal .modal-title,
+    #confirmDeleteModal .modal-body {
+        color: var(--text-primary);
+    }
+
+    [data-theme='dark'] #confirmDeleteModal .btn-close {
+        filter: invert(1) grayscale(100%);
+    }
+
+    .tabelainss-wide {
+        max-width: none;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .tabelainss-wide .app-form-card,
+    .tabelainss-wide .table-responsive {
+        width: 100%;
+    }
+
+    @media (min-width: 992px) {
+        .tabelainss-wide .table-responsive {
+            overflow-x: visible;
+        }
+
+        .tabelainss-wide .tabela-moderna {
+            table-layout: fixed;
+        }
+
+        .tabelainss-wide .tabela-moderna thead th,
+        .tabelainss-wide .tabela-moderna tbody td {
+            padding: 10px 8px;
+            font-size: 0.87rem;
+        }
+
+        .tabelainss-wide .tabela-moderna thead th {
+            white-space: normal;
+            line-height: 1.2;
+        }
+
+        .tabelainss-wide .tabela-acoes {
+            gap: 6px;
+            flex-wrap: nowrap;
+            white-space: nowrap;
+        }
+
+        .tabelainss-wide .tabela-acoes .botao {
+            padding: 6px 10px;
+            font-size: 0.8rem;
+        }
+
+        .tabelainss-wide .form-grid {
+            grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr) auto auto;
+        }
+    }
+</style>
 
 {% endblock %}
 
-{% block content %}
-<div class="container mt-4">
+{% block tabelas_content %}
+<div class="container-fluid mt-4 tabelainss-wide">
     <div class="d-flex justify-content-center align-items-center mb-3">
-        <h3><i class="bi bi-tablet-landscape"></i> Tabela INSS</h3>
+        <h3><i class="bi bi-calculator"></i> Tabela INSS</h3>
     </div>
 
     <div class="filtros-acoes mb-3">
+        <a href="{% url 'tabelainss:inss_criar' %}?banco={{ request.banco }}" class="botao botao-adicionar">
+            <i class="bi bi-plus"></i> Nova tabela INSS
+        </a>
         <button class="botao botao-detalhar botao-filtro-toggle" type="button" data-bs-toggle="collapse"
             data-bs-target="#filtrosCollapse" id="btn-filtros" aria-expanded="false" aria-controls="filtrosCollapse">
             <i class="bi bi-funnel"></i> Filtros
@@ -39,97 +110,152 @@
             <div class="form-group">
                 <label class="form-label">Ordenar</label>
                 <select name="ordenar" class="form-control">
-                    <option value="">Padrão</option>
-                    <option value="referencia" {% if ordenar == "referencia" %}selected{% endif %}>Referência</option>
+                    <option value="referencia_asc" {% if ordenar == "" or ordenar == "referencia_asc" %}selected{% endif %}>Ordem crescente</option>
+                    <option value="referencia_desc" {% if ordenar == "referencia_desc" %}selected{% endif %}>Ordem decrescente</option>
                 </select>
             </div>
 
             <div class="form-group d-flex align-items-end">
-                <a href="?banco={{ request.banco }}" class="botao botao-limpar">
-                    <i class="bi bi-eraser"></i> Limpar
-                </a>
-            </div>
-
-            <div class="form-group">
-                <button type="submit" class="botao botao-buscar">
-                    <i class="bi bi-search"></i> Buscar
-                </button>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="?banco={{ request.banco }}" class="botao botao-limpar">
+                        <i class="bi bi-eraser"></i> Limpar
+                    </a>
+                    <button type="submit" class="botao botao-buscar">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </div>
             </div>
         </form>
     </div>
 
-    <div class="row g-3">
+    {% if tabelainss %}
+    <div class="table-responsive">
+        <table class="tabela-moderna">
+            <colgroup>
+                <col style="width: 10%;">
+                <col style="width: 10%;">
+                <col style="width: 8%;">
+                <col style="width: 10%;">
+                <col style="width: 8%;">
+                <col style="width: 10%;">
+                <col style="width: 8%;">
+                <col style="width: 10%;">
+                <col style="width: 8%;">
+                <col style="width: 18%;">
+            </colgroup>
+            <thead>
+                <tr>
+                    <th><i class="bi bi-hash d-none"></i> Referência</th>
+                    <th><i class="bi bi-calculator"></i> Faixa 01</th>
+                    <th><i class="bi bi-percent"></i> Alíquota 01</th>
+                    <th><i class="bi bi-calculator"></i> Faixa 02</th>
+                    <th><i class="bi bi-percent"></i> Alíquota 02</th>
+                    <th><i class="bi bi-calculator"></i> Faixa 03</th>
+                    <th><i class="bi bi-percent"></i> Alíquota 03</th>
+                    <th><i class="bi bi-calculator"></i> Faixa 04</th>
+                    <th><i class="bi bi-percent"></i> Alíquota 04</th>
+                    <th><i class="bi bi-gear"></i> Ações</th>
+                </tr>
+            </thead>
+            <tbody data-infinite-scroll-items>
+                {% for item in tabelainss %}
+                <tr>
+                    <td data-label="Referência">{{ item.tabe_refe_formatada }}</td>
+                    <td data-label="Faixa 01">R$ {{ item.tabe_fa01|floatformat:2 }}</td>    
+                    <td data-label="Alíquota 01">{{ item.tabe_pe01|floatformat:2 }}%</td>
+                    <td data-label="Faixa 02">R$ {{ item.tabe_fa02|floatformat:2 }}</td>    
+                    <td data-label="Alíquota 02">{{ item.tabe_pe02|floatformat:2 }}%</td>
+                    <td data-label="Faixa 03">R$ {{ item.tabe_fa03|floatformat:2 }}</td>    
+                    <td data-label="Alíquota 03">{{ item.tabe_pe03|floatformat:2 }}%</td>
+                    <td data-label="Faixa 04">R$ {{ item.tabe_fa04|floatformat:2 }}</td>    
+                    <td data-label="Alíquota 04">{{ item.tabe_pe04|floatformat:2 }}%</td>
+                    <td data-label="Ações" class="tabela-acoes">
+                        <a href="{% url 'tabelainss:inss_editar' tabe_refe=item.tabe_refe %}?banco={{ request.banco }}"
+                            class="botao botao-editar">
+                            <i class="bi bi-pencil"></i> Editar
+                        </a>
 
-    <div class="col-12 d-none d-md-block">
-        <div class="table-wrapper">
-            <div class="table-scroll">
-                <table class="tabela-moderna">
-                    <thead>
-                        <tr>
-                            <th>Referência</th>
-                            <th>Faixa 01</th>
-                            <th>Alíquota 01</th>
-                            <th>Faixa 02</th>
-                            <th>Alíquota 02</th>
-                            <th>Faixa 03</th>
-                            <th>Alíquota 03</th>
-                            <th>Faixa 04</th>
-                            <th>Alíquota 04</th>
-                            <th>Teto</th>
-                        </tr>
-                    </thead>
-                    <tbody data-infinite-scroll-items>
-                        {% for t in tabelainss %}
-                        <tr>
-                            <td>{{ t.tabe_refe }}</td>
-                            <td>{{ t.tabe_fa01 }}</td>
-                            <td>{{ t.tabe_pe01 }}</td>
-                            <td>{{ t.tabe_fa02 }}</td>
-                            <td>{{ t.tabe_pe02 }}</td>   
-                            <td>{{ t.tabe_fa03 }}</td>
-                            <td>{{ t.tabe_pe03 }}</td>
-                            <td>{{ t.tabe_fa04 }}</td>
-                            <td>{{ t.tabe_pe04 }}</td>
-                            <td>{{ t.tabe_maxr }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="8">Nenhum registro encontrado</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                        <form method="post"
+                            action="{% url 'tabelainss:inss_deletar' tabe_refe=item.tabe_refe %}?banco={{ request.banco }}"
+                            style="display:inline;">
+                            {% csrf_token %}
+                            <button type="button" class="botao botao-remover" data-confirm-delete data-ref="{{ item.tabe_refe_formatada }}">
+                                <i class="bi bi-trash"></i> Excluir
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% include "partials/componentes/infinite_scroll.html" %}
+    {% else %}
+    <div class="alert alert-warning">
+        Nenhum registro encontrado.
+    </div>
+    {% endif %}
+
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmar exclusão</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body" id="confirmDeleteModalBody">
+                    Deseja realmente excluir este registro?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger btn-sm" id="confirmDeleteModalConfirm">Excluir</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="col-12 d-block d-md-none">
-        <div class="list-card-view">
-            {% for t in tabelainss %}
-            <article class="list-card-item">
-                <div class="list-card-head">
-                    <strong>Tabela INSS</strong>
-                    <span>{{ t.tabe_refe }}</span>
-                </div>
-                <div class="list-card-grid">
-                    <p><small>Faixa 01</small>{{ t.tabe_fa01 }}</p>
-                    <p><small>Alíq 01</small>{{ t.tabe_pe01 }}</p>
-                    <p><small>Faixa 02</small>{{ t.tabe_fa02 }}</p>
-                    <p><small>Alíq 02</small>{{ t.tabe_pe02 }}</p>
-                    <p><small>Faixa 03</small>{{ t.tabe_fa03 }}</p>
-                    <p><small>Alíq 03</small>{{ t.tabe_pe03 }}</p>
-                    <p><small>Faixa 04</small>{{ t.tabe_fa04 }}</p>
-                    <p><small>Alíq 04</small>{{ t.tabe_pe04 }}</p>
-                    <p><small>Teto</small>{{ t.tabe_maxr }}</p>
-                </div>
-            </article>
-            {% empty %}
-            <div class="list-card-empty">Nenhum registro encontrado</div>
-            {% endfor %}
-        </div>
-    </div>
 </div>
+{% endblock %}
 
-    {% include "partials/componentes/infinite_scroll.html" %}
-</div>
+{% block extra_js %}
+<script>
+    (function () {
+        let pendingDeleteForm = null;
+
+        function openDeleteModal(formEl, ref) {
+            pendingDeleteForm = formEl;
+            const bodyEl = document.getElementById('confirmDeleteModalBody');
+            if (bodyEl) {
+                bodyEl.textContent = ref
+                    ? `Deseja realmente excluir a tabela de INSS da referência ${ref}?`
+                    : 'Deseja realmente excluir este registro?';
+            }
+
+            if (!window.bootstrap) return;
+            const modalEl = document.getElementById('confirmDeleteModal');
+            if (!modalEl) return;
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+        }
+
+        document.addEventListener('click', (event) => {
+            const btn = event.target.closest('[data-confirm-delete]');
+            if (!btn) return;
+            const formEl = btn.closest('form');
+            if (!formEl) return;
+            event.preventDefault();
+            openDeleteModal(formEl, btn.getAttribute('data-ref') || '');
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const confirmBtn = document.getElementById('confirmDeleteModalConfirm');
+            if (!confirmBtn) return;
+            confirmBtn.addEventListener('click', () => {
+                if (!pendingDeleteForm) return;
+                pendingDeleteForm.submit();
+            });
+        });
+    })();
+</script>
 {% endblock %}

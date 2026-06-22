@@ -5,7 +5,7 @@
     <div class="dropdown-panel">
         <a href="{% url 'tabelasalafami:salafami_listar' %}?banco={{ request.banco }}">Salário Família</a>
         <a href="{% url 'tabelasalariominimo:listar' %}?banco={{ request.banco }}">Salário mínimo</a>
-        <a href="{% url 'inss_list' %}" class="{% if request.resolver_match.url_name == 'inss_list' %}active{% endif %}">INSS</a>
-        <a href="{% url 'irrf_list' %}">IRPF</a>
+        <a href="{% url 'inss_list' %}?banco={{ request.banco }}" class="{% if request.resolver_match.url_name == 'inss_list' %}active{% endif %}">INSS</a>
+        <a href="{% url 'irrf_list' %}?banco={{ request.banco }}">IRPF</a>
     </div>
 </li>

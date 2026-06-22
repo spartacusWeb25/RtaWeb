@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+<style>
+    .tabelairrf-form {
+        background: var(--surface-card);
+        border: 1px solid var(--border-default);
+        color: var(--text-primary);
+    }
+
+    .tabelairrf-form label {
+        display: block;
+        margin-bottom: 0.4rem;
+        color: var(--text-secondary);
+        font-weight: 600;
+    }
+
+    .tabelairrf-form input,
+    .tabelairrf-form select,
+    .tabelairrf-form textarea {
+        width: 100%;
+        background: var(--surface-input);
+        color: var(--text-primary);
+        border: 1px solid var(--border-default);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    {% if modo_edicao %}
+    <h4>Editar Tabela IRRF</h4>
+    {% else %}
+    <h4>Nova Tabela IRRF</h4>
+    {% endif %}
+
+    {% if mensagem_sucesso_form %}
+    <div class="alert alert-success mt-3" role="alert">
+        {{ mensagem_sucesso_form }} Redirecionando para a listagem...
+    </div>
+    {% endif %}
+
+    <form method="post" class="card p-3 tabelairrf-form">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+
+        <div class="row g-3">
+            <div class="col-12">
+                <label for="{{ form.irrf_refe.id_for_label }}">{{ form.irrf_refe.label }}</label>
+                {{ form.irrf_refe }}
+                {{ form.irrf_refe.errors }}
+            </div>
+
+            <div class="w-100"></div>
+
+            <div class="col-12 col-md-3">
+                <label for="{{ form.irrf_fa01.id_for_label }}">{{ form.irrf_fa01.label }}</label>
+                {{ form.irrf_fa01 }}
+                {{ form.irrf_fa01.errors }}
+            </div>
+
+            <div class="col-12 col-md-3">
+                <label for="{{ form.irrf_pe01.id_for_label }}">{{ form.irrf_pe01.label }}</label>
+                {{ form.irrf_pe01 }}
+                {{ form.irrf_pe01.errors }}
+            </div>
+
+            <div class="col-12 col-md-3">
+                <label for="{{ form.irrf_de01.id_for_label }}">{{ form.irrf_de01.label }}</label>
+                {{ form.irrf_de01 }}
+                {{ form.irrf_de01.errors }}
+            </div>
+
+            <div class="w-100"></div>
+
+            <div class="col-12 col-md-3">
+                <label for="{{ form.irrf_fa02.id_for_label }}">{{ form.irrf_fa02.label }}</label>
+                {{ form.irrf_fa02 }}
+                {{ form.irrf_fa02.errors }}
+            </div>
+
+            <div class="col-12 col-md-3">
+                <label for="{{ form.irrf_pe02.id_for_label }}">{{ form.irrf_pe02.label }}</label>
+                {{ form.irrf_pe02 }}
+                {{ form.irrf_pe02.errors }}
+            </div>
+
+            <div class="col-12 col-md-3">
+                <label for="{{ form.irrf_de02.id_for_label }}">{{ form.irrf_de02.label }}</label>
+                {{ form.irrf_de02 }}
+                {{ form.irrf_de02.errors }}
+            </div>
+
+            <div class="w-100"></div>
+
+            <div class="col-12 col-md-3">
+                <label for="{{ form.irrf_fa03.id_for_label }}">{{ form.irrf_fa03.label }}</label>
+                {{ form.irrf_fa03 }}
+                {{ form.irrf_fa03.errors }}
+            </div>
+
+            <div class="col-12 col-md-3">
+                <label for="{{ form.irrf_pe03.id_for_label }}">{{ form.irrf_pe03.label }}</label>
+                {{ form.irrf_pe03 }}
+                {{ form.irrf_pe03.errors }}
+            </div>
+
+            <div class="col-12 col-md-3">
+                <label for="{{ form.irrf_de03.id_for_label }}">{{ form.irrf_de03.label }}</label>
+                {{ form.irrf_de03 }}
+                {{ form.irrf_de03.errors }}
+            </div>
+
+            <div class="w-100"></div>
+
+            <div class="col-12 col-md-3">
+                <label for="{{ form.irrf_fa04.id_for_label }}">{{ form.irrf_fa04.label }}</label>
+                {{ form.irrf_fa04 }}
+                {{ form.irrf_fa04.errors }}
+            </div>
+
+            <div class="col-12 col-md-3">
+                <label for="{{ form.irrf_pe04.id_for_label }}">{{ form.irrf_pe04.label }}</label>
+                {{ form.irrf_pe04 }}
+                {{ form.irrf_pe04.errors }}
+            </div>
+
+            <div class="col-12 col-md-3">
+                <label for="{{ form.irrf_de04.id_for_label }}">{{ form.irrf_de04.label }}</label>
+                {{ form.irrf_de04 }}
+                {{ form.irrf_de04.errors }}
+            </div>
+
+            <div class="w-100"></div>
+
+            <div class="col-12 col-md-3">
+                <label for="{{ form.irrf_dede.id_for_label }}">{{ form.irrf_dede.label }}</label>
+                {{ form.irrf_dede }}
+                {{ form.irrf_dede.errors }}
+            </div>
+
+            <div class="col-12 col-md-3">
+                <label for="{{ form.irrf_desc_mini.id_for_label }}">{{ form.irrf_desc_mini.label }}</label>
+                {{ form.irrf_desc_mini }}
+                {{ form.irrf_desc_mini.errors }}
+            </div>
+
+            <div class="col-12 col-md-3">
+                <label for="{{ form.irrf_desc_simp.id_for_label }}">{{ form.irrf_desc_simp.label }}</label>
+                {{ form.irrf_desc_simp }}
+                {{ form.irrf_desc_simp.errors }}
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 mt-3">
+            <button type="submit" class="btn btn-primary btn-sm">
+                Salvar
+            </button>
+            <a class="btn btn-outline-secondary btn-sm"
+                href="{% url 'tabelairrf:listar' %}?banco={{ request.banco }}">
+                Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if mensagem_sucesso_form %}
+<script>
+    const redirectDelayMs = Number("{{ redirect_delay_ms|default:'1800'|escapejs }}");
+    window.setTimeout(function () {
+        window.location.href = "{{ redirect_url|escapejs }}";
+    }, redirectDelayMs);
+</script>
+{% endif %}
+{% endblock %}

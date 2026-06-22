@@ -6,6 +6,11 @@
 
 {% block extra_css %}
 <link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+<style>
+    .toast-container {
+        display: none;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -17,17 +22,52 @@
 </div>
 
 <div class="app-form-card">
+    {% if messages %}
+        {% for message in messages %}
+        <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'warning' %}alert-warning{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %} mt-3"
+            role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+    {% endif %}
+
     <form method="post">
         {% csrf_token %}
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger" role="alert">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
         <div class="form-grid">
-            <div><label class="form-label">{{ form.usua_nome.label }}</label>{{ form.usua_nome }}</div>
-            <div><label class="form-label">{{ form.usua_login.label }}</label>{{ form.usua_login }}</div>
-            <div><label class="form-label">{{ form.usua_senh.label }}</label>{{ form.usua_senh }}</div>
-            <div><label class="form-label">{{ form.usua_grup.label }}</label>{{ form.usua_grup }}</div>
-            <div><label class="form-label">{{ form.usua_emai.label }}</label>{{ form.usua_emai }}</div>
+            <div>
+                <label class="form-label">{{ form.usua_nome.label }}</label>{{ form.usua_nome }}
+                {% if form.usua_nome.errors %}<div class="invalid-feedback d-block">{{ form.usua_nome.errors|join:', ' }}</div>{% endif %}
+            </div>
+            <div>
+                <label class="form-label">{{ form.usua_login.label }}</label>{{ form.usua_login }}
+                {% if form.usua_login.errors %}<div class="invalid-feedback d-block">{{ form.usua_login.errors|join:', ' }}</div>{% endif %}
+            </div>
+            <div>
+                <label class="form-label">{{ form.usua_senh.label }}</label>{{ form.usua_senh }}
+                {% if form.usua_senh.errors %}<div class="invalid-feedback d-block">{{ form.usua_senh.errors|join:', ' }}</div>{% endif %}
+            </div>
+            <div>
+                <label class="form-label">{{ form.usua_grup.label }}</label>{{ form.usua_grup }}
+                {% if form.usua_grup.errors %}<div class="invalid-feedback d-block">{{ form.usua_grup.errors|join:', ' }}</div>{% endif %}
+            </div>
+            <div>
+                <label class="form-label">{{ form.usua_emai.label }}</label>{{ form.usua_emai }}
+                {% if form.usua_emai.errors %}<div class="invalid-feedback d-block">{{ form.usua_emai.errors|join:', ' }}</div>{% endif %}
+            </div>
             <div class="d-flex gap-3 align-items-center mt-4">
-                <div class="form-check">{{ form.usua_ativ }} <label class="form-check-label ms-1">{{ form.usua_ativ.label }}</label></div>
-                <div class="form-check">{{ form.super }} <label class="form-check-label ms-1">{{ form.super.label }}</label></div>
+                <div class="form-check">
+                    {{ form.usua_ativ }} <label class="form-check-label ms-1">{{ form.usua_ativ.label }}</label>
+                    {% if form.usua_ativ.errors %}<div class="invalid-feedback d-block">{{ form.usua_ativ.errors|join:', ' }}</div>{% endif %}
+                </div>
+                <div class="form-check">
+                    {{ form.super }} <label class="form-check-label ms-1">{{ form.super.label }}</label>
+                    {% if form.super.errors %}<div class="invalid-feedback d-block">{{ form.super.errors|join:', ' }}</div>{% endif %}
+                </div>
             </div>
         </div>
         <div class="form-actions-row">

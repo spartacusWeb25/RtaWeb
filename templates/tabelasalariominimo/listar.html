@@ -1,8 +1,8 @@
 {% extends "tabelas/base_tabelas.html" %}
-{% load static %}   
+{% load static %}
 
 
-{% block title %}Tabela Salário Minimo — RtaWeb{% endblock %}
+{% block title %}Tabela Salário Mínimo — RtaWeb{% endblock %}
 
 {% block extra_css %}
 <link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
@@ -11,16 +11,40 @@
 <link rel="stylesheet" href="{% static 'css/botoes.css' %}">
 <link rel="stylesheet" href="{% static 'css/buscas.css' %}">
 <link rel="stylesheet" href="{% static 'css/tabelas.css' %}">
+<style>
+    #confirmDeleteModal .modal-content {
+        background: var(--surface-card);
+        color: var(--text-primary);
+        border: 1px solid var(--border-default);
+    }
+
+    #confirmDeleteModal .modal-header,
+    #confirmDeleteModal .modal-footer {
+        border-color: var(--border-default);
+    }
+
+    #confirmDeleteModal .modal-title,
+    #confirmDeleteModal .modal-body {
+        color: var(--text-primary);
+    }
+
+    [data-theme='dark'] #confirmDeleteModal .btn-close {
+        filter: invert(1) grayscale(100%);
+    }
+</style>
 
 {% endblock %}
 
 {% block tabelas_content %}
 <div class="container mt-4">
     <div class="d-flex justify-content-center align-items-center mb-3">
-        <h3><i class="bi bi-cash-stack"></i> Tabela Salário Mínimo</h3>
+        <h3><i class="bi bi-calculator"></i> Tabela Salário Mínimo</h3>
     </div>
 
     <div class="filtros-acoes mb-3">
+        <a href="{% url 'tabelasalariominimo:salariominimo_criar' %}?banco={{ request.banco }}" class="botao botao-adicionar">
+            <i class="bi bi-plus"></i> Nova tabela Salário Mínimo
+        </a>
         <button class="botao botao-detalhar botao-filtro-toggle" type="button" data-bs-toggle="collapse"
             data-bs-target="#filtrosCollapse" id="btn-filtros" aria-expanded="false" aria-controls="filtrosCollapse">
             <i class="bi bi-funnel"></i> Filtros
@@ -33,27 +57,26 @@
 
             <div class="form-group">
                 <label class="form-label">Referência</label>
-                <input class="form-control" type="text" name="ref" value="{{ request.GET.ref }}">
+                <input class="form-control" type="text" name="referencia" value="{{ referencia }}">
             </div>
 
             <div class="form-group">
                 <label class="form-label">Ordenar</label>
                 <select name="ordenar" class="form-control">
-                    <option value="">Padrão</option>
-                    <option value="referencia" {% if ordenar == "referencia" %}selected{% endif %}>Referência</option>
+                    <option value="referencia_asc" {% if ordenar == "" or ordenar == "referencia_asc" %}selected{% endif %}>Ordem crescente</option>
+                    <option value="referencia_desc" {% if ordenar == "referencia_desc" %}selected{% endif %}>Ordem decrescente</option>
                 </select>
             </div>
 
             <div class="form-group d-flex align-items-end">
-                <a href="?banco={{ request.banco }}" class="botao botao-limpar">
-                    <i class="bi bi-eraser"></i> Limpar
-                </a>
-            </div>
-
-            <div class="form-group">
-                <button type="submit" class="botao botao-buscar">
-                    <i class="bi bi-search"></i> Buscar
-                </button>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="?banco={{ request.banco }}" class="botao botao-limpar">
+                        <i class="bi bi-eraser"></i> Limpar
+                    </a>
+                    <button type="submit" class="botao botao-buscar">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </div>
             </div>
         </form>
     </div>
@@ -63,23 +86,31 @@
         <table class="tabela-moderna">
             <thead>
                 <tr>
-                    <th><i class="bi bi-hash"></i> Referência</th>
-                    <th><i class="bi bi-cash"></i> Mínimo Federal</th>
-                    <th><i class="bi bi-cash"></i> Mínimo Estadual</th>
-                    <th><i class="bi bi-cash"></i> Ref 01</th>
-                    <th><i class="bi bi-cash"></i> Ref 02</th>
+                    <th><i class="bi bi-hash d-none"></i> Referência</th>
+                    <th><i class="bi bi-calculator"></i> Salário Mínimo</th>
                     <th><i class="bi bi-gear"></i> Ações</th>
                 </tr>
             </thead>
             <tbody data-infinite-scroll-items>
                 {% for item in tabelasalariominimo %}
                 <tr>
-                    <td data-label="Referência">{{ item.registro }}</td>
-                    <td data-label="Mínimo Federal">R$ {{ item.refe_sala_mini_fede|default:'0.00' }}</td>
-                    <td data-label="Mínimo Estadual">R$ {{ item.refe_sala_mini_esta|default:'0.00' }}</td>
-                    <td data-label="Ref 01">R$ {{ item.refe_sala_ref1|default:'0.00' }}</td>
-                    <td data-label="Ref 02">R$ {{ item.refe_sala_ref2|default:'0.00' }}</td>
-                    <td data-label="Ações"><span class="text-muted">Indisponível</span></td>
+                    <td data-label="Referência">{{ item.refe_sala_mini_formatada }}</td>
+                    <td data-label="Salário Mínimo">R$ {{ item.refe_sala_mini_fede|floatformat:2 }}</td>   
+                    <td data-label="Ações" class="tabela-acoes">
+                        <a href="{% url 'tabelasalariominimo:salariominimo_editar' refe_sala_mini=item.refe_sala_mini %}?banco={{ request.banco }}"
+                            class="botao botao-editar">
+                            <i class="bi bi-pencil"></i> Editar
+                        </a>
+
+                        <form method="post"
+                            action="{% url 'tabelasalariominimo:salariominimo_deletar' refe_sala_mini=item.refe_sala_mini %}?banco={{ request.banco }}"
+                            style="display:inline;">
+                            {% csrf_token %}
+                            <button type="button" class="botao botao-remover" data-confirm-delete data-ref="{{ item.refe_sala_mini_formatada }}">
+                                <i class="bi bi-trash"></i> Excluir
+                            </button>
+                        </form>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -92,5 +123,66 @@
         Nenhum registro encontrado.
     </div>
     {% endif %}
+
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmar exclusão</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body" id="confirmDeleteModalBody">
+                    Deseja realmente excluir este registro?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger btn-sm" id="confirmDeleteModalConfirm">Excluir</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        let pendingDeleteForm = null;
+
+        function openDeleteModal(formEl, ref) {
+            pendingDeleteForm = formEl;
+            const bodyEl = document.getElementById('confirmDeleteModalBody');
+            if (bodyEl) {
+                bodyEl.textContent = ref
+                    ? `Deseja realmente excluir o salário mínimo da referência ${ref}?`
+                    : 'Deseja realmente excluir este registro?';
+            }
+
+            if (!window.bootstrap) return;
+            const modalEl = document.getElementById('confirmDeleteModal');
+            if (!modalEl) return;
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+        }
+
+        document.addEventListener('click', (event) => {
+            const btn = event.target.closest('[data-confirm-delete]');
+            if (!btn) return;
+            const formEl = btn.closest('form');
+            if (!formEl) return;
+            event.preventDefault();
+            openDeleteModal(formEl, btn.getAttribute('data-ref') || '');
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const confirmBtn = document.getElementById('confirmDeleteModalConfirm');
+            if (!confirmBtn) return;
+            confirmBtn.addEventListener('click', () => {
+                if (!pendingDeleteForm) return;
+                pendingDeleteForm.submit();
+            });
+        });
+    })();
+</script>
 {% endblock %}

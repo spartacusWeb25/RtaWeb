@@ -1,5 +1,6 @@
 from django.db import models
 from core.consultas import BancoConsulta
+from core.utils import format_month_reference
 
 class Tabelasalafami(models.Model):
     safa_refe = models.CharField(primary_key=True, max_length=6)
@@ -14,4 +15,6 @@ class Tabelasalafami(models.Model):
         managed = False
         db_table = 'tabelasalafami'
 
-# Create your models here.
+    @property
+    def safa_refe_formatada(self):
+        return format_month_reference(self.safa_refe)

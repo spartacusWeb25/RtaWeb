@@ -16,9 +16,11 @@ class UsuariosListView(BancoObrigatorioMixin, InfiniteScrollMixin, ListView):
             registro=self.request.banco,
             db_alias=self.request.db_alias,
             termo=self.request.GET.get("nome"),
+            ordenar=self.request.GET.get("ordenar"),
         )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["banco"] = self.request.banco
+        context["ordenar"] = self.request.GET.get("ordenar") or ""
         return context

@@ -5,6 +5,7 @@ from django.urls import reverse
 from django.shortcuts import redirect
 
 from core.mixin import BancoObrigatorioMixin
+from core.utils import format_month_reference
 from tabelasalafami.web.forms import TabelasalafamiForm
 from tabelasalafami.services.criar import SalaFamiCriarService
 
@@ -31,7 +32,7 @@ class TabelasalafamiCreateView(BancoObrigatorioMixin, FormView):
 
         if safa_refe_salva:
             context["mensagem_sucesso_form"] = (
-                f"Referência {safa_refe_salva} gravada com sucesso."
+                f"Referência {format_month_reference(safa_refe_salva)} gravada com sucesso."
             )
 
         return context

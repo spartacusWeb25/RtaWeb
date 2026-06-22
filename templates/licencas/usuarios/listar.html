@@ -9,13 +9,37 @@
 <link rel="stylesheet" href="{% static 'css/botoes.css' %}">
 <link rel="stylesheet" href="{% static 'css/buscas.css' %}">
 <link rel="stylesheet" href="{% static 'css/tabelas.css' %}">
+<style>
+    .toast-container {
+        display: none;
+    }
+
+    @media (min-width: 992px) {
+        .usuarios-listar .form-grid {
+            grid-template-columns: minmax(240px, 1.2fr) minmax(220px, 1fr) auto;
+        }
+
+        .usuarios-listar .form-group:last-child .d-flex {
+            white-space: nowrap;
+        }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container mt-4 usuarios-listar">
     <div class="d-flex justify-content-center align-items-center mb-3">
-        <h3><i class="bi bi-person-fill-gear"></i> Usuários por Registro</h3>
+        <h3><i class="bi bi-person-fill-gear"></i> Usuários</h3>
     </div>
+
+    {% if messages %}
+        {% for message in messages %}
+        <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'warning' %}alert-warning{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %} mt-3"
+            role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+    {% endif %}
 
     <div class="filtros-acoes mb-3">
         <a href="{% url 'usuarios:criar' %}?banco={{ banco }}" class="botao botao-adicionar">
@@ -37,16 +61,23 @@
                     placeholder="Pesquisar por nome">
             </div>
 
-            <div class="form-group d-flex align-items-end">
-                <a href="?banco={{ banco }}" class="botao botao-limpar">
-                    <i class="bi bi-eraser"></i> Limpar
-                </a>
+            <div class="form-group">
+                <label class="form-label">Ordenar</label>
+                <select name="ordenar" class="form-control">
+                    <option value="nome_asc" {% if ordenar == "" or ordenar == "nome_asc" %}selected{% endif %}>Ordem crescente</option>
+                    <option value="nome_desc" {% if ordenar == "nome_desc" %}selected{% endif %}>Ordem decrescente</option>
+                </select>
             </div>
 
-            <div class="form-group">
-                <button type="submit" class="botao botao-buscar">
-                    <i class="bi bi-search"></i> Buscar
-                </button>
+            <div class="form-group d-flex align-items-end">
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="?banco={{ banco }}" class="botao botao-limpar">
+                        <i class="bi bi-eraser"></i> Limpar
+                    </a>
+                    <button type="submit" class="botao botao-buscar">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </div>
             </div>
         </form>
     </div>
@@ -56,7 +87,7 @@
         <table class="tabela-moderna">
             <thead>
                 <tr>
-                    <th><i class="bi bi-hash"></i> ID</th>
+                    <th><i class="bi bi-none"></i> ID</th>
                     <th><i class="bi bi-person"></i> Nome</th>
                     <th><i class="bi bi-person-badge"></i> Login</th>
                     <th><i class="bi bi-check-circle"></i> Ativo</th>

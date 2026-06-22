@@ -1,9 +1,47 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Excluir Usuário{% endblock %}
 
+{% block extra_css %}
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+<style>
+    .toast-container {
+        display: none;
+    }
+
+    .confirm-delete-card {
+        background: var(--surface-card);
+        border: 1px solid var(--border-default);
+        color: var(--text-primary);
+    }
+
+    .confirm-delete-card .card-header {
+        background: transparent;
+        border-bottom: 1px solid var(--border-default);
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+
+    .confirm-delete-card .card-body,
+    .confirm-delete-card p,
+    .confirm-delete-card strong {
+        color: var(--text-primary);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="card">
+    {% if messages %}
+        {% for message in messages %}
+        <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'warning' %}alert-warning{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %} mt-3"
+            role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+    {% endif %}
+
+<div class="card confirm-delete-card">
     <div class="card-header">Confirmação de exclusão</div>
     <div class="card-body">
         <p>Deseja excluir o usuário <strong>{{ usuario.usua_login }}</strong>?</p>

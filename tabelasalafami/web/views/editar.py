@@ -5,6 +5,7 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.views.generic import FormView
 from core.mixin import BancoObrigatorioMixin
+from core.utils import format_month_reference
 from tabelasalafami.web.forms import TabelasalafamiForm
 from tabelasalafami.services.chave import TabelaSalaFamiChaveService
 from tabelasalafami.services.editar import SalaFamiEditarService
@@ -69,7 +70,7 @@ class TabelasalafamiUpdateView(BancoObrigatorioMixin, FormView):
 
         if safa_refe_editada:
             context["mensagem_sucesso_form"] = (
-                f"Referência {safa_refe_editada} atualizada com sucesso."
+                f"Referência {format_month_reference(safa_refe_editada)} atualizada com sucesso."
             )
 
         return context

@@ -19,7 +19,7 @@ class Licencas(models.Model):
 
 
 class Usuarios(models.Model):
-    id = models.AutoField(primary_key=True)
+    id = models.IntegerField(primary_key=True)
     registro = models.CharField(max_length=20)
     usua_nome = models.CharField(max_length=100, blank=True, null=True)
     usua_login = models.CharField(max_length=50)
@@ -32,6 +32,7 @@ class Usuarios(models.Model):
     class Meta:
         managed = False
         db_table = "usuarios"
+        unique_together = (("registro", "id"),)
 
 
 class Logado(models.Model):

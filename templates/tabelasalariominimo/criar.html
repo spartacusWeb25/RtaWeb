@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+<style>
+    .tabelasalariominimo-form {
+        background: var(--surface-card);
+        border: 1px solid var(--border-default);
+        color: var(--text-primary);
+    }
+
+    .tabelasalariominimo-form p {
+        margin-bottom: 1rem;
+    }
+
+    .tabelasalariominimo-form label {
+        display: block;
+        margin-bottom: 0.4rem;
+        color: var(--text-secondary);
+        font-weight: 600;
+    }
+
+    .tabelasalariominimo-form input,
+    .tabelasalariominimo-form select,
+    .tabelasalariominimo-form textarea {
+        width: 100%;
+        background: var(--surface-input);
+        color: var(--text-primary);
+        border: 1px solid var(--border-default);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    {% if modo_edicao %}
+    <h4>Editar Tabela Salário Mínimo</h4>
+    {% else %}
+    <h4>Nova Tabela Salário Mínimo</h4>
+    {% endif %}
+
+    {% if mensagem_sucesso_form %}
+    <div class="alert alert-success mt-3" role="alert">
+        {{ mensagem_sucesso_form }} Redirecionando para a listagem...
+    </div>
+    {% endif %}
+
+    <form method="post" class="card p-3 tabelasalariominimo-form">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+
+        <div class="row g-3">
+            <div class="col-12">
+                <label for="{{ form.refe_sala_mini.id_for_label }}">{{ form.refe_sala_mini.label }}</label>
+                {{ form.refe_sala_mini }}
+                {{ form.refe_sala_mini.errors }}
+            </div>
+
+            <div class="col-12">
+                <label for="{{ form.refe_sala_mini_fede.id_for_label }}">{{ form.refe_sala_mini_fede.label }}</label>
+                {{ form.refe_sala_mini_fede }}
+                {{ form.refe_sala_mini_fede.errors }}
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 mt-3">
+            <button type="submit" class="btn btn-primary btn-sm">
+                Salvar
+            </button>
+            <a class="btn btn-outline-secondary btn-sm"
+                href="{% url 'tabelasalariominimo:listar' %}?banco={{ request.banco }}">
+                Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if mensagem_sucesso_form %}
+<script>
+    const redirectDelayMs = Number("{{ redirect_delay_ms|default:'1800'|escapejs }}");
+    window.setTimeout(function () {
+        window.location.href = "{{ redirect_url|escapejs }}";
+    }, redirectDelayMs);
+</script>
+{% endif %}
+{% endblock %}

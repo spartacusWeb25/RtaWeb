@@ -1,5 +1,7 @@
 from django.db import models
+
 from core.consultas import BancoConsulta
+from core.utils import format_month_reference
 
 # Create your models here.
 class Tabelainss(models.Model):
@@ -12,6 +14,7 @@ class Tabelainss(models.Model):
     tabe_pe03 = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
     tabe_fa04 = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
     tabe_pe04 = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
+    tabe_mini_gps = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
     tabe_dema = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
     tabe_maxr = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
     _log_data = models.DateField(blank=True, null=True)
@@ -19,4 +22,10 @@ class Tabelainss(models.Model):
 
     objects = BancoConsulta()
 
-# Create your models here.
+    class Meta:
+        managed = False
+        db_table = 'tabelainss'
+
+    @property
+    def tabe_refe_formatada(self):
+        return format_month_reference(self.tabe_refe)

@@ -38,7 +38,7 @@
 {% block tabelas_content %}
 <div class="container mt-4">
     <div class="d-flex justify-content-center align-items-center mb-3">
-        <h3><i class="bi bi-people-fill"></i> Tabela Salário Família</h3>
+        <h3><i class="bi bi-table"></i> Tabela Salário Família</h3>
     </div>
 
     <div class="filtros-acoes mb-3">
@@ -63,21 +63,20 @@
             <div class="form-group">
                 <label class="form-label">Ordenar</label>
                 <select name="ordenar" class="form-control">
-                    <option value="">Padrão</option>
-                    <option value="referencia" {% if ordenar == "referencia" %}selected{% endif %}>Referência</option>
+                    <option value="referencia_asc" {% if ordenar == "" or ordenar == "referencia_asc" %}selected{% endif %}>Ordem crescente</option>
+                    <option value="referencia_desc" {% if ordenar == "referencia_desc" %}selected{% endif %}>Ordem decrescente</option>
                 </select>
             </div>
 
             <div class="form-group d-flex align-items-end">
-                <a href="?banco={{ request.banco }}" class="botao botao-limpar">
-                    <i class="bi bi-eraser"></i> Limpar
-                </a>
-            </div>
-
-            <div class="form-group">
-                <button type="submit" class="botao botao-buscar">
-                    <i class="bi bi-search"></i> Buscar
-                </button>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="?banco={{ request.banco }}" class="botao botao-limpar">
+                        <i class="bi bi-eraser"></i> Limpar
+                    </a>
+                    <button type="submit" class="botao botao-buscar">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </div>
             </div>
         </form>
     </div>
@@ -96,7 +95,7 @@
             <tbody data-infinite-scroll-items>
                 {% for item in tabelasalafami %}
                 <tr>
-                    <td data-label="Referência">{{ item.safa_refe }}</td>
+                    <td data-label="Referência">{{ item.safa_refe_formatada }}</td>
                     <td data-label="Salário Família">R$ {{ item.safa_fa01|floatformat:2 }}</td>
                     <td data-label="Valor">R$ {{ item.safa_co01|floatformat:2 }}</td>   
                     <td data-label="Ações" class="tabela-acoes">
@@ -110,7 +109,7 @@
                             action="{% url 'tabelasalafami:salafami_deletar' safa_refe=item.safa_refe %}?banco={{ request.banco }}"
                             style="display:inline;">
                             {% csrf_token %}
-                            <button type="button" class="botao botao-remover" data-confirm-delete data-ref="{{ item.safa_refe }}">
+                            <button type="button" class="botao botao-remover" data-confirm-delete data-ref="{{ item.safa_refe_formatada }}">
                                 <i class="bi bi-trash"></i> Excluir
                             </button>
                         </form>

@@ -1,5 +1,7 @@
 from django.db import models
+
 from core.consultas import BancoConsulta
+from core.utils import format_month_reference
 
 class Tabelairrf(models.Model):
     irrf_refe = models.CharField(primary_key=True, max_length=6)
@@ -16,13 +18,17 @@ class Tabelairrf(models.Model):
     irrf_de03 = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
     irrf_de04 = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
     irrf_dede = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    irrf_isen = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
-    irrf_demi = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
+    irrf_desc_mini = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
+    irrf_desc_simp = models.DecimalField(max_digits=15, decimal_places=2, blank=True, null=True)
     field_log_data = models.DateField(db_column='_log_data', blank=True, null=True)  # Field renamed because it started with '_'.
-    field_log_time = models.DateField(db_column='_log_time', blank=True, null=True)  # Field renamed because it started with '_'.
+    field_log_time = models.TimeField(db_column='_log_time', blank=True, null=True)  # Field renamed because it started with '_'.
 
     objects = BancoConsulta()   
 
     class Meta:
         managed = False
         db_table = 'tabelairrf'
+
+    @property
+    def irrf_refe_formatada(self):
+        return format_month_reference(self.irrf_refe)

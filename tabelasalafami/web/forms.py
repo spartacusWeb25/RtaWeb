@@ -1,4 +1,5 @@
 from django import forms
+from core.utils import format_month_reference, normalize_month_reference
 from tabelasalafami.models import Tabelasalafami
 
 
@@ -11,7 +12,32 @@ class DecimalCommaField(forms.DecimalField):
         return super().to_python(value)
 
 
+class ReferenciaMesAnoField(forms.CharField):
+    def __init__(self, *args, **kwargs):
+        error_messages = kwargs.setdefault("error_messages", {})
+        error_messages.setdefault("invalid", "Informe a referencia no formato MM/AAAA.")
+        super().__init__(*args, **kwargs)
+
+    def prepare_value(self, value):
+        return format_month_reference(value)
+
+    def clean(self, value):
+        value = super().clean(value)
+        if not value:
+            return value
+
+        try:
+            return normalize_month_reference(value, strict=True)
+        except ValueError as exc:
+            raise forms.ValidationError(str(exc))
+
+
 class TabelasalafamiForm(forms.ModelForm):
+    safa_refe = ReferenciaMesAnoField(
+        label='Referência',
+        required=True,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'MM/AAAA'}),
+    )
     safa_fa01 = DecimalCommaField(
         label='Salário Família',
         required=True,
@@ -28,9 +54,6 @@ class TabelasalafamiForm(forms.ModelForm):
     class Meta:
         model = Tabelasalafami
         fields = ('safa_refe', 'safa_fa01', 'safa_co01')
-        widgets = {
-            'safa_refe': forms.TextInput(attrs={'class': 'form-control'}),
-        }
         labels = {
             'safa_refe': 'Referência',
             'safa_fa01': 'Salário Família',
