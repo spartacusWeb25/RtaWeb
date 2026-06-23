@@ -37,84 +37,93 @@ class TabelairrfForm(forms.ModelForm):
     irrf_refe = ReferenciaMesAnoField(
         label="Referência",
         required=True,
-        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "MM/AAAA"}),
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "MM/AAAA",
+                "inputmode": "numeric",
+                "autocomplete": "off",
+                "maxlength": "7",
+                "data-refe-input": "true",
+            }
+        ),
     )
     irrf_fa01 = DecimalCommaField(
         label="Faixa 01",
         required=True,
-        widget=forms.TextInput(attrs={"class": "form-control"}),
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal", "autocomplete": "off", "data-decimal-input": "true"}),
         error_messages={"invalid": "Informe um valor numérico válido para Faixa 01."},
     )
     irrf_pe01 = DecimalCommaField(
         label="Alíquota 01",
         required=True,
-        widget=forms.TextInput(attrs={"class": "form-control"}),
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal", "autocomplete": "off", "data-decimal-input": "true"}),
         error_messages={"invalid": "Informe um valor numérico válido para Alíquota 01."},
     )
     irrf_de01 = DecimalCommaField(
         label="Dedução 01",
         required=True,
-        widget=forms.TextInput(attrs={"class": "form-control"}),
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal", "autocomplete": "off", "data-decimal-input": "true"}),
         error_messages={"invalid": "Informe um valor numérico válido para Dedução 01."},
     )
     irrf_fa02 = DecimalCommaField(
         label="Faixa 02",
         required=True,
-        widget=forms.TextInput(attrs={"class": "form-control"}),
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal", "autocomplete": "off", "data-decimal-input": "true"}),
         error_messages={"invalid": "Informe um valor numérico válido para Faixa 02."},
     )
     irrf_pe02 = DecimalCommaField(
         label="Alíquota 02",
         required=True,
-        widget=forms.TextInput(attrs={"class": "form-control"}),
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal", "autocomplete": "off", "data-decimal-input": "true"}),
         error_messages={"invalid": "Informe um valor numérico válido para Alíquota 02."},
     )
     irrf_de02 = DecimalCommaField(
         label="Dedução 02",
         required=True,
-        widget=forms.TextInput(attrs={"class": "form-control"}),
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal", "autocomplete": "off", "data-decimal-input": "true"}),
         error_messages={"invalid": "Informe um valor numérico válido para Dedução 02."},
     )
     irrf_fa03 = DecimalCommaField(
         label="Faixa 03",
         required=True,
-        widget=forms.TextInput(attrs={"class": "form-control"}),
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal", "autocomplete": "off", "data-decimal-input": "true"}),
         error_messages={"invalid": "Informe um valor numérico válido para Faixa 03."},
     )
     irrf_pe03 = DecimalCommaField(
         label="Alíquota 03",
         required=True,
-        widget=forms.TextInput(attrs={"class": "form-control"}),
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal", "autocomplete": "off", "data-decimal-input": "true"}),
         error_messages={"invalid": "Informe um valor numérico válido para Alíquota 03."},
     )
     irrf_de03 = DecimalCommaField(
         label="Dedução 03",
         required=True,
-        widget=forms.TextInput(attrs={"class": "form-control"}),
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal", "autocomplete": "off", "data-decimal-input": "true"}),
         error_messages={"invalid": "Informe um valor numérico válido para Dedução 03."},
     )
     irrf_fa04 = DecimalCommaField(
         label="Faixa 04",
         required=True,
-        widget=forms.TextInput(attrs={"class": "form-control"}),
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal", "autocomplete": "off", "data-decimal-input": "true"}),
         error_messages={"invalid": "Informe um valor numérico válido para Faixa 04."},
     )
     irrf_pe04 = DecimalCommaField(
         label="Alíquota 04",
         required=True,
-        widget=forms.TextInput(attrs={"class": "form-control"}),
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal", "autocomplete": "off", "data-decimal-input": "true"}),
         error_messages={"invalid": "Informe um valor numérico válido para Alíquota 04."},
     )
     irrf_de04 = DecimalCommaField(
         label="Dedução 04",
         required=True,
-        widget=forms.TextInput(attrs={"class": "form-control"}),
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal", "autocomplete": "off", "data-decimal-input": "true"}),
         error_messages={"invalid": "Informe um valor numérico válido para Dedução 04."},
     )
     irrf_dede = DecimalCommaField(
         label="Valor por Dependente",
         required=True,
-        widget=forms.TextInput(attrs={"class": "form-control"}),
+        widget=forms.TextInput(attrs={"class": "form-control", "inputmode": "decimal", "autocomplete": "off", "data-decimal-input": "true"}),
         error_messages={"invalid": "Informe um valor numérico válido para Valor por Dependente."},
     )
     irrf_desc_mini = DecimalCommaField(
@@ -129,6 +138,22 @@ class TabelairrfForm(forms.ModelForm):
         widget=forms.TextInput(attrs={"class": "form-control"}),
         error_messages={"invalid": "Informe um valor numérico válido para Desconto Simplificado."},
     )
+
+    def clean_irrf_refe(self):
+        irrf_refe = self.cleaned_data.get("irrf_refe")
+        if not irrf_refe:
+            return irrf_refe
+
+        qs = Tabelairrf.objects.filter(irrf_refe=irrf_refe)
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+
+        if qs.exists():
+            raise forms.ValidationError(
+                f"Já existe uma tabela de IRRF para a referência {format_month_reference(irrf_refe)}."
+            )
+
+        return irrf_refe
 
     class Meta:
         model = Tabelairrf
@@ -171,6 +196,5 @@ class TabelairrfForm(forms.ModelForm):
         error_messages = {
             "irrf_refe": {
                 "required": "Informe a referência.",
-                "unique": "Já existe uma tabela de IRRF com esta referência.",
             },
         }

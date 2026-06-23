@@ -54,19 +54,31 @@
             <div class="col-12">
                 <label for="{{ form.safa_refe.id_for_label }}">{{ form.safa_refe.label }}</label>
                 {{ form.safa_refe }}
-                {{ form.safa_refe.errors }}
+                {% if form.safa_refe.errors %}
+                <div class="invalid-feedback d-block">
+                    {{ form.safa_refe.errors|join:', ' }}
+                </div>
+                {% endif %}
             </div>
 
             <div class="col-12">
                 <label for="{{ form.safa_fa01.id_for_label }}">{{ form.safa_fa01.label }}</label>
                 {{ form.safa_fa01 }}
-                {{ form.safa_fa01.errors }}
+                {% if form.safa_fa01.errors %}
+                <div class="invalid-feedback d-block">
+                    {{ form.safa_fa01.errors|join:', ' }}
+                </div>
+                {% endif %}
             </div>
 
             <div class="col-12">
                 <label for="{{ form.safa_co01.id_for_label }}">{{ form.safa_co01.label }}</label>
                 {{ form.safa_co01 }}
-                {{ form.safa_co01.errors }}
+                {% if form.safa_co01.errors %}
+                <div class="invalid-feedback d-block">
+                    {{ form.safa_co01.errors|join:', ' }}
+                </div>
+                {% endif %}
             </div>
         </div>
 
@@ -84,6 +96,43 @@
 {% endblock %}
 
 {% block extra_js %}
+<script>
+    (function () {
+        function formatarReferencia(valor) {
+            const digitos = valor.replace(/\D/g, '').slice(0, 6);
+            if (digitos.length <= 2) {
+                return digitos;
+            }
+            return digitos.slice(0, 2) + '/' + digitos.slice(2);
+        }
+
+        function formatarDecimal(valor) {
+            let normalizado = valor.replace(/[^0-9,.]/g, '');
+            const separadorIndex = Math.max(normalizado.lastIndexOf(','), normalizado.lastIndexOf('.'));
+
+            if (separadorIndex === -1) {
+                return normalizado;
+            }
+
+            const parteInteira = normalizado.slice(0, separadorIndex).replace(/[.,]/g, '');
+            const separador = normalizado[separadorIndex];
+            const parteDecimal = normalizado.slice(separadorIndex + 1).replace(/[.,]/g, '');
+            return parteInteira + separador + parteDecimal;
+        }
+
+        document.querySelectorAll('[data-refe-input="true"]').forEach(function (input) {
+            input.addEventListener('input', function () {
+                input.value = formatarReferencia(input.value);
+            });
+        });
+
+        document.querySelectorAll('[data-decimal-input="true"]').forEach(function (input) {
+            input.addEventListener('input', function () {
+                input.value = formatarDecimal(input.value);
+            });
+        });
+    })();
+</script>
 {% if mensagem_sucesso_form %}
 <script>
     const redirectDelayMs = Number("{{ redirect_delay_ms|default:'1800'|escapejs }}");

@@ -50,19 +50,23 @@
             <div class="col-12">
                 <label for="{{ form.tabe_refe.id_for_label }}">{{ form.tabe_refe.label }}</label>
                 {{ form.tabe_refe }}
-                {{ form.tabe_refe.errors }}
+                {% if form.tabe_refe.errors %}
+                <div class="invalid-feedback d-block">
+                    {{ form.tabe_refe.errors|join:', ' }}
+                </div>
+                {% endif %}
             </div>
 
             <div class="col-12 col-md-6">
                 <label for="{{ form.tabe_fa01.id_for_label }}">{{ form.tabe_fa01.label }}</label>
                 {{ form.tabe_fa01 }}
-                {{ form.tabe_fa01.errors }}
+                {% if form.tabe_fa01.errors %}<div class="invalid-feedback d-block">{{ form.tabe_fa01.errors|join:', ' }}</div>{% endif %}
             </div>
 
             <div class="col-12 col-md-6">
                 <label for="{{ form.tabe_pe01.id_for_label }}">{{ form.tabe_pe01.label }}</label>
                 {{ form.tabe_pe01 }}
-                {{ form.tabe_pe01.errors }}
+                {% if form.tabe_pe01.errors %}<div class="invalid-feedback d-block">{{ form.tabe_pe01.errors|join:', ' }}</div>{% endif %}
             </div>
 
             <div class="w-100"></div>
@@ -70,13 +74,13 @@
             <div class="col-12 col-md-6">
                 <label for="{{ form.tabe_fa02.id_for_label }}">{{ form.tabe_fa02.label }}</label>
                 {{ form.tabe_fa02 }}
-                {{ form.tabe_fa02.errors }}
+                {% if form.tabe_fa02.errors %}<div class="invalid-feedback d-block">{{ form.tabe_fa02.errors|join:', ' }}</div>{% endif %}
             </div>
 
             <div class="col-12 col-md-6">
                 <label for="{{ form.tabe_pe02.id_for_label }}">{{ form.tabe_pe02.label }}</label>
                 {{ form.tabe_pe02 }}
-                {{ form.tabe_pe02.errors }}
+                {% if form.tabe_pe02.errors %}<div class="invalid-feedback d-block">{{ form.tabe_pe02.errors|join:', ' }}</div>{% endif %}
             </div>
 
             <div class="w-100"></div>
@@ -84,13 +88,13 @@
             <div class="col-12 col-md-6">
                 <label for="{{ form.tabe_fa03.id_for_label }}">{{ form.tabe_fa03.label }}</label>
                 {{ form.tabe_fa03 }}
-                {{ form.tabe_fa03.errors }}
+                {% if form.tabe_fa03.errors %}<div class="invalid-feedback d-block">{{ form.tabe_fa03.errors|join:', ' }}</div>{% endif %}
             </div>
 
             <div class="col-12 col-md-6">
                 <label for="{{ form.tabe_pe03.id_for_label }}">{{ form.tabe_pe03.label }}</label>
                 {{ form.tabe_pe03 }}
-                {{ form.tabe_pe03.errors }}
+                {% if form.tabe_pe03.errors %}<div class="invalid-feedback d-block">{{ form.tabe_pe03.errors|join:', ' }}</div>{% endif %}
             </div>
 
             <div class="w-100"></div>
@@ -98,13 +102,13 @@
             <div class="col-12 col-md-6">
                 <label for="{{ form.tabe_fa04.id_for_label }}">{{ form.tabe_fa04.label }}</label>
                 {{ form.tabe_fa04 }}
-                {{ form.tabe_fa04.errors }}
+                {% if form.tabe_fa04.errors %}<div class="invalid-feedback d-block">{{ form.tabe_fa04.errors|join:', ' }}</div>{% endif %}
             </div>
 
             <div class="col-12 col-md-6">
                 <label for="{{ form.tabe_pe04.id_for_label }}">{{ form.tabe_pe04.label }}</label>
                 {{ form.tabe_pe04 }}
-                {{ form.tabe_pe04.errors }}
+                {% if form.tabe_pe04.errors %}<div class="invalid-feedback d-block">{{ form.tabe_pe04.errors|join:', ' }}</div>{% endif %}
             </div>
 
             <div class="w-100"></div>
@@ -112,7 +116,7 @@
             <div class="col-12">
                 <label for="{{ form.tabe_mini_gps.id_for_label }}">{{ form.tabe_mini_gps.label }}</label>
                 {{ form.tabe_mini_gps }}
-                {{ form.tabe_mini_gps.errors }}
+                {% if form.tabe_mini_gps.errors %}<div class="invalid-feedback d-block">{{ form.tabe_mini_gps.errors|join:', ' }}</div>{% endif %}
             </div>
         </div>
 
@@ -130,6 +134,43 @@
 {% endblock %}
 
 {% block extra_js %}
+<script>
+    (function () {
+        function formatarReferencia(valor) {
+            const digitos = valor.replace(/\D/g, '').slice(0, 6);
+            if (digitos.length <= 2) {
+                return digitos;
+            }
+            return digitos.slice(0, 2) + '/' + digitos.slice(2);
+        }
+
+        function formatarDecimal(valor) {
+            let normalizado = valor.replace(/[^0-9,.]/g, '');
+            const separadorIndex = Math.max(normalizado.lastIndexOf(','), normalizado.lastIndexOf('.'));
+
+            if (separadorIndex === -1) {
+                return normalizado;
+            }
+
+            const parteInteira = normalizado.slice(0, separadorIndex).replace(/[.,]/g, '');
+            const separador = normalizado[separadorIndex];
+            const parteDecimal = normalizado.slice(separadorIndex + 1).replace(/[.,]/g, '');
+            return parteInteira + separador + parteDecimal;
+        }
+
+        document.querySelectorAll('[data-refe-input="true"]').forEach(function (input) {
+            input.addEventListener('input', function () {
+                input.value = formatarReferencia(input.value);
+            });
+        });
+
+        document.querySelectorAll('[data-decimal-input="true"]').forEach(function (input) {
+            input.addEventListener('input', function () {
+                input.value = formatarDecimal(input.value);
+            });
+        });
+    })();
+</script>
 {% if mensagem_sucesso_form %}
 <script>
     const redirectDelayMs = Number("{{ redirect_delay_ms|default:'1800'|escapejs }}");

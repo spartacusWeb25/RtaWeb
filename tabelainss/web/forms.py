@@ -36,62 +36,87 @@ class TabelainssForm(forms.ModelForm):
     tabe_refe = ReferenciaMesAnoField(
         label='Referência',
         required=True,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'MM/AAAA'}),
+        widget=forms.TextInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'MM/AAAA',
+                'inputmode': 'numeric',
+                'autocomplete': 'off',
+                'maxlength': '7',
+                'data-refe-input': 'true',
+            }
+        ),
     )
     tabe_fa01 = DecimalCommaField(
         label='Faixa 01',
         required=True,
-        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        widget=forms.TextInput(attrs={'class': 'form-control', 'inputmode': 'decimal', 'autocomplete': 'off', 'data-decimal-input': 'true'}),
         error_messages={'invalid': 'Informe um valor numérico válido para Faixa 01.'},
     )
     tabe_pe01 = DecimalCommaField(
         label='Alíquota 01',
         required=True,
-        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        widget=forms.TextInput(attrs={'class': 'form-control', 'inputmode': 'decimal', 'autocomplete': 'off', 'data-decimal-input': 'true'}),
         error_messages={'invalid': 'Informe um valor numérico válido para Alíquota 01.'},
     )
     tabe_fa02 = DecimalCommaField(
         label='Faixa 02',
         required=True,
-        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        widget=forms.TextInput(attrs={'class': 'form-control', 'inputmode': 'decimal', 'autocomplete': 'off', 'data-decimal-input': 'true'}),
         error_messages={'invalid': 'Informe um valor numérico válido para Faixa 02.'},
     )
     tabe_pe02 = DecimalCommaField(
         label='Alíquota 02',
         required=True,
-        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        widget=forms.TextInput(attrs={'class': 'form-control', 'inputmode': 'decimal', 'autocomplete': 'off', 'data-decimal-input': 'true'}),
         error_messages={'invalid': 'Informe um valor numérico válido para Alíquota 02.'},
     )
     tabe_fa03 = DecimalCommaField(
         label='Faixa 03',
         required=True,
-        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        widget=forms.TextInput(attrs={'class': 'form-control', 'inputmode': 'decimal', 'autocomplete': 'off', 'data-decimal-input': 'true'}),
         error_messages={'invalid': 'Informe um valor numérico válido para Faixa 03.'},
     )
     tabe_pe03 = DecimalCommaField(
         label='Alíquota 03',
         required=True,
-        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        widget=forms.TextInput(attrs={'class': 'form-control', 'inputmode': 'decimal', 'autocomplete': 'off', 'data-decimal-input': 'true'}),
         error_messages={'invalid': 'Informe um valor numérico válido para Alíquota 03.'},
     )
     tabe_fa04 = DecimalCommaField(
         label='Faixa 04',
         required=True,
-        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        widget=forms.TextInput(attrs={'class': 'form-control', 'inputmode': 'decimal', 'autocomplete': 'off', 'data-decimal-input': 'true'}),
         error_messages={'invalid': 'Informe um valor numérico válido para Faixa 04.'},
     )
     tabe_pe04 = DecimalCommaField(
         label='Alíquota 04',
         required=True,
-        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        widget=forms.TextInput(attrs={'class': 'form-control', 'inputmode': 'decimal', 'autocomplete': 'off', 'data-decimal-input': 'true'}),
         error_messages={'invalid': 'Informe um valor numérico válido para Alíquota 04.'},
     )
     tabe_mini_gps = DecimalCommaField(
         label='Valor Mínimo GPS',
         required=True,
-        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        widget=forms.TextInput(attrs={'class': 'form-control', 'inputmode': 'decimal', 'autocomplete': 'off', 'data-decimal-input': 'true'}),
         error_messages={'invalid': 'Informe um valor numérico válido para Valor Mínimo GPS.'},
     )
+
+    def clean_tabe_refe(self):
+        tabe_refe = self.cleaned_data.get("tabe_refe")
+        if not tabe_refe:
+            return tabe_refe
+
+        qs = Tabelainss.objects.filter(tabe_refe=tabe_refe)
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+
+        if qs.exists():
+            raise forms.ValidationError(
+                f"Já existe uma tabela de INSS para a referência {format_month_reference(tabe_refe)}."
+            )
+
+        return tabe_refe
 
     class Meta:
         model = Tabelainss
@@ -122,6 +147,5 @@ class TabelainssForm(forms.ModelForm):
         error_messages = {
             'tabe_refe': {
                 'required': 'Informe a referência.',
-                'unique': 'Já existe uma tabela de inss com esta referência.',
             },
         }

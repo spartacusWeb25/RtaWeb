@@ -46,16 +46,15 @@ class TabelasalariominimoUpdateView(BancoObrigatorioMixin, FormView):
 
     def form_valid(self, form):
         dados = form.cleaned_data.copy()
+        dados["_original_refe_sala_mini"] = self.kwargs["refe_sala_mini"]
 
-        dados["refe_sala_mini"] = self.kwargs["refe_sala_mini"]
-
-        SalarioMinimoEditarService.editar(
+        salariominimo = SalarioMinimoEditarService.editar(
             banco=self.request.banco,
             db_alias=self.request.db_alias,
             dados=dados,
         )
 
-        return redirect(self.get_feedback_url(self.kwargs["refe_sala_mini"]))
+        return redirect(self.get_feedback_url(salariominimo.refe_sala_mini))
 
     def get_success_url(self):
         return reverse("tabelasalariominimo:listar") + f"?banco={self.request.banco}"

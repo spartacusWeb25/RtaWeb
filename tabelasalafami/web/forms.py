@@ -36,20 +36,59 @@ class TabelasalafamiForm(forms.ModelForm):
     safa_refe = ReferenciaMesAnoField(
         label='Referência',
         required=True,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'MM/AAAA'}),
+        widget=forms.TextInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'MM/AAAA',
+                'inputmode': 'numeric',
+                'autocomplete': 'off',
+                'maxlength': '7',
+                'data-refe-input': 'true',
+            }
+        ),
     )
     safa_fa01 = DecimalCommaField(
         label='Salário Família',
         required=True,
-        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        widget=forms.TextInput(
+            attrs={
+                'class': 'form-control',
+                'inputmode': 'decimal',
+                'autocomplete': 'off',
+                'data-decimal-input': 'true',
+            }
+        ),
         error_messages={'invalid': 'Informe um valor numérico válido para Salário Família.'},
     )
     safa_co01 = DecimalCommaField(
         label='Valor',
         required=True,
-        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        widget=forms.TextInput(
+            attrs={
+                'class': 'form-control',
+                'inputmode': 'decimal',
+                'autocomplete': 'off',
+                'data-decimal-input': 'true',
+            }
+        ),
         error_messages={'invalid': 'Informe um valor numérico válido para Valor.'},
     )
+
+    def clean_safa_refe(self):
+        safa_refe = self.cleaned_data.get("safa_refe")
+        if not safa_refe:
+            return safa_refe
+
+        qs = Tabelasalafami.objects.filter(safa_refe=safa_refe)
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+
+        if qs.exists():
+            raise forms.ValidationError(
+                f"Já existe uma tabela de salário família para a referência {format_month_reference(safa_refe)}."
+            )
+
+        return safa_refe
 
     class Meta:
         model = Tabelasalafami
@@ -62,6 +101,5 @@ class TabelasalafamiForm(forms.ModelForm):
         error_messages = {
             'safa_refe': {
                 'required': 'Informe a referência.',
-                'unique': 'Já existe uma tabela de salário família com esta referência.',
             },
         }

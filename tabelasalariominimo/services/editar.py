@@ -1,27 +1,31 @@
 from tabelasalariominimo.services.chave import TabelaSalarioMinimoChaveService
+from tabelasalariominimo.models import Tabelasalariominimo
 
 
 class SalarioMinimoEditarService:
 
     @staticmethod
     def editar(*, banco, db_alias, dados):
+        dados = dict(dados)
+        refe_original = dados.pop("_original_refe_sala_mini", None) or dados.get("refe_sala_mini")
+
         salariominimo = TabelaSalarioMinimoChaveService.buscar(
             banco=banco,
             db_alias=db_alias,
-            dados=dados,
+            dados={"refe_sala_mini": refe_original},
         )
 
         if not salariominimo:
             raise ValueError("Salário mínimo não encontrado.")
 
-        refe_sala_mini = dados.get("refe_sala_mini")
-        if refe_sala_mini and refe_sala_mini != salariominimo.refe_sala_mini:
-            raise ValueError("Não é permitido alterar a referência (refe_sala_mini).")
-
-        for campo in ("refe_sala_mini_fede",):
+        valores_atualizados = {}
+        for campo in ("refe_sala_mini", "refe_sala_mini_fede"):
             if campo in dados:
-                setattr(salariominimo, campo, dados.get(campo))
+                valores_atualizados[campo] = dados.get(campo)
 
-        salariominimo.save(using=db_alias)
+        if not valores_atualizados:
+            return salariominimo
 
-        return salariominimo
+        Tabelasalariominimo.objects.using(db_alias).filter(refe_sala_mini=refe_original).update(**valores_atualizados)
+
+        return Tabelasalariominimo.objects.using(db_alias).get(refe_sala_mini=valores_atualizados.get("refe_sala_mini", refe_original))

@@ -33,3 +33,20 @@ class UsuariosForm(forms.ModelForm):
             "super": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "usua_emai": forms.EmailInput(attrs={"class": "form-control"}),
         }
+        error_messages = {
+            "usua_nome": {
+                "required": "Informe o nome do usuário.",
+            },
+            "usua_login": {
+                "required": "Informe o login do usuário.",
+            },
+            "usua_senh": {
+                "required": "Informe a senha do usuário.",
+            },
+            "usua_grup": {
+                "invalid": "Informe um número válido para Grupo.",
+            },
+            "usua_emai": {
+                "invalid": "Informe um e-mail válido.",
+            },
+        }

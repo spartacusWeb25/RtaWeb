@@ -5,6 +5,14 @@ import re
 DEFAULT_BANCO_SLUG = "rta0001"
 REFERENCIA_DISPLAY_RE = re.compile(r"^(0[1-9]|1[0-2])/\d{4}$")
 REFERENCIA_STORAGE_RE = re.compile(r"^\d{6}$")
+MIN_REFERENCE_YEAR = 1900
+MAX_REFERENCE_YEAR = 2999
+
+
+def _is_valid_reference_year(year):
+    if not year or not str(year).isdigit():
+        return False
+    return MIN_REFERENCE_YEAR <= int(year) <= MAX_REFERENCE_YEAR
 
 
 def get_db_from_slug(_slug=None):
@@ -28,19 +36,24 @@ def normalize_month_reference(value, *, strict=False):
         return ""
 
     if REFERENCIA_STORAGE_RE.fullmatch(value):
+        year = value[:4]
         month = value[4:6]
-        if "01" <= month <= "12":
+        if "01" <= month <= "12" and _is_valid_reference_year(year):
             return value
         if strict:
-            raise ValueError("Informe a referencia no formato MM/AAAA.")
+            raise ValueError("Informe a referência no formato MM/AAAA com ano válido.")
         return value
 
     if REFERENCIA_DISPLAY_RE.fullmatch(value):
         month, year = value.split("/")
-        return f"{year}{month}"
+        if _is_valid_reference_year(year):
+            return f"{year}{month}"
+        if strict:
+            raise ValueError("Informe a referência no formato MM/AAAA com ano válido.")
+        return value
 
     if strict:
-        raise ValueError("Informe a referencia no formato MM/AAAA.")
+        raise ValueError("Informe a referência no formato MM/AAAA.")
 
     return value
 

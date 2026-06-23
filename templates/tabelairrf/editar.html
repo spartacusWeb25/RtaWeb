@@ -46,7 +46,11 @@
             <div class="col-12">
                 <label for="{{ form.irrf_refe.id_for_label }}">{{ form.irrf_refe.label }}</label>
                 {{ form.irrf_refe }}
-                {{ form.irrf_refe.errors }}
+                {% if form.irrf_refe.errors %}
+                <div class="invalid-feedback d-block">
+                    {{ form.irrf_refe.errors|join:', ' }}
+                </div>
+                {% endif %}
             </div>
 
             <div class="w-100"></div>
@@ -54,19 +58,19 @@
             <div class="col-12 col-md-3">
                 <label for="{{ form.irrf_fa01.id_for_label }}">{{ form.irrf_fa01.label }}</label>
                 {{ form.irrf_fa01 }}
-                {{ form.irrf_fa01.errors }}
+                {% if form.irrf_fa01.errors %}<div class="invalid-feedback d-block">{{ form.irrf_fa01.errors|join:', ' }}</div>{% endif %}
             </div>
 
             <div class="col-12 col-md-3">
                 <label for="{{ form.irrf_pe01.id_for_label }}">{{ form.irrf_pe01.label }}</label>
                 {{ form.irrf_pe01 }}
-                {{ form.irrf_pe01.errors }}
+                {% if form.irrf_pe01.errors %}<div class="invalid-feedback d-block">{{ form.irrf_pe01.errors|join:', ' }}</div>{% endif %}
             </div>
 
             <div class="col-12 col-md-3">
                 <label for="{{ form.irrf_de01.id_for_label }}">{{ form.irrf_de01.label }}</label>
                 {{ form.irrf_de01 }}
-                {{ form.irrf_de01.errors }}
+                {% if form.irrf_de01.errors %}<div class="invalid-feedback d-block">{{ form.irrf_de01.errors|join:', ' }}</div>{% endif %}
             </div>
 
             <div class="w-100"></div>
@@ -74,19 +78,19 @@
             <div class="col-12 col-md-3">
                 <label for="{{ form.irrf_fa02.id_for_label }}">{{ form.irrf_fa02.label }}</label>
                 {{ form.irrf_fa02 }}
-                {{ form.irrf_fa02.errors }}
+                {% if form.irrf_fa02.errors %}<div class="invalid-feedback d-block">{{ form.irrf_fa02.errors|join:', ' }}</div>{% endif %}
             </div>
 
             <div class="col-12 col-md-3">
                 <label for="{{ form.irrf_pe02.id_for_label }}">{{ form.irrf_pe02.label }}</label>
                 {{ form.irrf_pe02 }}
-                {{ form.irrf_pe02.errors }}
+                {% if form.irrf_pe02.errors %}<div class="invalid-feedback d-block">{{ form.irrf_pe02.errors|join:', ' }}</div>{% endif %}
             </div>
 
             <div class="col-12 col-md-3">
                 <label for="{{ form.irrf_de02.id_for_label }}">{{ form.irrf_de02.label }}</label>
                 {{ form.irrf_de02 }}
-                {{ form.irrf_de02.errors }}
+                {% if form.irrf_de02.errors %}<div class="invalid-feedback d-block">{{ form.irrf_de02.errors|join:', ' }}</div>{% endif %}
             </div>
 
             <div class="w-100"></div>
@@ -94,19 +98,19 @@
             <div class="col-12 col-md-3">
                 <label for="{{ form.irrf_fa03.id_for_label }}">{{ form.irrf_fa03.label }}</label>
                 {{ form.irrf_fa03 }}
-                {{ form.irrf_fa03.errors }}
+                {% if form.irrf_fa03.errors %}<div class="invalid-feedback d-block">{{ form.irrf_fa03.errors|join:', ' }}</div>{% endif %}
             </div>
 
             <div class="col-12 col-md-3">
                 <label for="{{ form.irrf_pe03.id_for_label }}">{{ form.irrf_pe03.label }}</label>
                 {{ form.irrf_pe03 }}
-                {{ form.irrf_pe03.errors }}
+                {% if form.irrf_pe03.errors %}<div class="invalid-feedback d-block">{{ form.irrf_pe03.errors|join:', ' }}</div>{% endif %}
             </div>
 
             <div class="col-12 col-md-3">
                 <label for="{{ form.irrf_de03.id_for_label }}">{{ form.irrf_de03.label }}</label>
                 {{ form.irrf_de03 }}
-                {{ form.irrf_de03.errors }}
+                {% if form.irrf_de03.errors %}<div class="invalid-feedback d-block">{{ form.irrf_de03.errors|join:', ' }}</div>{% endif %}
             </div>
 
             <div class="w-100"></div>
@@ -114,19 +118,19 @@
             <div class="col-12 col-md-3">
                 <label for="{{ form.irrf_fa04.id_for_label }}">{{ form.irrf_fa04.label }}</label>
                 {{ form.irrf_fa04 }}
-                {{ form.irrf_fa04.errors }}
+                {% if form.irrf_fa04.errors %}<div class="invalid-feedback d-block">{{ form.irrf_fa04.errors|join:', ' }}</div>{% endif %}
             </div>
 
             <div class="col-12 col-md-3">
                 <label for="{{ form.irrf_pe04.id_for_label }}">{{ form.irrf_pe04.label }}</label>
                 {{ form.irrf_pe04 }}
-                {{ form.irrf_pe04.errors }}
+                {% if form.irrf_pe04.errors %}<div class="invalid-feedback d-block">{{ form.irrf_pe04.errors|join:', ' }}</div>{% endif %}
             </div>
 
             <div class="col-12 col-md-3">
                 <label for="{{ form.irrf_de04.id_for_label }}">{{ form.irrf_de04.label }}</label>
                 {{ form.irrf_de04 }}
-                {{ form.irrf_de04.errors }}
+                {% if form.irrf_de04.errors %}<div class="invalid-feedback d-block">{{ form.irrf_de04.errors|join:', ' }}</div>{% endif %}
             </div>
 
             <div class="w-100"></div>
@@ -134,19 +138,19 @@
             <div class="col-12 col-md-3">
                 <label for="{{ form.irrf_dede.id_for_label }}">{{ form.irrf_dede.label }}</label>
                 {{ form.irrf_dede }}
-                {{ form.irrf_dede.errors }}
+                {% if form.irrf_dede.errors %}<div class="invalid-feedback d-block">{{ form.irrf_dede.errors|join:', ' }}</div>{% endif %}
             </div>
 
             <div class="col-12 col-md-3">
                 <label for="{{ form.irrf_desc_mini.id_for_label }}">{{ form.irrf_desc_mini.label }}</label>
                 {{ form.irrf_desc_mini }}
-                {{ form.irrf_desc_mini.errors }}
+                {% if form.irrf_desc_mini.errors %}<div class="invalid-feedback d-block">{{ form.irrf_desc_mini.errors|join:', ' }}</div>{% endif %}
             </div>
 
             <div class="col-12 col-md-3">
                 <label for="{{ form.irrf_desc_simp.id_for_label }}">{{ form.irrf_desc_simp.label }}</label>
                 {{ form.irrf_desc_simp }}
-                {{ form.irrf_desc_simp.errors }}
+                {% if form.irrf_desc_simp.errors %}<div class="invalid-feedback d-block">{{ form.irrf_desc_simp.errors|join:', ' }}</div>{% endif %}
             </div>
         </div>
 
@@ -164,6 +168,43 @@
 {% endblock %}
 
 {% block extra_js %}
+<script>
+    (function () {
+        function formatarReferencia(valor) {
+            const digitos = valor.replace(/\D/g, '').slice(0, 6);
+            if (digitos.length <= 2) {
+                return digitos;
+            }
+            return digitos.slice(0, 2) + '/' + digitos.slice(2);
+        }
+
+        function formatarDecimal(valor) {
+            let normalizado = valor.replace(/[^0-9,.]/g, '');
+            const separadorIndex = Math.max(normalizado.lastIndexOf(','), normalizado.lastIndexOf('.'));
+
+            if (separadorIndex === -1) {
+                return normalizado;
+            }
+
+            const parteInteira = normalizado.slice(0, separadorIndex).replace(/[.,]/g, '');
+            const separador = normalizado[separadorIndex];
+            const parteDecimal = normalizado.slice(separadorIndex + 1).replace(/[.,]/g, '');
+            return parteInteira + separador + parteDecimal;
+        }
+
+        document.querySelectorAll('[data-refe-input="true"]').forEach(function (input) {
+            input.addEventListener('input', function () {
+                input.value = formatarReferencia(input.value);
+            });
+        });
+
+        document.querySelectorAll('[data-decimal-input="true"]').forEach(function (input) {
+            input.addEventListener('input', function () {
+                input.value = formatarDecimal(input.value);
+            });
+        });
+    })();
+</script>
 {% if mensagem_sucesso_form %}
 <script>
     const redirectDelayMs = Number("{{ redirect_delay_ms|default:'1800'|escapejs }}");

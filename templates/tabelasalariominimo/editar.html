@@ -50,13 +50,21 @@
             <div class="col-12 col-md-4">
                 <label for="{{ form.refe_sala_mini.id_for_label }}">{{ form.refe_sala_mini.label }}</label>
                 {{ form.refe_sala_mini }}
-                {{ form.refe_sala_mini.errors }}
+                {% if form.refe_sala_mini.errors %}
+                <div class="invalid-feedback d-block">
+                    {{ form.refe_sala_mini.errors|join:', ' }}
+                </div>
+                {% endif %}
             </div>
 
             <div class="col-12 col-md-8">
                 <label for="{{ form.refe_sala_mini_fede.id_for_label }}">{{ form.refe_sala_mini_fede.label }}</label>
                 {{ form.refe_sala_mini_fede }}
-                {{ form.refe_sala_mini_fede.errors }}
+                {% if form.refe_sala_mini_fede.errors %}
+                <div class="invalid-feedback d-block">
+                    {{ form.refe_sala_mini_fede.errors|join:', ' }}
+                </div>
+                {% endif %}
             </div>
         </div>
 
@@ -74,6 +82,43 @@
 {% endblock %}
 
 {% block extra_js %}
+<script>
+    (function () {
+        function formatarReferencia(valor) {
+            const digitos = valor.replace(/\D/g, '').slice(0, 6);
+            if (digitos.length <= 2) {
+                return digitos;
+            }
+            return digitos.slice(0, 2) + '/' + digitos.slice(2);
+        }
+
+        function formatarDecimal(valor) {
+            let normalizado = valor.replace(/[^0-9,.]/g, '');
+            const separadorIndex = Math.max(normalizado.lastIndexOf(','), normalizado.lastIndexOf('.'));
+
+            if (separadorIndex === -1) {
+                return normalizado;
+            }
+
+            const parteInteira = normalizado.slice(0, separadorIndex).replace(/[.,]/g, '');
+            const separador = normalizado[separadorIndex];
+            const parteDecimal = normalizado.slice(separadorIndex + 1).replace(/[.,]/g, '');
+            return parteInteira + separador + parteDecimal;
+        }
+
+        document.querySelectorAll('[data-refe-input="true"]').forEach(function (input) {
+            input.addEventListener('input', function () {
+                input.value = formatarReferencia(input.value);
+            });
+        });
+
+        document.querySelectorAll('[data-decimal-input="true"]').forEach(function (input) {
+            input.addEventListener('input', function () {
+                input.value = formatarDecimal(input.value);
+            });
+        });
+    })();
+</script>
 {% if mensagem_sucesso_form %}
 <script>
     const redirectDelayMs = Number("{{ redirect_delay_ms|default:'1800'|escapejs }}");
