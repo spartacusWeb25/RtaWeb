@@ -14,6 +14,11 @@ class UsuariosCreateView(BancoObrigatorioMixin, CreateView):
     form_class = UsuariosForm
     template_name = "licencas/usuarios/form.html"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["modo_edicao"] = False
+        return context
+
     def form_valid(self, form):
         instance = form.save(commit=False)
         instance.registro = self.request.banco

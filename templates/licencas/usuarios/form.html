@@ -2,7 +2,7 @@
 {% load static %}
 
 
-{% block title %}Usuário da Licença{% endblock %}
+{% block title %}Usuário{% endblock %}
 
 {% block extra_css %}
 <link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
@@ -14,12 +14,12 @@
 {% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div>
-        <h1 class="page-title">Usuário da Licença</h1>
-        <p class="page-subtitle">Cadastro e edição</p>
-    </div>
-</div>
+<div class="container mt-4">
+    {% if modo_edicao %}
+    <h4>Editar Usuário</h4>
+    {% else %}
+    <h4>Novo Usuário</h4>
+    {% endif %}
 
 <div class="app-form-card">
     {% if messages %}
@@ -75,5 +75,6 @@
             <a href="{% url 'usuarios:listar' %}?banco={{ request.banco }}" class="btn btn-outline-secondary">Voltar</a>
         </div>
     </form>
+</div>
 </div>
 {% endblock %}

@@ -25,6 +25,11 @@ class UsuariosUpdateView(BancoObrigatorioMixin, UpdateView):
             raise Http404("Usuário não encontrado.")
         return usuario
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["modo_edicao"] = True
+        return context
+
     def form_valid(self, form):
         instance = form.save(commit=False)
         instance.registro = self.request.banco
