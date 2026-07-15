@@ -5,7 +5,6 @@ from django.urls import reverse
 from django.shortcuts import redirect
 
 from core.mixin import BancoObrigatorioMixin
-from core.utils import format_month_reference
 from tabelasalariominimo.web.forms import TabelasalariominimoForm
 from tabelasalariominimo.services.criar import TabelaSalarioMinimoCriarService
 
@@ -32,7 +31,7 @@ class TabelasalariominimoCreateView(BancoObrigatorioMixin, FormView):
 
         if refe_sala_mini_salva:
             context["mensagem_sucesso_form"] = (
-                f"Referência {format_month_reference(refe_sala_mini_salva)} gravada com sucesso."
+                f"Referência {refe_sala_mini_salva} gravada com sucesso."
             )
 
         return context

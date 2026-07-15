@@ -1,0 +1,39 @@
+{% if field.field.widget.input_type == "checkbox" %}
+<div class="empresa-checkbox {% if field.errors %}field-error{% endif %}">
+    <div class="form-check mb-0">
+        {{ field }}
+        <label class="form-check-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+    </div>
+    {% if field.errors %}
+    <div class="invalid-feedback d-block">
+        {{ field.errors|join:', ' }}
+    </div>
+    {% endif %}
+</div>
+{% elif field.field.widget.input_type == "radio" %}
+<div class="empresa-radio-group {% if field.errors %}field-error{% endif %}">
+    {% if not hide_label %}
+    <div class="empresa-radio-label">{{ field.label }}</div>
+    {% endif %}
+    <div class="empresa-radio-options">
+        {{ field }}
+    </div>
+    {% if field.errors %}
+    <div class="invalid-feedback d-block">
+        {{ field.errors|join:', ' }}
+    </div>
+    {% endif %}
+</div>
+{% else %}
+<div class="{% if field.errors %}field-error{% endif %}"{% if full %} style="grid-column: 1 / -1;"{% endif %}>
+    {% if not hide_label %}
+    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+    {% endif %}
+    {{ field }}
+    {% if field.errors %}
+    <div class="invalid-feedback d-block">
+        {{ field.errors|join:', ' }}
+    </div>
+    {% endif %}
+</div>
+{% endif %}

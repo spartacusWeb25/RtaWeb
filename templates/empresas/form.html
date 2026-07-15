@@ -1,0 +1,1199 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Empresa{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+<style>
+    .toast-container {
+        display: none;
+    }
+
+    .nav-tabs-scroll {
+        overflow-x: auto;
+        overflow-y: hidden;
+        flex-wrap: nowrap;
+        scrollbar-width: thin;
+    }
+
+    .nav-tabs-scroll .nav-link {
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    .tab-badge {
+        margin-left: 0.2rem;
+        font-size: 0.7rem;
+        line-height: 1;
+    }
+
+    .empresa-form-card {
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+    }
+
+    .empresa-section-box {
+        border: 1px solid var(--border-default, #d8dee8);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        background: var(--surface-card, #fff);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .empresa-section-title {
+        font-size: 1rem;
+        font-weight: 400;
+        color: inherit;
+        margin-bottom: 0.5rem;
+    }
+
+    .empresa-checkbox {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        min-height: 1.05rem;
+        padding: 0;
+    }
+
+    .empresa-checkbox .form-check {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        width: 100%;
+    }
+
+    .empresa-checkbox .empresa-check-input {
+        margin: 0;
+        flex: 0 0 auto;
+        width: 1.05rem;
+        height: 1.05rem;
+        cursor: pointer;
+    }
+
+    .empresa-checkbox .form-check-label {
+        margin: 0;
+        line-height: 1.35;
+        cursor: pointer;
+        color: inherit;
+        font-weight: 500;
+    }
+
+    .empresa-checkbox-col .empresa-checkbox {
+        min-height: calc(2.25rem + 2px);
+        display: flex;
+        align-items: center;
+    }
+
+    .empresa-checkbox-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+    }
+
+    .empresa-checkbox-stack .empresa-checkbox {
+        min-height: auto;
+    }
+
+    .empresa-radio-group {
+        width: 100%;
+    }
+
+    .empresa-radio-label {
+        font-size: 0.95rem;
+        font-weight: 500;
+        margin-bottom: 0.45rem;
+    }
+
+    .empresa-radio-options ul {
+        list-style: none;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin: 0;
+        padding: 0.55rem 0.75rem;
+        border: 1px solid var(--border-default, #d8dee8);
+        border-radius: 0.5rem;
+        background: var(--surface-card, #fff);
+    }
+
+    .empresa-radio-options li {
+        margin: 0;
+    }
+
+    .empresa-radio-options label {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        margin: 0;
+        cursor: pointer;
+        font-weight: 500;
+    }
+
+    .field-error .form-control,
+    .field-error .form-select,
+    .field-error .empresa-radio-options ul {
+        border-color: var(--bs-danger, #dc3545);
+        box-shadow: 0 0 0 0.12rem rgba(220, 53, 69, 0.12);
+    }
+
+    .field-error .form-check-input {
+        border-color: var(--bs-danger, #dc3545);
+    }
+
+    .invalid-feedback.d-block {
+        font-weight: 500;
+    }
+
+    .field-error {
+        scroll-margin-top: 6rem;
+    }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    {% if modo_edicao %}
+    <h4>Editar Empresa</h4>
+    {% else %}
+    <h4>Nova Empresa</h4>
+    {% endif %}
+
+    <div>
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'warning' %}alert-warning{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %} mt-3"
+                role="alert">
+                {{ message }}
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            {{ form.registro }}
+            <datalist id="cnae-subclasses-options"></datalist>
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger" role="alert">
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+            {% if form.errors %}
+            <div class="alert alert-warning" role="alert">
+                Revise os campos destacados em vermelho antes de salvar.
+                <ul class="mb-0 mt-2">
+                    {% for hidden in form.hidden_fields %}
+                        {% for error in hidden.errors %}
+                        <li>{{ hidden.name }}: {{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for field in form.visible_fields %}
+                        {% for error in field.errors %}
+                        <li>{{ field.label }}: {{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <ul class="nav nav-tabs nav-tabs-scroll mb-0" id="empresaTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-cadastrais" type="button">
+                        <i class="bi bi-building"></i> Cadastrais
+                        {% if has_errors.cadastrais %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-endereco" type="button">
+                        <i class="bi bi-geo-alt"></i> Endereço
+                        {% if has_errors.endereco %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-gps_tributacao" type="button">
+                        <i class="bi bi-calculator"></i> GPS/Tributação
+                        {% if has_errors.gps_tributacao %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-parametros1" type="button">
+                        <i class="bi bi-sliders"></i> Parâmetros Gerais 1
+                        {% if has_errors.parametros1 %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-parametros2" type="button">
+                        <i class="bi bi-sliders2"></i> Parâmetros Gerais 2
+                        {% if has_errors.parametros2 %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-verbas" type="button">
+                        <i class="bi bi-cash-stack"></i> Verbas
+                        {% if has_errors.verbas %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-observacoes" type="button">
+                        <i class="bi bi-journal-text"></i> Observações
+                        {% if has_errors.observacoes %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+                    </button>
+                </li>
+            </ul>
+
+            <div class="app-form-card empresa-form-card">
+                <div class="tab-content" id="empresaTabsContent">
+                    <div class="tab-pane fade show active pt-3" id="tab-cadastrais" role="tabpanel">
+                        <div class="row g-3">
+                            <div class="col-12 col-lg-3">
+                                {% include "empresas/_field.html" with field=form.empr_empr %}
+                            </div>
+                            <div class="col-12 col-lg-3">
+                                {% include "empresas/_field.html" with field=form.empr_fili %}
+                            </div>
+                            <div class="col-12 col-lg-3">
+                                {% include "empresas/_field.html" with field=form.empr_data_cada %}
+                            </div>
+                            <div class="col-12 col-lg-3">
+                                {% include "empresas/_field.html" with field=form.empr_situ %}
+                            </div>
+
+                            <div class="col-12">
+                                <div class="empresa-section-box">
+                                    <div class="row g-3">
+                                        <div class="col-12 col-lg-6">
+                                            {% include "empresas/_field.html" with field=form.empr_nome %}
+                                        </div>
+                                        <div class="col-12 col-lg-6">
+                                            {% include "empresas/_field.html" with field=form.empr_fant %}
+                                        </div>
+
+                                        <div class="col-12">
+                                            {% include "empresas/_field.html" with field=form.empr_tipo_estab %}
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="empresa-section-box">
+                                    <div class="row g-3">
+                                        <div class="col-12 col-md-6">
+                                            {% include "empresas/_field.html" with field=form.empr_tipo_docu %}
+                                        </div>
+                                        <div class="col-12 col-md-6">
+                                            {% include "empresas/_field.html" with field=form.empr_cnpj %}
+                                        </div>
+
+                                        <div class="col-12 col-md-6">
+                                            {% include "empresas/_field.html" with field=form.empr_tipo_docu_aux %}
+                                        </div>
+                                        <div class="col-12 col-md-6">
+                                            {% include "empresas/_field.html" with field=form.empr_cpf %}
+                                        </div>
+
+                                        <div class="col-12 col-md-6">
+                                            {% include "empresas/_field.html" with field=form.empr_tipo_caepf %}
+                                        </div>
+                                        <div class="col-12 col-md-6">
+                                            {% include "empresas/_field.html" with field=form.empr_caepf %}
+                                        </div>
+
+                                        <div class="col-12 col-lg-4">
+                                            {% include "empresas/_field.html" with field=form.empr_escr_muni %}
+                                        </div>
+                                        <div class="col-12 col-lg-4">
+                                            {% include "empresas/_field.html" with field=form.empr_insc_esta %}
+                                        </div>
+                                        <div class="col-12 col-lg-4">
+                                            {% include "empresas/_field.html" with field=form.empr_indi_situ %}
+                                        </div>
+
+                                        <div class="col-12 col-lg-4">
+                                            {% include "empresas/_field.html" with field=form.empr_espec_estab %}
+                                        </div>
+                                        <div class="col-12 col-lg-4">
+                                            {% include "empresas/_field.html" with field=form.empr_capi_soci %}
+                                        </div>
+                                        <div class="col-12 col-lg-4 d-flex align-items-end empresa-checkbox-col">
+                                            {% include "empresas/_field.html" with field=form.empr_soci_oste %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="row g-3">
+                                    <div class="col-12 col-md-6">
+                                        {% include "empresas/_field.html" with field=form.empr_inic_ativ %}
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        {% include "empresas/_field.html" with field=form.empr_fim_ativ %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade pt-3" id="tab-endereco" role="tabpanel">
+                        <div class="row g-3">
+                            <div class="col-12 col-md-3">
+                                {% include "empresas/_field.html" with field=form.empr_cep %}
+                            </div>
+                            <div class="col-12 col-md-9">
+                                {% include "empresas/_field.html" with field=form.empr_ende %}
+                            </div>
+
+                            <div class="col-12 col-md-3">
+                                {% include "empresas/_field.html" with field=form.empr_ende_nume %}
+                            </div>
+                            <div class="col-12 col-md-5">
+                                {% include "empresas/_field.html" with field=form.empr_ende_comp %}
+                            </div>
+                            <div class="col-12 col-md-4">
+                                {% include "empresas/_field.html" with field=form.empr_ende_bair %}
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                {% include "empresas/_field.html" with field=form.empr_ende_cida %}
+                            </div>
+                            <div class="col-12 col-md-2">
+                                {% include "empresas/_field.html" with field=form.empr_ende_uf %}
+                            </div>
+                            <div class="col-12 col-md-4">
+                                {% include "empresas/_field.html" with field=form.empr_ende_emai %}
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                {% include "empresas/_field.html" with field=form.empr_ende_fone1 %}
+                            </div>
+                            <div class="col-12 col-md-4">
+                                {% include "empresas/_field.html" with field=form.empr_ende_fone2 %}
+                            </div>
+                            <div class="col-12 col-md-4">
+                                {% include "empresas/_field.html" with field=form.empr_ende_celu %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade pt-3" id="tab-gps_tributacao" role="tabpanel">
+                        <div class="row g-3">
+                            <div class="col-12 col-lg-4">
+                                {% include "empresas/_field.html" with field=form.empr_enqu_fede %}
+                            </div>
+                            <div class="col-12 col-lg-4">
+                                {% include "empresas/_field.html" with field=form.empr_prest_serv_anex_v_iv %}
+                            </div>
+                            <div class="col-12 col-lg-4">
+                                {% include "empresas/_field.html" with field=form.empr_simp_opta %}
+                            </div>
+
+                            <div class="col-12">
+                                <div class="empresa-checkbox-stack">
+                                    {% include "empresas/_field.html" with field=form.empr_ativ_simp_naci %}
+                                    {% include "empresas/_field.html" with field=form.empr_cecu_ativ_simp_naci %}
+                                    {% include "empresas/_field.html" with field=form.empr_part_pbm %}
+                                    {% include "empresas/_field.html" with field=form.empr_cecu_part_pbm %}
+                                    {% include "empresas/_field.html" with field=form.empr_constutora %}
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                {% include "empresas/_field.html" with field=form.empr_codi_paga %}
+                            </div>
+                            <div class="col-12">
+                                {% include "empresas/_field.html" with field=form.empr_codi_paga_funrural %}
+                            </div>
+                            <div class="col-12">
+                                {% include "empresas/_field.html" with field=form.empr_codi_paga_transp %}
+                            </div>
+
+                            <div class="col-12">
+                                {% include "empresas/_field.html" with field=form.empr_codi_terc %}
+                            </div>
+                            <div class="col-12">
+                                {% include "empresas/_field.html" with field=form.empr_fpas %}
+                            </div>
+                            <div class="col-12">
+                                {% include "empresas/_field.html" with field=form.empr_perc_fpas %}
+                            </div>
+
+                            <div class="col-12">
+                                {% include "empresas/_field.html" with field=form.empr_class_trib %}
+                            </div>
+                            <div class="col-12">
+                                {% include "empresas/_field.html" with field=form.empr_codi_lota_trib %}
+                            </div>
+                            <div class="col-12">
+                                {% include "empresas/_field.html" with field=form.empr_cnae_prep %}
+                            </div>
+
+                            <div class="col-12">
+                                {% include "empresas/_field.html" with field=form.empr_cnae %}
+                            </div>
+                            <div class="col-12 col-md-4">
+                                {% include "empresas/_field.html" with field=form.empr_perc_rat %}
+                            </div>
+                            <div class="col-12 col-md-4">
+                                {% include "empresas/_field.html" with field=form.empr_perc_fap %}
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                {% include "empresas/_field.html" with field=form.empr_perc_empregadores %}
+                            </div>
+                            <div class="col-12 col-md-4">
+                                {% include "empresas/_field.html" with field=form.empr_perc_auto %}
+                            </div>
+                            <div class="col-12 col-md-4">
+                                {% include "empresas/_field.html" with field=form.empr_perc_empregados %}
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                {% include "empresas/_field.html" with field=form.empr_rete_nf %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade pt-3" id="tab-parametros1" role="tabpanel">
+                        <div class="row g-3">
+                            <div class="col-12 col-xl-3">
+                                <div class="empresa-section-box">
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            {% include "empresas/_field.html" with field=form.empr_perc_pis_folha %}
+                                        </div>
+                                        <div class="col-12">
+                                            {% include "empresas/_field.html" with field=form.empr_fechamento_mes %}
+                                        </div>
+                                        <div class="col-12">
+                                            {% include "empresas/_field.html" with field=form.empr_fechamento_vale_transporte %}
+                                        </div>
+                                        <div class="col-12">
+                                            {% include "empresas/_field.html" with field=form.empr_tabela_inss %}
+                                        </div>
+                                        <div class="col-12">
+                                            {% include "empresas/_field.html" with field=form.empr_tabela_irrf %}
+                                        </div>
+                                        <div class="col-12">
+                                            {% include "empresas/_field.html" with field=form.empr_tabela_irrf_plr %}
+                                        </div>
+                                        <div class="col-12">
+                                            {% include "empresas/_field.html" with field=form.empr_estouro %}
+                                        </div>
+                                        <div class="col-12">
+                                            {% include "empresas/_field.html" with field=form.empr_estouro_rescisao %}
+                                        </div>
+                                        <div class="col-12">
+                                            {% include "empresas/_field.html" with field=form.empr_etiqueta %}
+                                        </div>
+                                        <div class="col-12">
+                                            {% include "empresas/_field.html" with field=form.empr_ignora_faltas %}
+                                        </div>
+                                        <div class="col-12">
+                                            {% include "empresas/_field.html" with field=form.empr_ignora_faltas_decimo_terceiro %}
+                                        </div>
+                                        <div class="col-12">
+                                            {% include "empresas/_field.html" with field=form.empr_taxa_servico %}
+                                        </div>
+                                        <div class="col-12">
+                                            {% include "empresas/_field.html" with field=form.empr_centro_custo_departamento %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-xl-9">
+                                <div class="empresa-section-box">
+                                    <div class="row g-3">
+                                        <div class="col-12 col-lg-6">
+                                            {% include "empresas/_field.html" with field=form.empr_mes_competencia_folha %}
+                                        </div>
+                                        <div class="col-12 col-lg-3 d-flex align-items-end empresa-checkbox-col">
+                                            {% include "empresas/_field.html" with field=form.empr_calcula_ir_adiantamento_salarial %}
+                                        </div>
+                                        <div class="col-12 col-lg-3 d-flex align-items-end empresa-checkbox-col">
+                                            {% include "empresas/_field.html" with field=form.empr_ir_adiantamento_detalhado %}
+                                        </div>
+
+                                        <div class="col-12 col-lg-4">
+                                            {% include "empresas/_field.html" with field=form.empr_arredondamento_centavos %}
+                                        </div>
+                                        <div class="col-12 col-lg-4">
+                                            {% include "empresas/_field.html" with field=form.empr_arredondamento_tipo %}
+                                        </div>
+                                        <div class="col-12 col-lg-4 d-flex align-items-end empresa-checkbox-col">
+                                            {% include "empresas/_field.html" with field=form.empr_grava_arredondamento_proximo_mes %}
+                                        </div>
+
+                                        <div class="col-12 col-lg-6">
+                                            {% include "empresas/_field.html" with field=form.empr_proporcionalidade_admissao %}
+                                        </div>
+                                        <div class="col-12 col-lg-6">
+                                            {% include "empresas/_field.html" with field=form.empr_proporcionalidade_rescisao %}
+                                        </div>
+
+                                        <div class="col-12">
+                                            <div class="empresa-section-box">
+                                                <div class="empresa-section-title">Tipo de calculo para ferias</div>
+                                                <div class="row g-3">
+                                                    <div class="col-12">
+                                                        {% include "empresas/_field.html" with field=form.empr_tipo_calculo_ferias hide_label=True %}
+                                                    </div>
+                                                    <div class="col-12">
+                                                        <div class="empresa-checkbox-stack">
+                                                            {% include "empresas/_field.html" with field=form.empr_ferias_mensal_somente_salario %}
+                                                            {% include "empresas/_field.html" with field=form.empr_ferias_rescisao_mes_nao_integral %}
+                                                            {% include "empresas/_field.html" with field=form.empr_ferias_paga_integral_rescisao %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12">
+                                            <div class="empresa-section-box">
+                                                <div class="empresa-section-title">Tipo de calculo para adiantamento de 13º</div>
+                                                <div class="row g-3">
+                                                    <div class="col-12">
+                                                        {% include "empresas/_field.html" with field=form.empr_tipo_calculo_adiantamento_13 hide_label=True %}
+                                                    </div>
+                                                    <div class="col-12">
+                                                        <div class="empresa-checkbox-stack">
+                                                            {% include "empresas/_field.html" with field=form.empr_adiantamento_13_mensal_somente_salario %}
+                                                            {% include "empresas/_field.html" with field=form.empr_adiantamento_13_rescisao_mes_nao_integral %}
+                                                            {% include "empresas/_field.html" with field=form.empr_adiantamento_13_paga_integral_rescisao %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade pt-3" id="tab-parametros2" role="tabpanel">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <div class="border rounded p-3 h-100">
+                                    <h6 class="mb-3">Ferias Coletivas</h6>
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            {% include "empresas/_field.html" with field=form.empr_ferias_coletivas_muda_periodo_aquisitivo_menos_12_meses %}
+                                        </div>
+                                        <div class="col-12">
+                                            {% include "empresas/_field.html" with field=form.empr_ferias_coletivas_saldo_inferior_dias_gozo hide_label=True %}
+                                        </div>
+                                        <div class="col-12">
+                                            {% include "empresas/_field.html" with field=form.empr_ferias_coletivas_funcionarios_mais_12_meses %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="border rounded p-3 h-100">
+                                    <div class="row g-3">
+                                        <div class="col-12 col-lg-6">
+                                            <div class="empresa-checkbox-stack">
+                                                {% include "empresas/_field.html" with field=form.empr_nao_considera_faltas_horas_ferias %}
+                                                {% include "empresas/_field.html" with field=form.empr_calcula_folhas_tomador %}
+                                                {% include "empresas/_field.html" with field=form.empr_nao_considera_verbas_exclusivas_tomador_principal %}
+                                                {% include "empresas/_field.html" with field=form.empr_usa_centro_custo_cadastro_funcionario_13_salario %}
+                                                {% include "empresas/_field.html" with field=form.empr_horas_apura_rateio_quadro_horarios %}
+                                                {% include "empresas/_field.html" with field=form.empr_agrupar_centros_custo_mesmo_cnpj_cei %}
+                                                {% include "empresas/_field.html" with field=form.empr_pagar_somente_abono_ferias %}
+                                                {% include "empresas/_field.html" with field=form.empr_controla_pagamento_salario_familia %}
+                                                {% include "empresas/_field.html" with field=form.empr_nao_prorroga_periodo_aquisitivo_bem %}
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-lg-6">
+                                            <div class="empresa-checkbox-stack">
+                                                {% include "empresas/_field.html" with field=form.empr_arredonda_ferias_cima %}
+                                                {% include "empresas/_field.html" with field=form.empr_converter_referencia_horas %}
+                                                {% include "empresas/_field.html" with field=form.empr_converter_referencia_horas_noturnas %}
+                                                {% include "empresas/_field.html" with field=form.empr_converter_referencia_centesimal_planilhas %}
+                                                {% include "empresas/_field.html" with field=form.empr_sindicalizada %}
+                                                {% include "empresas/_field.html" with field=form.empr_nao_lanca_compensacao_reembolso %}
+                                                {% include "empresas/_field.html" with field=form.empr_controla_contas_bancarias_funcionarios %}
+                                                {% include "empresas/_field.html" with field=form.empr_pagar_decimo_terceiro_complementar_folha_normal %}
+                                                {% include "empresas/_field.html" with field=form.empr_pagar_decimo_terceiro_integral_bem %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                {% include "empresas/_field.html" with field=form.empr_perc_adiantamento_salario %}
+                            </div>
+                            <div class="col-12 col-md-6">
+                                {% include "empresas/_field.html" with field=form.empr_primeira_declaracao_caged %}
+                            </div>
+                            <div class="col-12">
+                                {% include "empresas/_field.html" with field=form.empr_medias %}
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        {% include "empresas/_field.html" with field=form.empr_prazo_experiencia %}
+                                    </div>
+                                    <div class="col-12">
+                                        {% include "empresas/_field.html" with field=form.empr_contabilizacao %}
+                                    </div>
+                                    <div class="col-12">
+                                        {% include "empresas/_field.html" with field=form.empr_emissao_guias %}
+                                    </div>
+                                    <div class="col-12">
+                                        {% include "empresas/_field.html" with field=form.empr_sefip %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        {% include "empresas/_field.html" with field=form.empr_proporcionalidade_ferias %}
+                                    </div>
+                                    <div class="col-12">
+                                        {% include "empresas/_field.html" with field=form.empr_proporcionalidade_situacao %}
+                                    </div>
+                                    <div class="col-12">
+                                        {% include "empresas/_field.html" with field=form.empr_proporcionalidade_adiantamento %}
+                                    </div>
+                                    <div class="col-12">
+                                        {% include "empresas/_field.html" with field=form.empr_proporcionalidade_tomador %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade pt-3" id="tab-verbas" role="tabpanel">
+                        <div class="row g-3">
+                            <div class="col-12 col-xl-6">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-12 col-md-4">{% include "empresas/_field.html" with field=form.empr_verba_mensalista %}</div>
+                                    <div class="col-12 col-md-8">{% include "empresas/_field.html" with field=form.empr_verba_mensalista_desc %}</div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-xl-6">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-12 col-md-4">{% include "empresas/_field.html" with field=form.empr_verba_domestica_fgts %}</div>
+                                    <div class="col-12 col-md-8">{% include "empresas/_field.html" with field=form.empr_verba_domestica_fgts_desc %}</div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-xl-6">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-12 col-md-4">{% include "empresas/_field.html" with field=form.empr_verba_diarista %}</div>
+                                    <div class="col-12 col-md-8">{% include "empresas/_field.html" with field=form.empr_verba_diarista_desc %}</div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-xl-6">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-12 col-md-4">{% include "empresas/_field.html" with field=form.empr_verba_domestica_sem_fgts %}</div>
+                                    <div class="col-12 col-md-8">{% include "empresas/_field.html" with field=form.empr_verba_domestica_sem_fgts_desc %}</div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-xl-6">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-12 col-md-4">{% include "empresas/_field.html" with field=form.empr_verba_horista %}</div>
+                                    <div class="col-12 col-md-8">{% include "empresas/_field.html" with field=form.empr_verba_horista_desc %}</div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-xl-6">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-12 col-md-4">{% include "empresas/_field.html" with field=form.empr_verba_autonomo %}</div>
+                                    <div class="col-12 col-md-8">{% include "empresas/_field.html" with field=form.empr_verba_autonomo_desc %}</div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-xl-6">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-12 col-md-4">{% include "empresas/_field.html" with field=form.empr_verba_horista_especial %}</div>
+                                    <div class="col-12 col-md-8">{% include "empresas/_field.html" with field=form.empr_verba_horista_especial_desc %}</div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-xl-6">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-12 col-md-4">{% include "empresas/_field.html" with field=form.empr_verba_comissionado %}</div>
+                                    <div class="col-12 col-md-8">{% include "empresas/_field.html" with field=form.empr_verba_comissionado_desc %}</div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-xl-6">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-12 col-md-4">{% include "empresas/_field.html" with field=form.empr_verba_pro_labore %}</div>
+                                    <div class="col-12 col-md-8">{% include "empresas/_field.html" with field=form.empr_verba_pro_labore_desc %}</div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-xl-6">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-12 col-md-4">{% include "empresas/_field.html" with field=form.empr_verba_pagamento_semanal %}</div>
+                                    <div class="col-12 col-md-8">{% include "empresas/_field.html" with field=form.empr_verba_pagamento_semanal_desc %}</div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-xl-6">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-12 col-md-4">{% include "empresas/_field.html" with field=form.empr_verba_pro_labore_fgts %}</div>
+                                    <div class="col-12 col-md-8">{% include "empresas/_field.html" with field=form.empr_verba_pro_labore_fgts_desc %}</div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-xl-6">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-12 col-md-4">{% include "empresas/_field.html" with field=form.empr_verba_pagamento_semanal_pro %}</div>
+                                    <div class="col-12 col-md-8">{% include "empresas/_field.html" with field=form.empr_verba_pagamento_semanal_pro_desc %}</div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-xl-6">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-12 col-md-4">{% include "empresas/_field.html" with field=form.empr_verba_estagiario %}</div>
+                                    <div class="col-12 col-md-8">{% include "empresas/_field.html" with field=form.empr_verba_estagiario_desc %}</div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-xl-6">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-12 col-md-4">{% include "empresas/_field.html" with field=form.empr_verba_pagamento_semanal_aut %}</div>
+                                    <div class="col-12 col-md-8">{% include "empresas/_field.html" with field=form.empr_verba_pagamento_semanal_aut_desc %}</div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-xl-6">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-12 col-md-4">{% include "empresas/_field.html" with field=form.empr_verba_aposentado %}</div>
+                                    <div class="col-12 col-md-8">{% include "empresas/_field.html" with field=form.empr_verba_aposentado_desc %}</div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-xl-6">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-12 col-md-4">{% include "empresas/_field.html" with field=form.empr_verba_plr %}</div>
+                                    <div class="col-12 col-md-8">{% include "empresas/_field.html" with field=form.empr_verba_plr_desc %}</div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-xl-6">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-12 col-md-4">{% include "empresas/_field.html" with field=form.empr_verba_tarefeiro %}</div>
+                                    <div class="col-12 col-md-8">{% include "empresas/_field.html" with field=form.empr_verba_tarefeiro_desc %}</div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-xl-6">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-12 col-md-4">{% include "empresas/_field.html" with field=form.empr_verba_pagamento_quinzenal %}</div>
+                                    <div class="col-12 col-md-8">{% include "empresas/_field.html" with field=form.empr_verba_pagamento_quinzenal_desc %}</div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-xl-6">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-12 col-md-4">{% include "empresas/_field.html" with field=form.empr_verba_iss %}</div>
+                                    <div class="col-12 col-md-8">{% include "empresas/_field.html" with field=form.empr_verba_iss_desc %}</div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-xl-6">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-12 col-md-4">{% include "empresas/_field.html" with field=form.empr_verba_pagamento_quinzenal_pro %}</div>
+                                    <div class="col-12 col-md-8">{% include "empresas/_field.html" with field=form.empr_verba_pagamento_quinzenal_pro_desc %}</div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-xl-6">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-12 col-md-4">{% include "empresas/_field.html" with field=form.empr_verba_contribuicao_sest %}</div>
+                                    <div class="col-12 col-md-8">{% include "empresas/_field.html" with field=form.empr_verba_contribuicao_sest_desc %}</div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-xl-6">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-12 col-md-4">{% include "empresas/_field.html" with field=form.empr_verba_pagamento_quinzenal_aut %}</div>
+                                    <div class="col-12 col-md-8">{% include "empresas/_field.html" with field=form.empr_verba_pagamento_quinzenal_aut_desc %}</div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-xl-6">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-12 col-md-4">{% include "empresas/_field.html" with field=form.empr_verba_contribuicao_senat %}</div>
+                                    <div class="col-12 col-md-8">{% include "empresas/_field.html" with field=form.empr_verba_contribuicao_senat_desc %}</div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-xl-6">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-12 col-md-4">{% include "empresas/_field.html" with field=form.empr_verba_multa_verde_amarelo %}</div>
+                                    <div class="col-12 col-md-8">{% include "empresas/_field.html" with field=form.empr_verba_multa_verde_amarelo_desc %}</div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-xl-6">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-12 col-md-4">{% include "empresas/_field.html" with field=form.empr_verba_intermitente %}</div>
+                                    <div class="col-12 col-md-8">{% include "empresas/_field.html" with field=form.empr_verba_intermitente_desc %}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade pt-3" id="tab-observacoes" role="tabpanel">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                {% include "empresas/_field.html" with field=form.empr_obse %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions-row mt-4 pt-3 border-top">
+                    <button type="submit" class="btn btn-success">Salvar</button>
+                    <a href="{% url 'empresas:listar' %}?banco={{ request.banco }}" class="btn btn-outline-secondary js-esc-exit">Voltar</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        function applyMask(value, type) {
+            const digits = value.replace(/\D/g, '');
+
+            if (type === 'cnpj') {
+                return digits
+                    .slice(0, 14)
+                    .replace(/^(\d{2})(\d)/, '$1.$2')
+                    .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+                    .replace(/\.(\d{3})(\d)/, '.$1/$2')
+                    .replace(/(\d{4})(\d)/, '$1-$2');
+            }
+
+            if (type === 'cpf') {
+                return digits
+                    .slice(0, 11)
+                    .replace(/^(\d{3})(\d)/, '$1.$2')
+                    .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+                    .replace(/\.(\d{3})(\d)/, '.$1-$2');
+            }
+
+            if (type === 'caepf') {
+                return digits
+                    .slice(0, 14)
+                    .replace(/^(\d{3})(\d)/, '$1.$2')
+                    .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+                    .replace(/\.(\d{3})(\d)/, '.$1/$2')
+                    .replace(/(\d{4})(\d)/, '$1-$2');
+            }
+
+            if (type === 'cep') {
+                return digits
+                    .slice(0, 8)
+                    .replace(/^(\d{5})(\d)/, '$1-$2');
+            }
+
+            if (type === 'phone') {
+                const base = digits.slice(0, 11);
+                if (base.length <= 10) {
+                    return base
+                        .replace(/^(\d{2})(\d)/, '($1) $2')
+                        .replace(/(\d{4})(\d)/, '$1-$2');
+                }
+                return base
+                    .replace(/^(\d{2})(\d)/, '($1) $2')
+                    .replace(/(\d{5})(\d)/, '$1-$2');
+            }
+
+            if (type === 'month-reference') {
+                return digits
+                    .slice(0, 6)
+                    .replace(/^(\d{2})(\d)/, '$1/$2');
+            }
+
+            return value;
+        }
+
+        function getField(name) {
+            return document.querySelector('[name="' + name + '"]');
+        }
+
+        function normalizeCnaeDigits(value, padLeft) {
+            const digits = String(value || '').replace(/\D/g, '').slice(0, 7);
+            if (!digits) {
+                return '';
+            }
+            if (padLeft === true && digits.length < 7) {
+                return digits.padStart(7, '0');
+            }
+            return digits;
+        }
+
+        function formatCnaeCode(value) {
+            const digits = normalizeCnaeDigits(value, true);
+            if (digits.length !== 7) {
+                return value || '';
+            }
+            return digits.slice(0, 4) + '-' + digits.slice(4, 5) + '/' + digits.slice(5);
+        }
+
+        function formatCnaeDisplay(value, description) {
+            const code = formatCnaeCode(value);
+            if (!code) {
+                return '';
+            }
+            if (description) {
+                return code + ' - ' + description;
+            }
+            return code;
+        }
+
+        function bindCnaeComboboxes() {
+            const fields = document.querySelectorAll('[data-cnae-combobox="true"]');
+            if (!fields.length) {
+                return;
+            }
+
+            const datalist = document.getElementById('cnae-subclasses-options');
+            if (!datalist) {
+                return;
+            }
+
+            const cacheKey = 'ibge-cnae-subclasses-v2';
+            let descriptionMap = {};
+
+            function applyFormattedValue(field, forcePad) {
+                const digits = normalizeCnaeDigits(field.value, forcePad === true);
+                if (digits.length === 7) {
+                    field.value = formatCnaeDisplay(digits, descriptionMap[digits] || '');
+                }
+            }
+
+            function populateOptions(items) {
+                if (!Array.isArray(items) || !items.length) {
+                    return;
+                }
+
+                datalist.innerHTML = '';
+                descriptionMap = {};
+
+                items.forEach(function (item) {
+                    const digits = normalizeCnaeDigits(item.id, true);
+                    if (digits.length !== 7) {
+                        return;
+                    }
+
+                    const option = document.createElement('option');
+                    option.value = formatCnaeDisplay(digits, item.descricao || '');
+                    option.textContent = item.descricao || '';
+                    datalist.appendChild(option);
+                    descriptionMap[digits] = item.descricao || '';
+                });
+            }
+
+            function loadOptions() {
+                const cached = sessionStorage.getItem(cacheKey);
+                if (cached) {
+                    try {
+                        const parsed = JSON.parse(cached);
+                        populateOptions(parsed);
+                        return Promise.resolve(parsed);
+                    } catch (error) {
+                        sessionStorage.removeItem(cacheKey);
+                    }
+                }
+
+                return fetch('https://servicodados.ibge.gov.br/api/v2/cnae/subclasses')
+                    .then(function (response) {
+                        if (!response.ok) {
+                            throw new Error('Falha ao consultar os CNAEs.');
+                        }
+                        return response.json();
+                    })
+                    .then(function (data) {
+                        const items = Array.isArray(data)
+                            ? data.map(function (item) {
+                                return {
+                                    id: item.id,
+                                    descricao: item.descricao,
+                                };
+                            })
+                            : [];
+
+                        sessionStorage.setItem(cacheKey, JSON.stringify(items));
+                        populateOptions(items);
+                        return items;
+                    })
+                    .catch(function () {
+                        return [];
+                    });
+            }
+
+            fields.forEach(function (field) {
+                applyFormattedValue(field, true);
+                field.addEventListener('blur', function () {
+                    applyFormattedValue(field, true);
+                });
+                field.addEventListener('change', function () {
+                    applyFormattedValue(field, true);
+                });
+            });
+
+            loadOptions().then(function () {
+                fields.forEach(function (field) {
+                    const digits = normalizeCnaeDigits(field.value, true);
+                    if (digits.length === 7) {
+                        field.value = formatCnaeDisplay(digits, descriptionMap[digits] || '');
+                    }
+                    field.title = descriptionMap[digits] || '';
+                });
+            });
+        }
+
+        function fillCepFields(data, options) {
+            const overwrite = options && options.overwrite === true;
+            const mapping = [
+                ['empr_ende', data.logradouro || ''],
+                ['empr_ende_comp', data.complemento || ''],
+                ['empr_ende_bair', data.bairro || ''],
+                ['empr_ende_cida', data.localidade || ''],
+                ['empr_ende_uf', data.uf || ''],
+            ];
+
+            mapping.forEach(function ([name, value]) {
+                const field = getField(name);
+                if (!field || !value) {
+                    return;
+                }
+
+                if (!overwrite && (field.value || '').trim()) {
+                    return;
+                }
+
+                field.value = value;
+                field.dispatchEvent(new Event('input', { bubbles: true }));
+                field.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+        }
+
+        function bindCepLookup() {
+            const cepField = getField('empr_cep');
+            if (!cepField) {
+                return;
+            }
+
+            let lastFetchedCep = '';
+
+            function clearCepError() {
+                cepField.setCustomValidity('');
+            }
+
+            function handleCepLookup(overwrite) {
+                const cep = cepField.value.replace(/\D/g, '');
+                clearCepError();
+
+                if (cep.length !== 8 || cep === lastFetchedCep) {
+                    return;
+                }
+
+                fetch('https://viacep.com.br/ws/' + cep + '/json/')
+                    .then(function (response) {
+                        if (!response.ok) {
+                            throw new Error('Falha ao consultar o CEP.');
+                        }
+                        return response.json();
+                    })
+                    .then(function (data) {
+                        if (data.erro) {
+                            lastFetchedCep = '';
+                            cepField.setCustomValidity('CEP nao encontrado.');
+                            cepField.reportValidity();
+                            return;
+                        }
+
+                        lastFetchedCep = cep;
+                        clearCepError();
+                        fillCepFields(data, { overwrite: overwrite === true });
+                    })
+                    .catch(function () {
+                        lastFetchedCep = '';
+                        cepField.setCustomValidity('Nao foi possivel consultar o CEP agora.');
+                        cepField.reportValidity();
+                    });
+            }
+
+            cepField.addEventListener('input', function () {
+                clearCepError();
+                if (cepField.value.replace(/\D/g, '').length < 8) {
+                    lastFetchedCep = '';
+                }
+            });
+
+            cepField.addEventListener('blur', function () {
+                handleCepLookup(true);
+            });
+            cepField.addEventListener('change', function () {
+                handleCepLookup(true);
+            });
+
+            if (cepField.value.replace(/\D/g, '').length === 8) {
+                handleCepLookup(false);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('[data-mask]').forEach(function (input) {
+                input.value = applyMask(input.value, input.getAttribute('data-mask'));
+                input.addEventListener('input', function () {
+                    input.value = applyMask(input.value, input.getAttribute('data-mask'));
+                });
+            });
+
+            document.querySelectorAll('[data-digits-only="true"]').forEach(function (input) {
+                input.value = input.value.replace(/\D/g, '');
+                input.addEventListener('input', function () {
+                    input.value = input.value.replace(/\D/g, '');
+                });
+            });
+
+            bindCepLookup();
+            bindCnaeComboboxes();
+
+            const firstError = document.querySelector('.field-error, .invalid-feedback.d-block');
+            if (!firstError) {
+                return;
+            }
+
+            const pane = firstError.closest('.tab-pane');
+            if (!pane) {
+                return;
+            }
+
+            const trigger = document.querySelector('[data-bs-target="#' + pane.id + '"]');
+            if (trigger) {
+                trigger.click();
+            }
+
+            setTimeout(function () {
+                const target = firstError.classList.contains('field-error') ? firstError : firstError.closest('.field-error') || firstError;
+                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                const focusable = target.querySelector('input, select, textarea');
+                if (focusable) {
+                    focusable.focus({ preventScroll: true });
+                }
+            }, 120);
+        });
+    })();
+</script>
+{% endblock %}

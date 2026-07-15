@@ -3,14 +3,9 @@
             class="bi bi-chevron-down chevron"></i>
     </button>
     <div class="dropdown-panel sortable-submenu">
-        <!--
-        <a href="{% url 'cargos:cargos_listar' %}?banco={{ request.banco|default:'rta0001' }}">Cargos</a>
-        <a href="#">Departamentos</a>
-        <a href="#">Empresas</a>
-        <a href="#">Filiais</a>
-        <a href="{% url 'setores:setoresrh_listar' %}?banco={{ request.banco|default:'rta0001' }}">
-            Setores</a>
-        -->
+        <a href="{% url 'empresas:listar' %}?banco={{ request.banco|default:'rta0001' }}">
+            Empresas
+        </a>
         <a href="{% url 'usuarios:listar' %}?banco={{ request.banco|default:'rta0001' }}">
             Usuários
         </a>

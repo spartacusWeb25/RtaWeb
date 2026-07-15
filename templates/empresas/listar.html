@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load documentos %}
 
 
 {% block title %}Empresas — RtaWeb{% endblock %}
@@ -11,16 +12,58 @@
 <link rel="stylesheet" href="{% static 'css/botoes.css' %}">
 <link rel="stylesheet" href="{% static 'css/buscas.css' %}">
 <link rel="stylesheet" href="{% static 'css/tabelas.css' %}">
+<style>
+    .toast-container {
+        display: none;
+    }
+
+    @media (min-width: 992px) {
+        .empresas-listar .form-grid {
+            grid-template-columns: minmax(280px, 1.3fr) minmax(220px, 1fr) auto;
+        }
+
+        .empresas-listar .form-group:last-child .d-flex {
+            white-space: nowrap;
+        }
+    }
+
+    #confirmDeleteModal .modal-content {
+        background: var(--surface-card);
+        color: var(--text-primary);
+        border: 1px solid var(--border-default);
+    }
+
+    #confirmDeleteModal .modal-header,
+    #confirmDeleteModal .modal-footer {
+        border-color: var(--border-default);
+    }
+
+    [data-theme='dark'] #confirmDeleteModal .btn-close {
+        filter: invert(1) grayscale(100%);
+    }
+</style>
 
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-center align-items-center mb-3">
-        <h3><i class="bi bi-people-fill"></i> Empresas</h3>
+<div class="container mt-4 empresas-listar">
+    <div class="d-flex justify-content-center align-items-center mb-3">        
+       <h3><i class="bi bi-house-door-fill"></i> Empresas</h3> 
     </div>
 
+    {% if messages %}
+        {% for message in messages %}
+        <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'warning' %}alert-warning{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %} mt-3"
+            role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+    {% endif %}
+
     <div class="filtros-acoes mb-3">
+        <a href="{% url 'empresas:criar' %}?banco={{ request.banco }}" class="botao botao-adicionar">
+            <i class="bi bi-plus"></i> Nova Empresa
+        </a>
         <button class="botao botao-detalhar botao-filtro-toggle" type="button" data-bs-toggle="collapse"
             data-bs-target="#filtrosCollapse" id="btn-filtros" aria-expanded="false" aria-controls="filtrosCollapse">
             <i class="bi bi-funnel"></i> Filtros
@@ -32,42 +75,28 @@
             <input type="hidden" name="banco" value="{{ request.banco }}">
 
             <div class="form-group">
-                <label class="form-label">Código</label>
-                <input class="form-control" type="text" name="referencia" value="{{ empr_empr }}">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Descrição</label>
-                <input class="form-control" type="text" name="descricao" value="{{ empr_nome }}">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Filial</label>
-                <input class="form-control" type="text" name="empresas" value="{{ empr_fili }}">
+                <label class="form-label">Buscar</label>
+                <input class="form-control" type="text" name="referencia" value="{{ referencia }}"
+                    placeholder="Razão Social">
             </div>
 
             <div class="form-group">
                 <label class="form-label">Ordenar</label>
                 <select name="ordenar" class="form-control">
-                    <option value="">Padrão</option>
-                    <option value="referencia" {% if ordenar == "referencia" %}selected{% endif %}>Código</option>
-                    <option value="referencia_desc" {% if ordenar == "referencia_desc" %}selected{% endif %}>Referência desc</option>
-                    <option value="funcionario" {% if ordenar == "funcionario" %}selected{% endif %}>Descrição</option>
-                    <option value="valor" {% if ordenar == "valor" %}selected{% endif %}>Menor valor</option>
-                    <option value="valor_desc" {% if ordenar == "valor_desc" %}selected{% endif %}>Maior valor</option>
+                    <option value="asc" {% if ordenar == "" or ordenar == "asc" %}selected{% endif %}>Ordem crescente</option>
+                    <option value="desc" {% if ordenar == "desc" %}selected{% endif %}>Ordem decrescente</option>
                 </select>
             </div>
 
             <div class="form-group d-flex align-items-end">
-                <a href="?banco={{ request.banco }}" class="botao botao-limpar">
-                    <i class="bi bi-eraser"></i> Limpar
-                </a>
-            </div>
-
-            <div class="form-group">
-                <button type="submit" class="botao botao-buscar">
-                    <i class="bi bi-search"></i> Buscar
-                </button>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="?banco={{ request.banco }}" class="botao botao-limpar">
+                        <i class="bi bi-eraser"></i> Limpar
+                    </a>
+                    <button type="submit" class="botao botao-buscar">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </div>
             </div>
         </form>
     </div>
@@ -77,8 +106,11 @@
         <table class="tabela-moderna">
             <thead>
                 <tr>
-                    <th><i class="bi bi-hash"></i> Código</th>
-                    <th><i class="bi bi-card-text"></i> Descrição</th>
+                    <th><i class="bi bi-key"></i> Código</th>
+                    <th><i class="bi bi-diagram-3"></i> Filial</th>
+                    <th><i class="bi bi-card-text"></i> Razão Social</th>
+                    <th><i class="bi bi-card-text"></i> CNPJ</th>
+                    <th><i class="bi bi-card-text"></i> CPF</th>
                     <th><i class="bi bi-gear"></i> Ações</th>
                 </tr>
             </thead>
@@ -86,8 +118,27 @@
                 {% for item in empresas %}
                 <tr>
                     <td data-label="Código">{{ item.empr_empr }}</td>
-                    <td data-label="Descrição">{{ item.empr_nome|default:'-' }}</td>
-                    <td data-label="Ações"><span class="text-muted">Indisponível</span></td>
+                    <td data-label="Filial">{{ item.empr_fili }}</td>
+                    <td data-label="Nome">{{ item.empr_nome }}</td>
+                    <td data-label="CNPJ">{{ item.empr_cnpj|format_cnpj }}</td>
+                    <td data-label="CPF">{{ item.empr_cpf|format_cpf }}</td>
+                    <td data-label="Ações" class="tabela-acoes">
+                        <a href="{% url 'empresas:editar' empresa=item.empr_empr filial=item.empr_fili %}?banco={{ request.banco }}"
+                            class="botao botao-editar">
+                            <i class="bi bi-pencil"></i> Editar
+                        </a>
+
+                        <form method="post"
+                            action="{% url 'empresas:deletar' empresa=item.empr_empr filial=item.empr_fili %}?banco={{ request.banco }}"
+                            style="display:inline;">
+                            {% csrf_token %}
+                            <button type="button" class="botao botao-remover"
+                                data-confirm-delete
+                                data-ref="{{ item.empr_empr }} / filial {{ item.empr_fili }}">
+                                <i class="bi bi-trash"></i> Excluir
+                            </button>
+                        </form>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -100,5 +151,83 @@
         Nenhum registro encontrado.
     </div>
     {% endif %}
+
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmar exclusao</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body" id="confirmDeleteModalBody">
+                    Deseja realmente excluir este registro?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger btn-sm" id="confirmDeleteModalConfirm">Excluir</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        let pendingDeleteForm = null;
+
+        function openDeleteModal(formEl, ref) {
+            pendingDeleteForm = formEl;
+            const bodyEl = document.getElementById('confirmDeleteModalBody');
+            if (bodyEl) {
+                bodyEl.textContent = ref
+                    ? `Deseja realmente excluir a empresa ${ref}?`
+                    : 'Deseja realmente excluir este registro?';
+            }
+
+            if (!window.bootstrap) {
+                return;
+            }
+
+            const modalEl = document.getElementById('confirmDeleteModal');
+            if (!modalEl) {
+                return;
+            }
+
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+        }
+
+        document.addEventListener('click', function (event) {
+            const btn = event.target.closest('[data-confirm-delete]');
+            if (!btn) {
+                return;
+            }
+
+            const formEl = btn.closest('form');
+            if (!formEl) {
+                return;
+            }
+
+            event.preventDefault();
+            openDeleteModal(formEl, btn.getAttribute('data-ref') || '');
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const confirmBtn = document.getElementById('confirmDeleteModalConfirm');
+            if (!confirmBtn) {
+                return;
+            }
+
+            confirmBtn.addEventListener('click', function () {
+                if (!pendingDeleteForm) {
+                    return;
+                }
+
+                pendingDeleteForm.submit();
+            });
+        });
+    })();
+</script>
 {% endblock %}
