@@ -31,6 +31,9 @@ class FuncionarioCreateView(FuncionarioMixin, CreateView):
         ctx["origem_admissao_preliminar"] = bool(
             self.request.session.get(AdmissaoPreliminarService.SESSION_KEY)
         )
+        ctx["dependentes_funcionario"] = []
+        ctx["dependentes_qtd"] = 0
+        ctx["dependentes_url_criar"] = ""
         return ctx
 
     def form_valid(self, form):
