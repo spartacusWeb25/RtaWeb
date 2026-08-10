@@ -8,430 +8,1499 @@
 <style>
   .nav-tabs-scroll {
     overflow-x: auto;
+    overflow-y: hidden;
     flex-wrap: nowrap;
-    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  #funcionarioTabs {
+    overflow: visible;
+    flex-wrap: wrap;
+    row-gap: .2rem;
   }
 
   .nav-tabs-scroll .nav-link {
     white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
   }
 
   .tab-badge {
-    font-size: .65rem;
-    vertical-align: middle;
+    margin-left: .2rem;
+    font-size: .7rem;
+    line-height: 1;
   }
 
-  .form-check-label {
-    font-size: .875rem;
+  .empresa-form-card {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
   }
 
-  /* destaca campos com erro */
+  .funcionario-subtabs {
+    margin-bottom: 1rem;
+  }
+
+  .empresa-section-box {
+    border: 1px solid var(--border-default, #d8dee8);
+    border-radius: .5rem;
+    padding: 1rem;
+    background: var(--surface-card, #fff);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .empresa-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary, inherit);
+    margin-bottom: .5rem;
+  }
+
+  [data-theme='dark'] .empresa-section-title {
+    color: var(--text-primary, #e6edf3);
+  }
+
+  .funcionario-status {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: .5rem;
+    font-weight: 500;
+  }
+
+  .funcionario-status.ok {
+    color: var(--bs-success);
+  }
+
+  .funcionario-status.pending {
+    color: var(--bs-secondary);
+  }
+
+  .funcionario-photo-box {
+    min-height: 230px;
+    border: 1px solid var(--border-default, #d8dee8);
+    border-radius: .5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--bs-secondary);
+    background: var(--bs-tertiary-bg);
+    padding: 1rem;
+  }
+
+  .funcionario-readonly {
+    background: var(--bs-secondary-bg);
+  }
+
   .field-error .form-control,
-  .field-error .form-select {
+  .field-error .form-select,
+  .field-error .form-check-input {
     border-color: var(--bs-danger);
+    box-shadow: 0 0 0 0.12rem rgba(220, 53, 69, .12);
+  }
+
+  .funcionario-age-row {
+    display: flex;
+    align-items: end;
+    gap: .75rem;
+  }
+
+  .funcionario-age-row .form-control {
+    flex: 1 1 auto;
+  }
+
+  .funcionario-age-display {
+    min-width: 4.5rem;
+    padding-bottom: .35rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .funcionario-check-box {
+    border: 1px solid var(--border-default, #d8dee8);
+    border-radius: .5rem;
+    padding: 1rem;
+    background: var(--surface-card, #fff);
+  }
+
+  .funcionario-check-box legend {
+    float: none;
+    width: auto;
+    padding: 0 .35rem;
+    margin-bottom: .25rem;
+    font-size: .95rem;
+    font-weight: 500;
+  }
+
+  .funcionario-check-item {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    min-height: 38px;
+  }
+
+  .funcionario-check-item .form-check-input {
+    margin-top: 0;
+  }
+
+  .funcionario-check-item label {
+    margin-bottom: 0;
+    cursor: pointer;
+  }
+
+  .funcionario-doc-note {
+    margin-top: -.35rem;
+    font-size: .875rem;
+    color: var(--bs-danger-text-emphasis, #842029);
+    font-weight: 500;
+  }
+
+  [data-theme='dark'] .funcionario-doc-note {
+    color: var(--danger);
+  }
+
+  .funcionario-tab-shell {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .funcionario-tab-shell-narrow {
+    max-width: 980px;
+    margin: 0 auto;
+  }
+
+  .funcionario-tab-break {
+    flex-basis: 100%;
+    width: 100%;
+    height: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    list-style: none;
   }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container">
-  <div class="page-header">
-    <div>
-      <h1 class="page-title">
-        <i class="bi bi-person-badge"></i> {{ titulo }}
-      </h1>
-      <p class="page-subtitle">Cadastro e edição de funcionário</p>
-    </div>
-  </div>
+<div class="container mt-4">
+  <h4>{% if modo_edicao %}Editar Funcionário{% else %}Novo Funcionário{% endif %}</h4>
 
-  {% if form.non_field_errors %}
-  <div class="alert alert-danger">
-    {% for erro in form.non_field_errors %}
-    <p class="mb-0">{{ erro }}</p>
-    {% endfor %}
+  {% if origem_admissao_preliminar %}
+  <div class="alert alert-info mt-3">
+    Dados iniciais carregados da tela de admissão preliminar. Complete os campos restantes antes de salvar.
   </div>
   {% endif %}
 
-  <form method="post" id="form-funcionario" novalidate>
+  {% if messages %}
+    {% for message in messages %}
+    <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'warning' %}alert-warning{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %} mt-3" role="alert">
+      {{ message }}
+    </div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="post" novalidate>
     {% csrf_token %}
 
-    {# ------------------------------------------------------------------ #}
-    {# ABAS #}
-    {# ------------------------------------------------------------------ #}
-    <ul class="nav nav-tabs nav-tabs-scroll mb-0" id="funcTabs" role="tablist">
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger mt-3" role="alert">
+      {{ form.non_field_errors }}
+    </div>
+    {% endif %}
+
+    {% if form.errors %}
+    <div class="alert alert-warning mt-3" role="alert">
+      Revise os campos destacados em vermelho antes de salvar.
+      <ul class="mb-0 mt-2">
+        {% for field in form.visible_fields %}
+          {% for error in field.errors %}
+          <li>{{ field.label }}: {{ error }}</li>
+          {% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    <ul class="nav nav-tabs nav-tabs-scroll mb-0" id="funcionarioTabs" role="tablist">
       <li class="nav-item" role="presentation">
-        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-id" type="button">
-          <i class="bi bi-person-fill"></i> Identificação
-          {% if has_errors.identificacao %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-cadastrais" type="button">
+          <i class="bi bi-person-vcard"></i> Cadastrais
+          {% if has_errors.cadastrais %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
         </button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-end" type="button">
-          <i class="bi bi-geo-alt-fill"></i> Endereço
-          {% if has_errors.endereco %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-fisicos" type="button">
+          <i class="bi bi-universal-access"></i> Físicos
+          {% if has_errors.fisicos %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
         </button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-vinc" type="button">
-          <i class="bi bi-briefcase-fill"></i> Vínculo
-          {% if has_errors.vinculo %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-historico" type="button">
+          <i class="bi bi-clock-history"></i> Histórico
+          {% if has_errors.historico %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
         </button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-sal" type="button">
-          <i class="bi bi-cash-coin"></i> Salário
-          {% if has_errors.salario %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-estrangeiro" type="button">
+          <i class="bi bi-globe-americas"></i> Estrangeiro
+          {% if has_errors.estrangeiro %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
         </button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-banco" type="button">
-          <i class="bi bi-bank2"></i> Banco / Pgto
-          {% if has_errors.banco %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
-        </button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-doc" type="button">
-          <i class="bi bi-file-earmark-text-fill"></i> Documentos
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-documentos" type="button">
+          <i class="bi bi-card-text"></i> Documentos
           {% if has_errors.documentos %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
         </button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-jorn" type="button">
-          <i class="bi bi-clock-fill"></i> Jornada
-          {% if has_errors.jornada %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-parentes" type="button">
+          <i class="bi bi-people"></i> Parentes
+          {% if has_errors.parentes %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
         </button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-saude" type="button">
-          <i class="bi bi-heart-pulse-fill"></i> Saúde
-          {% if has_errors.saude %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-fgts-gps" type="button">
+          <i class="bi bi-shield-check"></i> FGTS/GPS
+          {% if has_errors.fgts_gps %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
         </button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-esoc" type="button">
-          <i class="bi bi-building-fill-check"></i> eSocial
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-vinculos" type="button">
+          <i class="bi bi-diagram-3"></i> Vínculos
+          {% if has_errors.vinculos %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-calculo" type="button">
+          <i class="bi bi-calculator"></i> Cálculo
+          {% if has_errors.calculo %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-banco" type="button">
+          <i class="bi bi-bank"></i> Banco
+          {% if has_errors.banco %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-dados-partida" type="button">
+          <i class="bi bi-box-seam"></i> Dados de partida
+          {% if has_errors.dados_partida %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+      <li class="funcionario-tab-break" aria-hidden="true"></li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-quadro-horarios" type="button">
+          <i class="bi bi-calendar3-week"></i> Quadro de horários
+          {% if has_errors.quadro_horarios %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-esocial" type="button">
+          <i class="bi bi-cloud-check"></i> eSocial
           {% if has_errors.esocial %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-outros" type="button">
+          <i class="bi bi-clipboard-minus"></i> Outros
+          {% if has_errors.outros %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
         </button>
       </li>
     </ul>
 
-    <div class="app-form-card rounded-top-0">
-      <div class="tab-content" id="funcTabsContent">
+    <div class="app-form-card empresa-form-card">
+      <div class="tab-content" id="funcionarioTabsContent">
+        <div class="tab-pane fade show active pt-3" id="tab-cadastrais" role="tabpanel">
+          <ul class="nav nav-tabs nav-tabs-scroll funcionario-subtabs" id="funcionarioSubTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#subtab-pessoais" type="button">
+                Pessoais
+                {% if has_errors.pessoais %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" data-bs-toggle="tab" data-bs-target="#subtab-endereco" type="button">
+                Endereço
+                {% if has_errors.endereco %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+              </button>
+            </li>
+          </ul>
 
-        {# ===== ABA: IDENTIFICAÇÃO ===== #}
-        <div class="tab-pane fade show active" id="tab-id" role="tabpanel">
-          <h6 class="text-muted mb-3">Dados Básicos</h6>
-          <div class="form-grid">
-            {% include "funcionarios/_field.html" with field=form.func_empr %}
-            {% include "funcionarios/_field.html" with field=form.func_fili %}
-            {% include "funcionarios/_field.html" with field=form.func_codi %}
-            {% include "funcionarios/_field.html" with field=form.func_regi %}
-            {% include "funcionarios/_field.html" with field=form.func_nome col="col-12 col-md-6" %}
-            {% include "funcionarios/_field.html" with field=form.func_sexo %}
-            {% include "funcionarios/_field.html" with field=form.func_dana %}
-            {% include "funcionarios/_field.html" with field=form.func_cpf %}
-            {% include "funcionarios/_field.html" with field=form.func_pis %}
-            {% include "funcionarios/_field.html" with field=form.func_esci %}
-            {% include "funcionarios/_field.html" with field=form.func_naci %}
-            {% include "funcionarios/_field.html" with field=form.func_raca %}
-            {% include "funcionarios/_field.html" with field=form.func_vinc %}
-            {% include "funcionarios/_field.html" with field=form.func_natu %}
-            {% include "funcionarios/_field.html" with field=form.func_uf_natu %}
-            {% include "funcionarios/_field.html" with field=form.func_pais_nasc %}
-            {% include "funcionarios/_field.html" with field=form.func_pais_naci %}
+          <div class="tab-content">
+            <div class="tab-pane fade show active" id="subtab-pessoais" role="tabpanel">
+              <div class="row g-3 mb-3">
+                {% include "funcionarios/_field.html" with field=form.func_empr col="col-12 col-lg-2" %}
+                <div class="col-12 col-lg-10">
+                  <label class="form-label" for="empresa_nome_display">Empresa</label>
+                  <input
+                    id="empresa_nome_display"
+                    type="text"
+                    class="form-control funcionario-readonly"
+                    value="{{ empresa_nome }}"
+                    readonly
+                  >
+                </div>
+              </div>
+
+              <div class="row g-3 mb-3">
+                {% include "funcionarios/_field.html" with field=form.func_fili col="col-12 col-lg-2" %}
+                {% include "funcionarios/_field.html" with field=form.func_admissao_preliminar col="col-12 col-lg-3" %}
+                <div class="col-12 col-lg-7">
+                  <label class="form-label d-block">&nbsp;</label>
+                  <div class="funcionario-status {% if integracao_esocial_ok %}ok{% else %}pending{% endif %}">
+                    <span>Integração eSocial</span>
+                    <i class="bi {% if integracao_esocial_ok %}bi-check-circle-fill{% else %}bi-dash-circle{% endif %}"></i>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row g-3">
+                <div class="col-12 col-xl-9">
+                  <div class="empresa-section-box">
+                    <div class="row g-3">
+                      {% include "funcionarios/_field.html" with field=form.func_codi col="col-12 col-lg-2" %}
+                      {% include "funcionarios/_field.html" with field=form.func_nome col="col-12 col-lg-10" %}
+                      {% include "funcionarios/_field.html" with field=form.func_email col="col-12" %}
+                      {% include "funcionarios/_field.html" with field=form.func_ddd col="col-12 col-lg-2 col-xl-1" %}
+                      {% include "funcionarios/_field.html" with field=form.func_telefone col="col-12 col-lg-4 col-xl-5" %}
+                      {% include "funcionarios/_field.html" with field=form.func_ddd_celular col="col-12 col-lg-2 col-xl-1" %}
+                      {% include "funcionarios/_field.html" with field=form.func_celular col="col-12 col-lg-4 col-xl-5" %}
+                      <div class="col-12 col-lg-3{% if form.func_nascimento.errors %} field-error{% endif %}">
+                        <label class="form-label" for="{{ form.func_nascimento.id_for_label }}">
+                          {{ form.func_nascimento.label }}
+                          {% if form.func_nascimento.field.required %}<span class="text-danger">*</span>{% endif %}
+                        </label>
+                        <div class="funcionario-age-row">
+                          {{ form.func_nascimento }}
+                          <span id="funcionario-age-display" class="funcionario-age-display"></span>
+                        </div>
+                        {% if form.func_nascimento.help_text %}
+                          <div class="form-text">{{ form.func_nascimento.help_text }}</div>
+                        {% endif %}
+                        {% if form.func_nascimento.errors %}
+                          <div class="invalid-feedback d-block">{{ form.func_nascimento.errors|join:', ' }}</div>
+                        {% endif %}
+                      </div>
+                      {% include "funcionarios/_field.html" with field=form.func_pais_nascimento col="col-12 col-lg-3" %}
+                      {% include "funcionarios/_field.html" with field=form.func_cidade_nascimento col="col-12 col-lg-4" %}
+                      {% include "funcionarios/_field.html" with field=form.func_naturalidade col="col-12 col-lg-2" %}
+                      {% include "funcionarios/_field.html" with field=form.func_grau_instrucao col="col-12" %}
+                      {% include "funcionarios/_field.html" with field=form.func_ficha_registro col="col-12 col-lg-3" %}
+                      {% include "funcionarios/_field.html" with field=form.func_livro col="col-12 col-lg-3" %}
+                      {% include "funcionarios/_field.html" with field=form.func_folha col="col-12 col-lg-3" %}
+                      {% include "funcionarios/_field.html" with field=form.func_cartao_ponto col="col-12 col-lg-3" %}
+                      {% include "funcionarios/_field.html" with field=form.func_matricula_esocial col="col-12 col-lg-6" %}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12 col-xl-3">
+                  <div class="empresa-section-box">
+                    <div class="empresa-section-title">Foto 3x4</div>
+                    <div class="funcionario-photo-box">
+                      Foto 3x4
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tab-pane fade" id="subtab-endereco" role="tabpanel">
+              <div class="row g-3">
+                <div class="col-12">
+                  <div class="empresa-section-box">
+                    <div class="row g-3">
+                      {% include "funcionarios/_field.html" with field=form.func_cep col="col-12 col-lg-2" %}
+                      {% include "funcionarios/_field.html" with field=form.func_ende col="col-12 col-lg-10" %}
+                      {% include "funcionarios/_field.html" with field=form.func_ende_nume col="col-12 col-lg-2" %}
+                      {% include "funcionarios/_field.html" with field=form.func_ende_comp col="col-12 col-lg-4" %}
+                      {% include "funcionarios/_field.html" with field=form.func_ende_bair col="col-12 col-lg-3" %}
+                      {% include "funcionarios/_field.html" with field=form.func_ende_cida col="col-12 col-lg-2" %}
+                      {% include "funcionarios/_field.html" with field=form.func_ende_uf col="col-12 col-lg-1" %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
+        </div>
 
-          <h6 class="text-muted mb-3 mt-4">Contato</h6>
-          <div class="form-grid">
-            {% include "funcionarios/_field.html" with field=form.func_emai col="col-12 col-md-6" %}
-            {% include "funcionarios/_field.html" with field=form.func_celu %}
-            {% include "funcionarios/_field.html" with field=form.func_fone_dive %}
+        <div class="tab-pane fade pt-3" id="tab-fisicos" role="tabpanel">
+          <div class="funcionario-tab-shell">
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="empresa-section-box">
+                  <div class="row g-3">
+                    {% include "funcionarios/_field.html" with field=form.func_tipo_sanguineo col="col-12 col-lg-4" %}
+                    {% include "funcionarios/_field.html" with field=form.func_etnia_raca col="col-12 col-lg-4" %}
+                    {% include "funcionarios/_field.html" with field=form.func_sexo col="col-12 col-lg-4" %}
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <fieldset class="funcionario-check-box{% if form.func_pessoa_com_deficiencia.errors or form.func_deficiencia_fisica.errors or form.func_deficiencia_visual.errors or form.func_deficiencia_auditiva.errors or form.func_deficiencia_mental.errors or form.func_deficiencia_intelectual.errors or form.func_reabilitado.errors %} field-error{% endif %}">
+                  <legend>Pessoa com deficiência</legend>
+                  <div class="row g-3 align-items-center">
+                    <div class="col-12">
+                      <div class="funcionario-check-item">
+                        {{ form.func_pessoa_com_deficiencia }}
+                        <label for="{{ form.func_pessoa_com_deficiencia.id_for_label }}">{{ form.func_pessoa_com_deficiencia.label }}</label>
+                      </div>
+                      {% if form.func_pessoa_com_deficiencia.errors %}
+                        <div class="invalid-feedback d-block">{{ form.func_pessoa_com_deficiencia.errors|join:', ' }}</div>
+                      {% endif %}
+                    </div>
+
+                    <div class="col-12 col-md-6 col-xl-4">
+                      <div class="funcionario-check-item">
+                        {{ form.func_deficiencia_fisica }}
+                        <label for="{{ form.func_deficiencia_fisica.id_for_label }}">{{ form.func_deficiencia_fisica.label }}</label>
+                      </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-xl-4">
+                      <div class="funcionario-check-item">
+                        {{ form.func_deficiencia_visual }}
+                        <label for="{{ form.func_deficiencia_visual.id_for_label }}">{{ form.func_deficiencia_visual.label }}</label>
+                      </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-xl-4">
+                      <div class="funcionario-check-item">
+                        {{ form.func_deficiencia_auditiva }}
+                        <label for="{{ form.func_deficiencia_auditiva.id_for_label }}">{{ form.func_deficiencia_auditiva.label }}</label>
+                      </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-xl-4">
+                      <div class="funcionario-check-item">
+                        {{ form.func_deficiencia_mental }}
+                        <label for="{{ form.func_deficiencia_mental.id_for_label }}">{{ form.func_deficiencia_mental.label }}</label>
+                      </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-xl-4">
+                      <div class="funcionario-check-item">
+                        {{ form.func_deficiencia_intelectual }}
+                        <label for="{{ form.func_deficiencia_intelectual.id_for_label }}">{{ form.func_deficiencia_intelectual.label }}</label>
+                      </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-xl-4">
+                      <div class="funcionario-check-item">
+                        {{ form.func_reabilitado }}
+                        <label for="{{ form.func_reabilitado.id_for_label }}">{{ form.func_reabilitado.label }}</label>
+                      </div>
+                    </div>
+
+                    {% include "funcionarios/_field.html" with field=form.func_cota_deficiencia col="col-12 col-lg-4" %}
+                    {% include "funcionarios/_field.html" with field=form.func_observacoes_deficiencias col="col-12 col-lg-8" %}
+                  </div>
+                </fieldset>
+              </div>
+            </div>
           </div>
+        </div>
 
-          <h6 class="text-muted mb-3 mt-4">Status</h6>
+        <div class="tab-pane fade pt-3" id="tab-historico" role="tabpanel">
+          <ul class="nav nav-tabs nav-tabs-scroll funcionario-subtabs" id="funcionarioHistoricoSubTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#subtab-admissionais" type="button">
+                Admissionais
+                {% if has_errors.admissionais %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" data-bs-toggle="tab" data-bs-target="#subtab-contratuais" type="button">
+                Contratuais
+                {% if has_errors.contratuais %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+              </button>
+            </li>
+          </ul>
+
+          <div class="tab-content">
+            <div class="tab-pane fade show active" id="subtab-admissionais" role="tabpanel">
+              <div class="funcionario-tab-shell">
+                <div class="row g-3">
+                  <div class="col-12">
+                    <div class="empresa-section-box">
+                      <div class="row g-3">
+                        {% include "funcionarios/_field.html" with field=form.func_admissao col="col-12 col-lg-3" %}
+                        {% include "funcionarios/_field.html" with field=form.func_cadastro col="col-12 col-lg-3" %}
+                        {% include "funcionarios/_field.html" with field=form.func_inicio_adicional_tempo_servico col="col-12 col-lg-3" %}
+                        <div class="w-100"></div>
+
+                        {% include "funcionarios/_field.html" with field=form.func_alvara_judicial_contratacao_menores col="col-12 col-lg-3" %}
+                        {% include "funcionarios/_field.html" with field=form.func_numero_processo col="col-12 col-lg-4" %}
+                        <div class="w-100"></div>
+
+                        {% include "funcionarios/_field.html" with field=form.func_tipo_admissao col="col-12 col-lg-4" %}
+                        {% include "funcionarios/_field.html" with field=form.func_indicativo_admissao col="col-12 col-lg-4" %}
+                        {% include "funcionarios/_field.html" with field=form.func_data_aposentadoria col="col-12 col-lg-3" %}
+                        {% include "funcionarios/_field.html" with field=form.func_nova_data_admissao col="col-12 col-lg-3" %}
+                        {% include "funcionarios/_field.html" with field=form.func_numero_processo_rt col="col-12 col-lg-6" %}
+                        {% include "funcionarios/_field.html" with field=form.func_tipo_provimento col="col-12" %}
+                        {% include "funcionarios/_field.html" with field=form.func_natureza_ocupacao col="col-12" %}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-12">
+                    <fieldset class="funcionario-check-box{% if form.func_empresa_anterior_cnpj_cpf.errors or form.func_matricula_anterior.errors or form.func_data_transferencia.errors or form.func_transferencia_com_onus.errors %} field-error{% endif %}">
+                      <legend>Empresa anterior</legend>
+                      <div class="row g-3 align-items-center">
+                        {% include "funcionarios/_field.html" with field=form.func_empresa_anterior_cnpj_cpf col="col-12 col-lg-4" %}
+                        {% include "funcionarios/_field.html" with field=form.func_matricula_anterior col="col-12 col-lg-4" %}
+                        {% include "funcionarios/_field.html" with field=form.func_data_transferencia col="col-12 col-lg-2" %}
+                        <div class="col-12 col-lg-2{% if form.func_transferencia_com_onus.errors %} field-error{% endif %}">
+                          <div class="funcionario-check-item">
+                            {{ form.func_transferencia_com_onus }}
+                            <label for="{{ form.func_transferencia_com_onus.id_for_label }}">{{ form.func_transferencia_com_onus.label }}</label>
+                          </div>
+                          {% if form.func_transferencia_com_onus.errors %}
+                            <div class="invalid-feedback d-block">{{ form.func_transferencia_com_onus.errors|join:', ' }}</div>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </fieldset>
+                  </div>
+
+                  <div class="col-12">
+                    <div class="empresa-section-box">
+                      <div class="row g-3">
+                        {% include "funcionarios/_field.html" with field=form.func_data_saida col="col-12 col-lg-3" %}
+                        {% include "funcionarios/_field.html" with field=form.func_aviso_previo col="col-12 col-lg-3" %}
+                        {% include "funcionarios/_field.html" with field=form.func_motivo_saida col="col-12" %}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tab-pane fade" id="subtab-contratuais" role="tabpanel">
+              <div class="funcionario-tab-shell">
+                <div class="row g-3">
+                  <div class="col-12">
+                    <div class="empresa-section-box">
+                      <div class="row g-3">
+                        {% include "funcionarios/_field.html" with field=form.func_tipo_contrato_trabalho col="col-12" %}
+                        {% include "funcionarios/_field.html" with field=form.func_indicativo_contratacao col="col-12" %}
+                        {% include "funcionarios/_field.html" with field=form.func_prazo_experiencia_dias col="col-12 col-lg-2" %}
+                        {% include "funcionarios/_field.html" with field=form.func_fim_primeiro_prazo col="col-12 col-lg-3" %}
+                        {% include "funcionarios/_field.html" with field=form.func_termino_ocorrencia_fato col="col-12 col-lg-3" %}
+                        {% include "funcionarios/_field.html" with field=form.func_prorrogacao_dias col="col-12 col-lg-2" %}
+                        {% include "funcionarios/_field.html" with field=form.func_fim_prorrogacao col="col-12 col-lg-2" %}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-pane fade pt-3" id="tab-estrangeiro" role="tabpanel">
+          <div class="funcionario-tab-shell">
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="empresa-section-box">
+                  <div class="row g-3 align-items-start">
+                    {% include "funcionarios/_field.html" with field=form.func_pais_nacionalidade col="col-12 col-lg-3" %}
+                    {% include "funcionarios/_field.html" with field=form.func_chegada_brasil col="col-12 col-lg-3" %}
+
+                    <div class="col-12 col-lg-3{% if form.func_casado_brasileiro.errors %} field-error{% endif %}">
+                      <div class="funcionario-check-item">
+                        {{ form.func_casado_brasileiro }}
+                        <label for="{{ form.func_casado_brasileiro.id_for_label }}">{{ form.func_casado_brasileiro.label }}</label>
+                      </div>
+                      {% if form.func_casado_brasileiro.errors %}
+                        <div class="invalid-feedback d-block">{{ form.func_casado_brasileiro.errors|join:', ' }}</div>
+                      {% endif %}
+                    </div>
+
+                    <div class="col-12 col-lg-3{% if form.func_tem_filhos_brasileiros.errors %} field-error{% endif %}">
+                      <div class="funcionario-check-item">
+                        {{ form.func_tem_filhos_brasileiros }}
+                        <label for="{{ form.func_tem_filhos_brasileiros.id_for_label }}">{{ form.func_tem_filhos_brasileiros.label }}</label>
+                      </div>
+                      {% if form.func_tem_filhos_brasileiros.errors %}
+                        <div class="invalid-feedback d-block">{{ form.func_tem_filhos_brasileiros.errors|join:', ' }}</div>
+                      {% endif %}
+                    </div>
+
+                    {% include "funcionarios/_field.html" with field=form.func_rne col="col-12 col-lg-3" %}
+                    {% include "funcionarios/_field.html" with field=form.func_orgao_uf_emissao_rne col="col-12 col-lg-4" %}
+                    {% include "funcionarios/_field.html" with field=form.func_emissao_rne col="col-12 col-lg-2" %}
+                    {% include "funcionarios/_field.html" with field=form.func_tempo_residencia col="col-12 col-lg-3" %}
+                    {% include "funcionarios/_field.html" with field=form.func_condicao_ingresso col="col-12" %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-pane fade pt-3" id="tab-documentos" role="tabpanel">
+          <div class="funcionario-tab-shell">
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="empresa-section-box">
+                  <div class="row g-3 align-items-start">
+                    {% include "funcionarios/_field.html" with field=form.func_cpf col="col-12 col-lg-3" %}
+                    {% include "funcionarios/_field.html" with field=form.func_pis col="col-12 col-lg-3" %}
+                    {% include "funcionarios/_field.html" with field=form.func_emissao_pis col="col-12 col-lg-2" %}
+
+                    <div class="col-12">
+                      <div class="row g-3">
+                        {% include "funcionarios/_field.html" with field=form.func_rg col="col-12 col-lg-4" %}
+                        {% include "funcionarios/_field.html" with field=form.func_orgao_emissor_rg col="col-12 col-lg-4" %}
+                        {% include "funcionarios/_field.html" with field=form.func_uf_rg col="col-12 col-lg-2" %}
+                        {% include "funcionarios/_field.html" with field=form.func_emissao_rg col="col-12 col-lg-2" %}
+                      </div>
+                    </div>
+
+                    <div class="col-12">
+                      <div class="funcionario-doc-note">
+                        Carteira de trabalho - não preencher os campos caso o trabalhador possua apenas CTPS digital.
+                      </div>
+                    </div>
+
+                    <div class="col-12">
+                      <div class="row g-3">
+                        {% include "funcionarios/_field.html" with field=form.func_carteira_trabalho col="col-12 col-lg-3" %}
+                        {% include "funcionarios/_field.html" with field=form.func_serie_carteira_trabalho col="col-12 col-lg-2" %}
+                        {% include "funcionarios/_field.html" with field=form.func_digito_serie_carteira_trabalho col="col-12 col-lg-1" %}
+                        {% include "funcionarios/_field.html" with field=form.func_uf_carteira_trabalho col="col-12 col-lg-3" %}
+                        {% include "funcionarios/_field.html" with field=form.func_emissao_carteira_trabalho col="col-12 col-lg-3" %}
+                      </div>
+                    </div>
+
+                    <div class="col-12">
+                      <div class="row g-3">
+                        {% include "funcionarios/_field.html" with field=form.func_cnh col="col-12 col-lg-2" %}
+                        {% include "funcionarios/_field.html" with field=form.func_categoria_cnh col="col-12 col-lg-2" %}
+                        {% include "funcionarios/_field.html" with field=form.func_uf_cnh col="col-12 col-lg-2" %}
+                        {% include "funcionarios/_field.html" with field=form.func_emissao_cnh col="col-12 col-lg-2" %}
+                        {% include "funcionarios/_field.html" with field=form.func_vencimento_cnh col="col-12 col-lg-2" %}
+                        {% include "funcionarios/_field.html" with field=form.func_primeira_habilitacao col="col-12 col-lg-2" %}
+                      </div>
+                    </div>
+
+                    <div class="col-12">
+                      <div class="row g-3">
+                        {% include "funcionarios/_field.html" with field=form.func_titulo_eleitor col="col-12 col-lg-4" %}
+                        {% include "funcionarios/_field.html" with field=form.func_zona_titulo_eleitor col="col-12 col-lg-2" %}
+                        {% include "funcionarios/_field.html" with field=form.func_secao_titulo_eleitor col="col-12 col-lg-2" %}
+                        {% include "funcionarios/_field.html" with field=form.func_certificado_reservista col="col-12 col-lg-4" %}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <fieldset class="funcionario-check-box{% if form.func_certidao_civil.errors or form.func_tipo_certidao.errors or form.func_emissao_certidao.errors or form.func_termo_matricula.errors or form.func_livro_certidao.errors or form.func_folha_certidao.errors or form.func_cartorio.errors or form.func_cidade_cartorio.errors or form.func_uf_cartorio.errors %} field-error{% endif %}">
+                  <legend>Certidão civil</legend>
+                  <div class="row g-3">
+                    {% include "funcionarios/_field.html" with field=form.func_certidao_civil col="col-12 col-lg-3" %}
+                    {% include "funcionarios/_field.html" with field=form.func_tipo_certidao col="col-12 col-lg-3" %}
+                    {% include "funcionarios/_field.html" with field=form.func_emissao_certidao col="col-12 col-lg-2" %}
+                    {% include "funcionarios/_field.html" with field=form.func_termo_matricula col="col-12 col-lg-4" %}
+
+                    {% include "funcionarios/_field.html" with field=form.func_livro_certidao col="col-12 col-lg-2" %}
+                    {% include "funcionarios/_field.html" with field=form.func_folha_certidao col="col-12 col-lg-2" %}
+                    {% include "funcionarios/_field.html" with field=form.func_cartorio col="col-12 col-lg-4" %}
+                    {% include "funcionarios/_field.html" with field=form.func_cidade_cartorio col="col-12 col-lg-2" %}
+                    {% include "funcionarios/_field.html" with field=form.func_uf_cartorio col="col-12 col-lg-2" %}
+                  </div>
+                </fieldset>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-pane fade pt-3" id="tab-parentes" role="tabpanel">
           <div class="row g-3">
-            {% include "funcionarios/_field_check.html" with field=form.func_inat %}
-            {% include "funcionarios/_field_check.html" with field=form.func_apre %}
+            <div class="col-12">
+              <div class="empresa-section-box">
+                <div class="row">
+                  <div class="col-12 col-xl-10 mx-auto">
+                    <div class="row g-3">
+                      {% include "funcionarios/_field.html" with field=form.func_nome_pai col="col-12" %}
+                      {% include "funcionarios/_field.html" with field=form.func_nome_mae col="col-12 col-xl-8" %}
+                      {% include "funcionarios/_field.html" with field=form.func_estado_civil col="col-12 col-md-4 col-xl-4" %}
+                      {% include "funcionarios/_field.html" with field=form.func_nome_conjuge col="col-12" %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {% if modo_edicao %}
+            <div class="col-12 mt-2">
+              <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+                <div class="card-header bg-gradient-to-r from-primary to-primary-700 text-white py-3 px-4 d-flex flex-wrap justify-content-between align-items-center gap-3" style="background: linear-gradient(90deg,#0d6efd 0%,#0b5ed7 50%,#0a58ca 100%);">
+                  <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-people-fill fs-5"></i>
+                    <h5 class="mb-0 fw-semibold">Dependentes</h5>
+                    <span class="badge bg-white text-primary rounded-pill px-3 py-1 fw-bold">{{ dependentes_qtd|default:0 }}</span>
+                  </div>
+                  {% if dependentes_url_criar %}
+                  <a href="{{ dependentes_url_criar }}" class="btn btn-success btn-sm rounded-pill shadow-sm px-4 py-2">
+                    <i class="bi bi-plus-lg me-1"></i> Novo Dependente
+                  </a>
+                  {% endif %}
+                </div>
+                <div class="card-body p-0">
+                  <div class="table-responsive rounded-3 overflow-hidden">
+                    <table class="table table-striped table-hover table-bordered table-sm align-middle text-center mb-0" style="--bs-table-striped-bg: rgba(13,110,253,0.04);">
+                      <thead class="table-dark">
+                        <tr>
+                          <th class="px-3 py-3 fw-semibold text-nowrap" style="width:70px;">Cód.</th>
+                          <th class="px-3 py-3 fw-semibold text-start">Nome do Dependente</th>
+                          <th class="px-3 py-3 fw-semibold text-nowrap" style="width:130px;">Nascimento</th>
+                          <th class="px-3 py-3 fw-semibold text-nowrap" style="width:150px;">CPF</th>
+                          <th class="px-3 py-3 fw-semibold text-nowrap" style="width:270px;">Tipo de Dependente</th>
+                          <th class="px-3 py-3 fw-semibold text-nowrap" style="width:140px;">Tipo de Dependência</th>
+                          <th class="px-3 py-3 fw-semibold text-nowrap" style="width:100px;">Inválido</th>
+                          <th class="px-3 py-3 fw-semibold text-nowrap" style="width:180px;">Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% if dependentes_funcionario %}
+                        {% for dep in dependentes_funcionario %}
+                        <tr>
+                          <td class="px-2 py-2">
+                            <span class="badge bg-light text-dark border rounded-pill px-3 py-1 fw-semibold">{{ dep.depe_codi|default:"-" }}</span>
+                          </td>
+                          <td class="px-3 py-2 text-start">
+                            <span class="fw-medium text-dark">{{ dep.depe_nome|default:"-" }}</span>
+                          </td>
+                          <td class="px-2 py-2 text-nowrap">
+                            {% if dep.depe_nascimento %}
+                            <i class="bi bi-calendar3 text-primary me-1"></i>
+                            <span>{{ dep.depe_nascimento|date:"d/m/Y" }}</span>
+                            {% else %}
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis rounded-pill">—</span>
+                            {% endif %}
+                          </td>
+                          <td class="px-2 py-2 cpf-col text-nowrap">
+                            {% if dep.depe_cpf %}
+                            <i class="bi bi-person-vcard text-primary me-1"></i>
+                            <span class="cpf-mask fw-mono">{{ dep.depe_cpf }}</span>
+                            {% else %}
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis rounded-pill">—</span>
+                            {% endif %}
+                          </td>
+                          <td class="px-2 py-2">
+                            {% if dep.depe_tipo_dependente == 1 %}
+                            <span class="badge rounded-pill bg-primary-subtle text-primary-emphasis px-3 py-1">01 - Cônjuge</span>
+                            {% elif dep.depe_tipo_dependente == 2 %}
+                            <span class="badge rounded-pill bg-primary-subtle text-primary-emphasis px-3 py-1">02 - Companheiro(a)</span>
+                            {% elif dep.depe_tipo_dependente == 3 %}
+                            <span class="badge rounded-pill bg-info-subtle text-info-emphasis px-3 py-1">03 - Filho(a)/Enteado(a)</span>
+                            {% elif dep.depe_tipo_dependente == 4 %}
+                            <span class="badge rounded-pill bg-info-subtle text-info-emphasis px-3 py-1">04 - Filho(a) Universitário</span>
+                            {% elif dep.depe_tipo_dependente == 6 %}
+                            <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis px-3 py-1">06 - Irmão(ã)/Neto(a) Guarda</span>
+                            {% elif dep.depe_tipo_dependente == 7 %}
+                            <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis px-3 py-1">07 - Irmão(ã) Univ. Guarda</span>
+                            {% elif dep.depe_tipo_dependente == 9 %}
+                            <span class="badge rounded-pill bg-secondary-subtle text-secondary-emphasis px-3 py-1">09 - Pais/Avós/Bisavós</span>
+                            {% elif dep.depe_tipo_dependente == 10 %}
+                            <span class="badge rounded-pill bg-danger-subtle text-danger-emphasis px-3 py-1">10 - Menor pobre Guarda</span>
+                            {% elif dep.depe_tipo_dependente == 11 %}
+                            <span class="badge rounded-pill bg-danger-subtle text-danger-emphasis px-3 py-1">11 - Incapaz/Tutor/Curador</span>
+                            {% elif dep.depe_tipo_dependente == 12 %}
+                            <span class="badge rounded-pill bg-secondary-subtle text-secondary-emphasis px-3 py-1">12 - Ex-cônjuge</span>
+                            {% elif dep.depe_tipo_dependente == 99 %}
+                            <span class="badge rounded-pill bg-light text-dark border px-3 py-1">99 - Agregado/Outros</span>
+                            {% else %}
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis rounded-pill">—</span>
+                            {% endif %}
+                          </td>
+                          <td class="px-2 py-2">
+                            {% if dep.depe_tipo_dependencia == 1 %}
+                            <span class="badge rounded-pill bg-success-subtle text-success-emphasis px-3 py-1 fw-medium">1 - IR</span>
+                            {% elif dep.depe_tipo_dependencia == 2 %}
+                            <span class="badge rounded-pill bg-success-subtle text-success-emphasis px-3 py-1 fw-medium">2 - SF</span>
+                            {% elif dep.depe_tipo_dependencia == 3 %}
+                            <span class="badge rounded-pill bg-success-subtle text-success-emphasis px-3 py-1 fw-medium">3 - PL</span>
+                            {% elif dep.depe_tipo_dependencia == 4 %}
+                            <span class="badge rounded-pill bg-success-subtle text-success-emphasis px-3 py-1 fw-medium">4 - PE</span>
+                            {% elif dep.depe_tipo_dependencia == 9 %}
+                            <span class="badge rounded-pill bg-light text-dark border px-3 py-1 fw-medium">9 - OU</span>
+                            {% else %}
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis rounded-pill">—</span>
+                            {% endif %}
+                          </td>
+                          <td class="px-2 py-2">
+                            {% if dep.depe_invalido %}
+                            <span class="badge rounded-pill bg-danger px-3 py-1">
+                              <i class="bi bi-exclamation-triangle-fill me-1"></i> Inválido
+                            </span>
+                            {% else %}
+                            <span class="badge rounded-pill bg-success px-3 py-1">
+                              <i class="bi bi-check-circle-fill me-1"></i> Válido
+                            </span>
+                            {% endif %}
+                          </td>
+                          <td class="px-2 py-2">
+                            <div class="d-flex justify-content-center gap-2">
+                              <a href="{% url 'dependentesrh:editar' empresa=dep.depe_empr filial=dep.depe_fili funcionario=dep.depe_func codigo=dep.depe_codi %}?banco={{ request.banco }}"
+                                 class="text-decoration-none" title="Editar">
+                                <span class="badge bg-warning text-dark px-3 py-2 shadow-sm">
+                                  <i class="bi bi-pencil-square me-1"></i> Editar
+                                </span>
+                              </a>
+                              <a href="{% url 'dependentesrh:deletar' empresa=dep.depe_empr filial=dep.depe_fili funcionario=dep.depe_func codigo=dep.depe_codi %}?banco={{ request.banco }}"
+                                 class="text-decoration-none" title="Excluir">
+                                <span class="badge bg-danger px-3 py-2 shadow-sm">
+                                  <i class="bi bi-trash3 me-1"></i> Excluir
+                                </span>
+                              </a>
+                            </div>
+                          </td>
+                        </tr>
+                        {% endfor %}
+                        {% else %}
+                        <tr>
+                          <td colspan="8" class="py-5 px-4">
+                            <div class="d-flex flex-wrap justify-content-center align-items-center gap-3 text-center">
+                              <div class="rounded-circle bg-secondary-subtle p-4">
+                                <i class="bi bi-people fs-2 text-secondary"></i>
+                              </div>
+                              <div>
+                                <p class="mb-1 fw-semibold text-secondary">Nenhum dependente cadastrado</p>
+                                <p class="mb-2 text-muted small">Este funcionário ainda não possui dependentes registrados.</p>
+                                {% if dependentes_url_criar %}
+                                <a href="{{ dependentes_url_criar }}" class="btn btn-primary btn-sm rounded-pill px-4">
+                                  <i class="bi bi-plus-lg me-1"></i> Cadastrar primeiro dependente
+                                </a>
+                                {% endif %}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                        {% endif %}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endif %}
           </div>
         </div>
 
-        {# ===== ABA: ENDEREÇO ===== #}
-        <div class="tab-pane fade" id="tab-end" role="tabpanel">
-          <div class="form-grid">
-            {% include "funcionarios/_field.html" with field=form.func_tipo_logr %}
-            {% include "funcionarios/_field.html" with field=form.func_ende col="col-12 col-md-6" %}
-            {% include "funcionarios/_field.html" with field=form.func_bair %}
-            {% include "funcionarios/_field.html" with field=form.func_cep %}
-            {% include "funcionarios/_field.html" with field=form.func_loca %}
-            {% include "funcionarios/_field.html" with field=form.func_esta %}
-            {% include "funcionarios/_field.html" with field=form.func_loca_uf %}
-            {% include "funcionarios/_field.html" with field=form.func_ibge %}
+        <div class="tab-pane fade pt-3" id="tab-fgts-gps" role="tabpanel">
+          <div class="funcionario-tab-shell">
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="empresa-section-box">
+                  <div class="row g-3 align-items-start">
+                    {% include "funcionarios/_field.html" with field=form.func_data_opcao col="col-12 col-lg-2" %}
+                    {% include "funcionarios/_field.html" with field=form.func_categoria_sefip col="col-12 col-lg-10" %}
+                    {% include "funcionarios/_field.html" with field=form.func_categoria_esocial col="col-12" %}
+
+                    {% include "funcionarios/_field.html" with field=form.func_grau_risco col="col-12 col-lg-8" %}
+                    {% include "funcionarios/_field.html" with field=form.func_percentual_fgts col="col-12 col-lg-2" %}
+                    {% include "funcionarios/_field.html" with field=form.func_rat_aposentadoria col="col-12 col-lg-2" %}
+
+                    {% include "funcionarios/_field.html" with field=form.func_regime_previdenciario col="col-12" %}
+                    {% include "funcionarios/_field.html" with field=form.func_regime_trabalhista col="col-12" %}
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <fieldset class="funcionario-check-box{% if form.func_categoria_origem.errors or form.func_tipo_origem_inscricao.errors or form.func_cnpj_origem.errors or form.func_admissao_origem.errors or form.func_matricula_origem.errors or form.func_remuneracao_cargo_eletivo.errors or form.func_regime_trabalhista_origem.errors or form.func_regime_previdenciario_origem.errors %} field-error{% endif %}">
+                  <legend>Dados dirigente sindical / trabalhador cedido / servidor em mandato eletivo</legend>
+                  <div class="row g-3 align-items-start">
+                    {% include "funcionarios/_field.html" with field=form.func_categoria_origem col="col-12 col-lg-3" %}
+
+                    <div class="col-12 col-lg-3{% if form.func_tipo_origem_inscricao.errors %} field-error{% endif %}">
+                      <label class="form-label d-block" for="{{ form.func_tipo_origem_inscricao.id_for_label }}">{{ form.func_tipo_origem_inscricao.label }}</label>
+                      <div class="d-flex flex-wrap gap-3">
+                        {% for radio in form.func_tipo_origem_inscricao %}
+                          <div class="form-check form-check-inline m-0">
+                            {{ radio.tag }}
+                            <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                          </div>
+                        {% endfor %}
+                      </div>
+                      {% if form.func_tipo_origem_inscricao.errors %}
+                        <div class="invalid-feedback d-block">{{ form.func_tipo_origem_inscricao.errors|join:', ' }}</div>
+                      {% endif %}
+                    </div>
+
+                    {% include "funcionarios/_field.html" with field=form.func_cnpj_origem col="col-12 col-lg-3" %}
+                    {% include "funcionarios/_field.html" with field=form.func_admissao_origem col="col-12 col-lg-3" %}
+
+                    {% include "funcionarios/_field.html" with field=form.func_matricula_origem col="col-12 col-lg-4" %}
+                    {% include "funcionarios/_field.html" with field=form.func_remuneracao_cargo_eletivo col="col-12 col-lg-4" %}
+                    {% include "funcionarios/_field.html" with field=form.func_regime_trabalhista_origem col="col-12 col-lg-4" %}
+                    {% include "funcionarios/_field.html" with field=form.func_regime_previdenciario_origem col="col-12" %}
+                  </div>
+                </fieldset>
+              </div>
+
+              <div class="col-12">
+                <fieldset class="funcionario-check-box{% if form.func_plano_segregacao.errors or form.func_teto_rgps.errors or form.func_abono_permanencia.errors or form.func_inicio_abono.errors %} field-error{% endif %}">
+                  <legend>Estatutário</legend>
+                  <div class="row g-3 align-items-start">
+                    {% include "funcionarios/_field.html" with field=form.func_plano_segregacao col="col-12 col-lg-6" %}
+                    {% include "funcionarios/_field.html" with field=form.func_teto_rgps col="col-12 col-lg-6" %}
+                    {% include "funcionarios/_field.html" with field=form.func_abono_permanencia col="col-12 col-lg-6" %}
+                    {% include "funcionarios/_field.html" with field=form.func_inicio_abono col="col-12 col-lg-3" %}
+                  </div>
+                </fieldset>
+              </div>
+            </div>
           </div>
         </div>
 
-        {# ===== ABA: VÍNCULO ===== #}
-        <div class="tab-pane fade" id="tab-vinc" role="tabpanel">
-          <h6 class="text-muted mb-3">Lotação</h6>
-          <div class="form-grid">
-            {% include "funcionarios/_field.html" with field=form.func_depa %}
-            {% include "funcionarios/_field.html" with field=form.func_seto %}
-            {% include "funcionarios/_field.html" with field=form.func_carg %}
-            {% include "funcionarios/_field.html" with field=form.func_catr %}
-            {% include "funcionarios/_field.html" with field=form.func_matr %}
-            {% include "funcionarios/_field.html" with field=form.func_cbo %}
-            {% include "funcionarios/_field.html" with field=form.func_grin %}
-            {% include "funcionarios/_field.html" with field=form.func_cose %}
-          </div>
+        <div class="tab-pane fade pt-3" id="tab-vinculos" role="tabpanel">
+          <div class="funcionario-tab-shell">
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="empresa-section-box">
+                  <div class="row g-3 align-items-start">
+                    {% include "funcionarios/_field.html" with field=form.func_classe col="col-12" %}
+                    {% include "funcionarios/_field.html" with field=form.func_sindicato col="col-12" %}
+                    {% include "funcionarios/_field.html" with field=form.func_vinculo_empregaticio col="col-12" %}
+                    {% include "funcionarios/_field.html" with field=form.func_departamento col="col-12" %}
+                    {% include "funcionarios/_field.html" with field=form.func_centro_custo col="col-12" %}
+                    {% include "funcionarios/_field.html" with field=form.func_cargo col="col-12 col-lg-10" %}
+                    {% include "funcionarios/_field.html" with field=form.func_nivel col="col-12 col-lg-2" %}
+                    {% include "funcionarios/_field.html" with field=form.func_cbo_cargo col="col-12" %}
+                    {% include "funcionarios/_field.html" with field=form.func_funcao col="col-12 col-lg-3" %}
+                    {% include "funcionarios/_field.html" with field=form.func_cbo_funcao col="col-12 col-lg-9" %}
+                    {% include "funcionarios/_field.html" with field=form.func_acumulacao_cargo col="col-12 col-lg-4" %}
 
-          <h6 class="text-muted mb-3 mt-4">Admissão / Demissão</h6>
-          <div class="form-grid">
-            {% include "funcionarios/_field.html" with field=form.func_daad %}
-            {% include "funcionarios/_field.html" with field=form.func_tiad %}
-            {% include "funcionarios/_field.html" with field=form.func_demi %}
-            {% include "funcionarios/_field.html" with field=form.func_tide %}
-            {% include "funcionarios/_field.html" with field=form.func_tipo_cont %}
-            {% include "funcionarios/_field.html" with field=form.func_data_term_cont %}
-            {% include "funcionarios/_field.html" with field=form.func_tisa %}
-            {% include "funcionarios/_field.html" with field=form.func_tisa_rais %}
-            {% include "funcionarios/_field.html" with field=form.func_fopa %}
-          </div>
+                    <div class="col-12 col-lg-4{% if form.func_orgao_classe.errors %} field-error{% endif %}">
+                      <div class="funcionario-check-item">
+                        {{ form.func_orgao_classe }}
+                        <label for="{{ form.func_orgao_classe.id_for_label }}">{{ form.func_orgao_classe.label }}</label>
+                      </div>
+                      {% if form.func_orgao_classe.errors %}
+                        <div class="invalid-feedback d-block">{{ form.func_orgao_classe.errors|join:', ' }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-          <h6 class="text-muted mb-3 mt-4">Sindicato</h6>
-          <div class="form-grid">
-            {% include "funcionarios/_field.html" with field=form.func_sind %}
-            {% include "funcionarios/_field.html" with field=form.func_refe_desc_sind %}
-            {% include "funcionarios/_field_check.html" with field=form.func_func_sind %}
-          </div>
-
-          <h6 class="text-muted mb-3 mt-4">eSocial — Admissão</h6>
-          <div class="form-grid">
-            {% include "funcionarios/_field.html" with field=form.func_esoc_tipo_admi %}
-            {% include "funcionarios/_field.html" with field=form.func_esoc_indi_admi %}
-            {% include "funcionarios/_field.html" with field=form.func_natu_ativ %}
-            {% include "funcionarios/_field.html" with field=form.func_cate_esoc %}
-            {% include "funcionarios/_field.html" with field=form.func_cate_sefi %}
-            {% include "funcionarios/_field.html" with field=form.func_ocor_sefi %}
-            {% include "funcionarios/_field.html" with field=form.func_regi_prev %}
-            {% include "funcionarios/_field.html" with field=form.func_esoc_regi_jorn %}
-            {% include "funcionarios/_field.html" with field=form.func_indi_contr %}
-            {% include "funcionarios/_field.html" with field=form.func_tp_rein %}
-            {% include "funcionarios/_field.html" with field=form.func_num_proc %}
-            {% include "funcionarios/_field.html" with field=form.func_lei_anis %}
-            {% include "funcionarios/_field.html" with field=form.func_data_efet_reto %}
-            {% include "funcionarios/_field.html" with field=form.func_data_efeito %}
-            {% include "funcionarios/_field_check.html" with field=form.func_apos %}
+              <div class="col-12">
+                <fieldset class="funcionario-check-box{% if form.func_inscricao_orgao_classe.errors or form.func_orgao_uf_emissao_orgao_classe.errors or form.func_emissao_orgao_classe.errors or form.func_validade_orgao_classe.errors %} field-error{% endif %}">
+                  <legend>Órgão de classe</legend>
+                  <div class="row g-3 align-items-start">
+                    {% include "funcionarios/_field.html" with field=form.func_inscricao_orgao_classe col="col-12 col-lg-3" %}
+                    {% include "funcionarios/_field.html" with field=form.func_orgao_uf_emissao_orgao_classe col="col-12 col-lg-5" %}
+                    {% include "funcionarios/_field.html" with field=form.func_emissao_orgao_classe col="col-12 col-lg-2" %}
+                    {% include "funcionarios/_field.html" with field=form.func_validade_orgao_classe col="col-12 col-lg-2" %}
+                  </div>
+                </fieldset>
+              </div>
+            </div>
           </div>
         </div>
 
-        {# ===== ABA: SALÁRIO ===== #}
-        <div class="tab-pane fade" id="tab-sal" role="tabpanel">
-          <h6 class="text-muted mb-3">Remuneração</h6>
-          <div class="form-grid">
-            {% include "funcionarios/_field.html" with field=form.func_same %}
-            {% include "funcionarios/_field.html" with field=form.func_saho %}
-            {% include "funcionarios/_field.html" with field=form.func_sala_cont %}
-            {% include "funcionarios/_field.html" with field=form.func_valo_diar %}
-            {% include "funcionarios/_field.html" with field=form.func_home %}
-            {% include "funcionarios/_field.html" with field=form.func_hose %}
-            {% include "funcionarios/_field.html" with field=form.func_jorn %}
-            {% include "funcionarios/_field.html" with field=form.func_norm %}
-            {% include "funcionarios/_field.html" with field=form.func_pens %}
-            {% include "funcionarios/_field.html" with field=form.func_alva %}
-          </div>
+        <div class="tab-pane fade pt-3" id="tab-calculo" role="tabpanel">
+          <div class="funcionario-tab-shell">
+            <div class="row g-3">
+              <div class="col-12 col-xl-6">
+                <div class="empresa-section-box">
+                  <div class="row g-3 align-items-start">
+                    {% include "funcionarios/_field.html" with field=form.func_horas_mes col="col-12 col-lg-4" %}
+                    {% include "funcionarios/_field.html" with field=form.func_horas_semana col="col-12 col-lg-4" %}
+                    {% include "funcionarios/_field.html" with field=form.func_horas_dia col="col-12 col-lg-4" %}
 
-          <h6 class="text-muted mb-3 mt-4">Adicionais</h6>
-          <div class="row g-3 mb-3">
-            {% include "funcionarios/_field_check.html" with field=form.func_adqu %}
-            {% include "funcionarios/_field_check.html" with field=form.func_insa %}
-            {% include "funcionarios/_field_check.html" with field=form.func_peri %}
-            {% include "funcionarios/_field_check.html" with field=form.func_vale_alim %}
-            {% include "funcionarios/_field_check.html" with field=form.func_vale_trans %}
-          </div>
-          <div class="form-grid">
-            {% include "funcionarios/_field.html" with field=form.func_perc_insa %}
-            {% include "funcionarios/_field.html" with field=form.func_insa_sobr %}
-            {% include "funcionarios/_field.html" with field=form.func_insa_sobr_valo %}
-            {% include "funcionarios/_field.html" with field=form.func_base_insa %}
-          </div>
+                    {% include "funcionarios/_field.html" with field=form.func_forma_pagamento col="col-12" %}
+                    {% include "funcionarios/_field.html" with field=form.func_tipo_funcionario col="col-12" %}
 
-          <h6 class="text-muted mb-3 mt-4">Outra Remuneração</h6>
-          <div class="form-grid">
-            {% include "funcionarios/_field.html" with field=form.func_remu_outr_tpinsc %}
-            {% include "funcionarios/_field.html" with field=form.func_remu_outr_nrinsc %}
-            {% include "funcionarios/_field.html" with field=form.func_remu_outr_cate %}
-            {% include "funcionarios/_field.html" with field=form.func_remu_outr_valo %}
-            {% include "funcionarios/_field.html" with field=form.func_remu_outr_indi %}
+                    {% include "funcionarios/_field.html" with field=form.func_salario_base col="col-12 col-lg-6" %}
+                    {% include "funcionarios/_field.html" with field=form.func_comissao col="col-12 col-lg-6" %}
+
+                    {% include "funcionarios/_field.html" with field=form.func_adic_insalubridade col="col-12 col-lg-4" %}
+                    {% include "funcionarios/_field.html" with field=form.func_incidencia_insalubridade col="col-12 col-lg-8" %}
+
+                    {% include "funcionarios/_field.html" with field=form.func_adic_periculosidade col="col-12 col-lg-4" %}
+                    {% include "funcionarios/_field.html" with field=form.func_incidencia_periculosidade col="col-12 col-lg-8" %}
+
+                    {% include "funcionarios/_field.html" with field=form.func_adicional_noturno col="col-12 col-lg-4" %}
+                    {% include "funcionarios/_field.html" with field=form.func_incidencia_adicional_noturno col="col-12 col-lg-8" %}
+
+                    {% include "funcionarios/_field.html" with field=form.func_vale_alimentacao_compra col="col-12" %}
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12 col-xl-6">
+                <div class="empresa-section-box">
+                  <div class="row g-3 align-items-start">
+                    <div class="col-12 col-lg-6{% if form.func_recebe_dsr_horas_extras.errors %} field-error{% endif %}">
+                      <div class="funcionario-check-item">
+                        {{ form.func_recebe_dsr_horas_extras }}
+                        <label for="{{ form.func_recebe_dsr_horas_extras.id_for_label }}">{{ form.func_recebe_dsr_horas_extras.label }}</label>
+                      </div>
+                    </div>
+                    {% include "funcionarios/_field.html" with field=form.func_dsr_horas_extras col="col-12 col-lg-6" %}
+
+                    <div class="col-12 col-lg-6{% if form.func_recebe_dsr_rendimentos_variaveis.errors %} field-error{% endif %}">
+                      <div class="funcionario-check-item">
+                        {{ form.func_recebe_dsr_rendimentos_variaveis }}
+                        <label for="{{ form.func_recebe_dsr_rendimentos_variaveis.id_for_label }}">{{ form.func_recebe_dsr_rendimentos_variaveis.label }}</label>
+                      </div>
+                    </div>
+                    {% include "funcionarios/_field.html" with field=form.func_dsr_rendimentos_variaveis col="col-12 col-lg-6" %}
+
+                    <div class="col-12 col-lg-6{% if form.func_recebe_dsr_salarios.errors %} field-error{% endif %}">
+                      <div class="funcionario-check-item">
+                        {{ form.func_recebe_dsr_salarios }}
+                        <label for="{{ form.func_recebe_dsr_salarios.id_for_label }}">{{ form.func_recebe_dsr_salarios.label }}</label>
+                      </div>
+                    </div>
+                    {% include "funcionarios/_field.html" with field=form.func_dsr_salarios col="col-12 col-lg-6" %}
+
+                    <div class="col-12 col-lg-6{% if form.func_ignora_faltas_ferias.errors %} field-error{% endif %}">
+                      <div class="funcionario-check-item">
+                        {{ form.func_ignora_faltas_ferias }}
+                        <label for="{{ form.func_ignora_faltas_ferias.id_for_label }}">{{ form.func_ignora_faltas_ferias.label }}</label>
+                      </div>
+                    </div>
+                    <div class="col-12 col-lg-6{% if form.func_imprimir_etiqueta.errors %} field-error{% endif %}">
+                      <div class="funcionario-check-item">
+                        {{ form.func_imprimir_etiqueta }}
+                        <label for="{{ form.func_imprimir_etiqueta.id_for_label }}">{{ form.func_imprimir_etiqueta.label }}</label>
+                      </div>
+                    </div>
+
+                    <div class="col-12 col-lg-6{% if form.func_regime_tempo_parcial.errors %} field-error{% endif %}">
+                      <div class="funcionario-check-item">
+                        {{ form.func_regime_tempo_parcial }}
+                        <label for="{{ form.func_regime_tempo_parcial.id_for_label }}">{{ form.func_regime_tempo_parcial.label }}</label>
+                      </div>
+                    </div>
+                    <div class="col-12 col-lg-6{% if form.func_nao_arredondar.errors %} field-error{% endif %}">
+                      <div class="funcionario-check-item">
+                        {{ form.func_nao_arredondar }}
+                        <label for="{{ form.func_nao_arredondar.id_for_label }}">{{ form.func_nao_arredondar.label }}</label>
+                      </div>
+                    </div>
+
+                    <div class="col-12 col-lg-6{% if form.func_salario_contratual_comissionado.errors %} field-error{% endif %}">
+                      <div class="funcionario-check-item">
+                        {{ form.func_salario_contratual_comissionado }}
+                        <label for="{{ form.func_salario_contratual_comissionado.id_for_label }}">{{ form.func_salario_contratual_comissionado.label }}</label>
+                      </div>
+                    </div>
+                    <div class="col-12 col-lg-3{% if form.func_adiantamento.errors %} field-error{% endif %}">
+                      <div class="funcionario-check-item">
+                        {{ form.func_adiantamento }}
+                        <label for="{{ form.func_adiantamento.id_for_label }}">{{ form.func_adiantamento.label }}</label>
+                      </div>
+                    </div>
+                    {% include "funcionarios/_field.html" with field=form.func_valor_fixo_adiantamento col="col-12 col-lg-3" %}
+
+                    <div class="col-12{% if form.func_aplica_deducao_mais_benefica_irrf.errors %} field-error{% endif %}">
+                      <div class="funcionario-check-item">
+                        {{ form.func_aplica_deducao_mais_benefica_irrf }}
+                        <label for="{{ form.func_aplica_deducao_mais_benefica_irrf.id_for_label }}">{{ form.func_aplica_deducao_mais_benefica_irrf.label }}</label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12 col-xl-6">
+                <fieldset class="funcionario-check-box{% if form.func_recebe_vale_refeicao.errors or form.func_vale_refeicao.errors or form.func_cartao_vale_refeicao.errors %} field-error{% endif %}">
+                  <legend>Vale refeição</legend>
+                  <div class="row g-3 align-items-start">
+                    <div class="col-12{% if form.func_recebe_vale_refeicao.errors %} field-error{% endif %}">
+                      <div class="funcionario-check-item">
+                        {{ form.func_recebe_vale_refeicao }}
+                        <label for="{{ form.func_recebe_vale_refeicao.id_for_label }}">{{ form.func_recebe_vale_refeicao.label }}</label>
+                      </div>
+                    </div>
+                    {% include "funcionarios/_field.html" with field=form.func_vale_refeicao col="col-12" %}
+                    {% include "funcionarios/_field.html" with field=form.func_cartao_vale_refeicao col="col-12" %}
+                  </div>
+                </fieldset>
+              </div>
+
+              <div class="col-12 col-xl-6">
+                <fieldset class="funcionario-check-box{% if form.func_recebe_vale_alimentacao.errors or form.func_vale_alimentacao.errors or form.func_cartao_vale_alimentacao.errors %} field-error{% endif %}">
+                  <legend>Vale alimentação</legend>
+                  <div class="row g-3 align-items-start">
+                    <div class="col-12{% if form.func_recebe_vale_alimentacao.errors %} field-error{% endif %}">
+                      <div class="funcionario-check-item">
+                        {{ form.func_recebe_vale_alimentacao }}
+                        <label for="{{ form.func_recebe_vale_alimentacao.id_for_label }}">{{ form.func_recebe_vale_alimentacao.label }}</label>
+                      </div>
+                    </div>
+                    {% include "funcionarios/_field.html" with field=form.func_vale_alimentacao col="col-12" %}
+                    {% include "funcionarios/_field.html" with field=form.func_cartao_vale_alimentacao col="col-12" %}
+                  </div>
+                </fieldset>
+              </div>
+            </div>
           </div>
         </div>
 
-        {# ===== ABA: BANCO / PAGAMENTO ===== #}
-        <div class="tab-pane fade" id="tab-banco" role="tabpanel">
-          <h6 class="text-muted mb-3">Dados Bancários</h6>
-          <div class="form-grid">
-            {% include "funcionarios/_field.html" with field=form.func_banc_paga %}
-            {% include "funcionarios/_field.html" with field=form.func_agen %}
-            {% include "funcionarios/_field.html" with field=form.func_cont_paga %}
-            {% include "funcionarios/_field.html" with field=form.func_tipo_cred %}
-          </div>
+        <div class="tab-pane fade pt-3" id="tab-banco" role="tabpanel">
+          <div class="funcionario-tab-shell">
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="empresa-section-box">
+                  <div class="row g-3 align-items-start">
+                    {% include "funcionarios/_field.html" with field=form.func_banco col="col-12 col-lg-6" %}
+                    {% include "funcionarios/_field.html" with field=form.func_agencia_pagamento col="col-12 col-lg-3" %}
 
-          <h6 class="text-muted mb-3 mt-4">FGTS</h6>
-          <div class="form-grid">
-            {% include "funcionarios/_field.html" with field=form.func_cont_fgts %}
-            {% include "funcionarios/_field.html" with field=form.func_daop_fgts %}
-            {% include "funcionarios/_field.html" with field=form.func_cons_fgts_inst %}
-            {% include "funcionarios/_field.html" with field=form.func_cons_fgts_contr %}
-            {% include "funcionarios/_field.html" with field=form.func_cons_fgts_even %}
-          </div>
+                    {% include "funcionarios/_field.html" with field=form.func_conta_pagamento col="col-12 col-lg-4" %}
+                    {% include "funcionarios/_field.html" with field=form.func_digito_conta_pagamento col="col-12 col-lg-2" %}
+                    {% include "funcionarios/_field.html" with field=form.func_tipo_conta col="col-12 col-lg-6" %}
 
-          <h6 class="text-muted mb-3 mt-4">Descontos</h6>
-          <div class="row g-3">
-            {% include "funcionarios/_field_check.html" with field=form.func_inss %}
-            {% include "funcionarios/_field_check.html" with field=form.func_fgts %}
-            {% include "funcionarios/_field_check.html" with field=form.func_irrf %}
+                    {% include "funcionarios/_field.html" with field=form.func_cartao_salario col="col-12 col-lg-4" %}
+                    {% include "funcionarios/_field.html" with field=form.func_modo_pagamento col="col-12 col-lg-6" %}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {# ===== ABA: DOCUMENTOS ===== #}
-        <div class="tab-pane fade" id="tab-doc" role="tabpanel">
+        <div class="tab-pane fade pt-3" id="tab-dados-partida" role="tabpanel">
+          <div class="funcionario-tab-shell funcionario-tab-shell-narrow">
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="empresa-section-box">
+                  <div class="row g-4 align-items-start">
+                    <div class="col-12 col-xl-6">
+                      <div class="row g-3 align-items-start">
+                        {% include "funcionarios/_field.html" with field=form.func_aquisicao_ferias col="col-12" %}
+                        {% include "funcionarios/_field.html" with field=form.func_salario_inicial col="col-12" %}
 
-          <h6 class="text-muted mb-3">CTPS</h6>
-          <div class="form-grid">
-            {% include "funcionarios/_field.html" with field=form.func_ctps %}
-            {% include "funcionarios/_field.html" with field=form.func_seri_ctps %}
-            {% include "funcionarios/_field.html" with field=form.func_esta_ctps %}
-            {% include "funcionarios/_field.html" with field=form.func_emis_ctps %}
-          </div>
+                        <div class="col-12{% if form.func_descontar_contribuicao_sindical.errors %} field-error{% endif %}">
+                          <div class="funcionario-check-item">
+                            {{ form.func_descontar_contribuicao_sindical }}
+                            <label for="{{ form.func_descontar_contribuicao_sindical.id_for_label }}">{{ form.func_descontar_contribuicao_sindical.label }}</label>
+                          </div>
+                          {% if form.func_descontar_contribuicao_sindical.errors %}
+                            <div class="invalid-feedback d-block">{{ form.func_descontar_contribuicao_sindical.errors|join:', ' }}</div>
+                          {% endif %}
+                        </div>
 
-          <h6 class="text-muted mb-3 mt-4">RG</h6>
-          <div class="form-grid">
-            {% include "funcionarios/_field.html" with field=form.func_rege %}
-            {% include "funcionarios/_field.html" with field=form.func_rege_orga %}
-            {% include "funcionarios/_field.html" with field=form.func_rege_expe %}
-            {% include "funcionarios/_field.html" with field=form.func_rege_uf %}
-          </div>
+                        <div class="col-12{% if form.func_sindicalizado.errors %} field-error{% endif %}">
+                          <div class="funcionario-check-item">
+                            {{ form.func_sindicalizado }}
+                            <label for="{{ form.func_sindicalizado.id_for_label }}">{{ form.func_sindicalizado.label }}</label>
+                          </div>
+                          {% if form.func_sindicalizado.errors %}
+                            <div class="invalid-feedback d-block">{{ form.func_sindicalizado.errors|join:', ' }}</div>
+                          {% endif %}
+                        </div>
 
-          <h6 class="text-muted mb-3 mt-4">Título de Eleitor</h6>
-          <div class="form-grid">
-            {% include "funcionarios/_field.html" with field=form.func_titu %}
-            {% include "funcionarios/_field.html" with field=form.func_digi_titu %}
-            {% include "funcionarios/_field.html" with field=form.func_zona_titu %}
-            {% include "funcionarios/_field.html" with field=form.func_seca_titu %}
-          </div>
+                        {% include "funcionarios/_field.html" with field=form.func_valor_previdencia_privada col="col-12" %}
+                        {% include "funcionarios/_field.html" with field=form.func_valor_previdencia_privada_13 col="col-12" %}
+                        {% include "funcionarios/_field.html" with field=form.func_base_ir col="col-12" %}
+                        {% include "funcionarios/_field.html" with field=form.func_valor_ir col="col-12" %}
+                      </div>
+                    </div>
 
-          <h6 class="text-muted mb-3 mt-4">Registro Profissional</h6>
-          <div class="form-grid">
-            {% include "funcionarios/_field.html" with field=form.func_regi_prof %}
-            {% include "funcionarios/_field.html" with field=form.func_regi_cate %}
-            {% include "funcionarios/_field.html" with field=form.func_regi_vali %}
-          </div>
+                    <div class="col-12 col-xl-6">
+                      <div class="row g-3 align-items-start">
+                        {% include "funcionarios/_field.html" with field=form.func_base_inss_multiplos_vinculos col="col-12" %}
+                        {% include "funcionarios/_field.html" with field=form.func_valor_inss_multiplos_vinculos col="col-12" %}
+                        {% include "funcionarios/_field.html" with field=form.func_base_inss_multiplos_vinculos_13 col="col-12" %}
+                        {% include "funcionarios/_field.html" with field=form.func_valor_inss_multiplos_vinculos_13 col="col-12" %}
+                        {% include "funcionarios/_field.html" with field=form.func_base_ir_multiplos_vinculos col="col-12" %}
+                        {% include "funcionarios/_field.html" with field=form.func_valor_ir_multiplos_vinculos col="col-12" %}
+                        {% include "funcionarios/_field.html" with field=form.func_base_ir_multiplos_vinculos_13 col="col-12" %}
+                        {% include "funcionarios/_field.html" with field=form.func_valor_ir_multiplos_vinculos_13 col="col-12" %}
 
-          <h6 class="text-muted mb-3 mt-4">CNH</h6>
-          <div class="form-grid">
-            {% include "funcionarios/_field.html" with field=form.func_cnh %}
-            {% include "funcionarios/_field.html" with field=form.func_cate %}
-            {% include "funcionarios/_field.html" with field=form.func_cnh_prim %}
-            {% include "funcionarios/_field.html" with field=form.func_cnh_emis %}
-            {% include "funcionarios/_field.html" with field=form.func_cnh_vali %}
-            {% include "funcionarios/_field.html" with field=form.func_cnh_esta %}
-          </div>
-
-          <h6 class="text-muted mb-3 mt-4">RNE / Estrangeiro</h6>
-          <div class="form-grid">
-            {% include "funcionarios/_field.html" with field=form.func_rne %}
-            {% include "funcionarios/_field.html" with field=form.func_rne_emis %}
-            {% include "funcionarios/_field.html" with field=form.func_rne_expe %}
-            {% include "funcionarios/_field.html" with field=form.func_extr_cond %}
-            {% include "funcionarios/_field.html" with field=form.func_extr_data_cheg %}
-          </div>
-          <div class="row g-3 mt-1">
-            {% include "funcionarios/_field_check.html" with field=form.func_extr_casa_bras %}
-            {% include "funcionarios/_field_check.html" with field=form.func_extr_filh_bras %}
-          </div>
-
-          <h6 class="text-muted mb-3 mt-4">Deficiência</h6>
-          <div class="form-grid">
-            {% include "funcionarios/_field.html" with field=form.func_defi %}
-            {% include "funcionarios/_field.html" with field=form.func_tipo_defi %}
-          </div>
-          <div class="row g-3 mt-1">
-            {% include "funcionarios/_field_check.html" with field=form.func_defi_cota %}
+                        <div class="col-12 pt-2">
+                          <button type="button" class="btn btn-outline-secondary btn-sm" disabled>eSocial: Fontes pagadoras</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {# ===== ABA: JORNADA ===== #}
-        <div class="tab-pane fade" id="tab-jorn" role="tabpanel">
-          <h6 class="text-muted mb-3">Horários</h6>
-          <div class="form-grid">
-            {% include "funcionarios/_field.html" with field=form.func_en01 %}
-            {% include "funcionarios/_field.html" with field=form.func_sa01 %}
-            {% include "funcionarios/_field.html" with field=form.func_en02 %}
-            {% include "funcionarios/_field.html" with field=form.func_sa02 %}
-          </div>
+        <div class="tab-pane fade pt-3" id="tab-quadro-horarios" role="tabpanel">
+          <div class="funcionario-tab-shell funcionario-tab-shell-narrow">
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="empresa-section-box">
+                  <div class="row g-3">
+                    {% include "funcionarios/_field.html" with field=form.func_vigencia_quadro_horario col="col-12 col-lg-4" %}
+                    {% include "funcionarios/_field.html" with field=form.func_regime_jornada_trabalho col="col-12 col-lg-8" %}
 
-          <h6 class="text-muted mb-3 mt-4">Regimes Especiais</h6>
-          <div class="form-grid">
-            {% include "funcionarios/_field.html" with field=form.func_saba %}
-            {% include "funcionarios/_field.html" with field=form.func_domi %}
-            {% include "funcionarios/_field.html" with field=form.func_feri %}
-          </div>
+                    {% include "funcionarios/_field.html" with field=form.func_tipo_escala col="col-12 col-lg-4" %}
 
-          <h6 class="text-muted mb-3 mt-4">Férias</h6>
-          <div class="form-grid">
-            {% include "funcionarios/_field.html" with field=form.func_dia1 %}
-            {% include "funcionarios/_field.html" with field=form.func_ven1 %}
-            {% include "funcionarios/_field.html" with field=form.func_dia2 %}
-            {% include "funcionarios/_field.html" with field=form.func_ven2 %}
-            {% include "funcionarios/_field.html" with field=form.func_temp_resi %}
-          </div>
-        </div>
+                    <div class="col-12 col-lg-8{% if form.func_pre_assinalar_horarios_intervalo.errors %} field-error{% endif %}">
+                      <label class="form-label invisible">Pré-assinalar</label>
+                      <div class="funcionario-check-item">
+                        {{ form.func_pre_assinalar_horarios_intervalo }}
+                        <label for="{{ form.func_pre_assinalar_horarios_intervalo.id_for_label }}">{{ form.func_pre_assinalar_horarios_intervalo.label }}</label>
+                      </div>
+                      {% if form.func_pre_assinalar_horarios_intervalo.errors %}
+                        <div class="invalid-feedback d-block">{{ form.func_pre_assinalar_horarios_intervalo.errors|join:', ' }}</div>
+                      {% endif %}
+                    </div>
 
-        {# ===== ABA: SAÚDE ===== #}
-        <div class="tab-pane fade" id="tab-saude" role="tabpanel">
-          <h6 class="text-muted mb-3">Exame Periódico</h6>
-          <div class="form-grid">
-            {% include "funcionarios/_field.html" with field=form.func_venc_exam %}
-            {% include "funcionarios/_field.html" with field=form.func_exam_data %}
-            {% include "funcionarios/_field.html" with field=form.func_exam_codi %}
-            {% include "funcionarios/_field.html" with field=form.func_exam_cnpj %}
-            {% include "funcionarios/_field.html" with field=form.func_exam_crm %}
-            {% include "funcionarios/_field.html" with field=form.func_exam_crm_uf %}
-            {% include "funcionarios/_field.html" with field=form.func_data_expi_exam_ocup %}
-            {% include "funcionarios/_field.html" with field=form.func_tipo_exam_ocup %}
-          </div>
+                    {% include "funcionarios/_field.html" with field=form.func_escala col="col-12 col-lg-8" %}
+                    {% include "funcionarios/_field.html" with field=form.func_descanso_semanal col="col-12 col-lg-4" %}
 
-          <h6 class="text-muted mb-3 mt-4">Estágio / Aprendiz</h6>
-          <div class="form-grid">
-            {% include "funcionarios/_field.html" with field=form.func_esta_natu_esta %}
-            {% include "funcionarios/_field.html" with field=form.func_esta_nive_esta %}
-            {% include "funcionarios/_field.html" with field=form.func_esta_data_term %}
-            {% include "funcionarios/_field.html" with field=form.func_esta_inst_ensi %}
-            {% include "funcionarios/_field.html" with field=form.func_apren_contr_dire %}
-            {% include "funcionarios/_field.html" with field=form.func_apren_enti_qual %}
-          </div>
-        </div>
+                    {% include "funcionarios/_field.html" with field=form.func_data_inicio_escala col="col-12 col-lg-4" %}
+                    {% include "funcionarios/_field.html" with field=form.func_tipo_revezamento col="col-12 col-lg-8" %}
 
-        {# ===== ABA: eSocial ===== #}
-        <div class="tab-pane fade" id="tab-esoc" role="tabpanel">
-          <h6 class="text-muted mb-3">Identificação eSocial</h6>
-          <div class="form-grid">
-            {% include "funcionarios/_field.html" with field=form.func_esoc_tipo_insc %}
-            {% include "funcionarios/_field.html" with field=form.func_esoc_nume_insc %}
-            {% include "funcionarios/_field.html" with field=form.func_esoc_matr_ante %}
-            {% include "funcionarios/_field.html" with field=form.func_codi_lota_trib %}
-            {% include "funcionarios/_field.html" with field=form.func_cate_tpinsc %}
-            {% include "funcionarios/_field.html" with field=form.func_cate_nrinsc %}
-          </div>
+                    {% include "funcionarios/_field.html" with field=form.func_tipo_jornada_esocial col="col-12" %}
 
-          <h6 class="text-muted mb-3 mt-4">Transmissão</h6>
-          <div class="form-grid">
-            {% include "funcionarios/_field.html" with field=form.func_esoc_data_tran %}
-            {% include "funcionarios/_field.html" with field=form.func_esoc_tran_obse col="col-12" %}
+                    <div class="col-12 col-lg-4{% if form.func_horario_noturno.errors %} field-error{% endif %}">
+                      <label class="form-label invisible">Horário noturno</label>
+                      <div class="funcionario-check-item">
+                        {{ form.func_horario_noturno }}
+                        <label for="{{ form.func_horario_noturno.id_for_label }}">{{ form.func_horario_noturno.label }}</label>
+                      </div>
+                      {% if form.func_horario_noturno.errors %}
+                        <div class="invalid-feedback d-block">{{ form.func_horario_noturno.errors|join:', ' }}</div>
+                      {% endif %}
+                    </div>
+
+                    {% include "funcionarios/_field.html" with field=form.func_folga_inicial col="col-12 col-lg-4" %}
+
+                    <div class="col-12 col-lg-4">
+                      <label class="form-label invisible">Carregar</label>
+                      <button type="button" class="btn btn-outline-secondary btn-sm" disabled>Carregar quadro</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-      </div>{# /tab-content #}
+        <div class="tab-pane fade pt-3" id="tab-esocial" role="tabpanel">
+          <ul class="nav nav-tabs nav-tabs-scroll funcionario-subtabs" id="funcionarioESocialSubTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#subtab-qualificacao" type="button">
+                Qualificação
+                {% if has_errors.qualificacao %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" data-bs-toggle="tab" data-bs-target="#subtab-integracao" type="button">
+                Integração
+                {% if has_errors.integracao %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+              </button>
+            </li>
+          </ul>
 
-      {# AÇÕES #}
+          <div class="tab-content">
+            <div class="tab-pane fade show active" id="subtab-qualificacao" role="tabpanel">
+              <div class="funcionario-tab-shell funcionario-tab-shell-narrow">
+                <div class="row g-3">
+                  <div class="col-12">
+                    <div class="empresa-section-box">
+                      <div class="row g-3 align-items-start">
+                        <div class="col-12">
+                          <label class="form-label" for="esocial_nome_display">Nome</label>
+                          <input
+                            id="esocial_nome_display"
+                            type="text"
+                            class="form-control funcionario-readonly"
+                            value="{{ form.func_nome.value|default_if_none:'' }}"
+                            readonly
+                          >
+                        </div>
+
+                        <div class="col-12 col-lg-4">
+                          <label class="form-label" for="esocial_cpf_display">CPF</label>
+                          <input
+                            id="esocial_cpf_display"
+                            type="text"
+                            class="form-control funcionario-readonly"
+                            value="{{ form.func_cpf.value|default_if_none:'' }}"
+                            readonly
+                          >
+                        </div>
+
+                        {% include "funcionarios/_field.html" with field=form.func_nit col="col-12 col-lg-4" %}
+
+                        <div class="col-12 col-lg-4">
+                          <label class="form-label" for="esocial_nascimento_display">Nascimento</label>
+                          <input
+                            id="esocial_nascimento_display"
+                            type="text"
+                            class="form-control funcionario-readonly"
+                            value="{{ form.func_nascimento.value|default_if_none:'' }}"
+                            readonly
+                          >
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-12">
+                    <fieldset class="funcionario-check-box{% if form.func_qualificacao_cadastral_status.errors %} field-error{% endif %}">
+                      <legend>Qualificação cadastral</legend>
+                      <div class="row g-3">
+                        <div class="col-12{% if form.func_qualificacao_cadastral_status.errors %} field-error{% endif %}">
+                          <label class="form-label" for="{{ form.func_qualificacao_cadastral_status.id_for_label }}">Status</label>
+                          <textarea
+                            name="{{ form.func_qualificacao_cadastral_status.html_name }}"
+                            id="{{ form.func_qualificacao_cadastral_status.id_for_label }}"
+                            class="form-control{% if form.func_qualificacao_cadastral_status.errors %} is-invalid{% endif %}"
+                            rows="3"
+                          >{{ form.func_qualificacao_cadastral_status.value|default_if_none:'A consulta da qualificacao cadastral nao foi efetuada.' }}</textarea>
+                          {% if form.func_qualificacao_cadastral_status.errors %}
+                            <div class="invalid-feedback d-block">{{ form.func_qualificacao_cadastral_status.errors|join:', ' }}</div>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </fieldset>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tab-pane fade" id="subtab-integracao" role="tabpanel">
+              <div class="funcionario-tab-shell funcionario-tab-shell-narrow">
+                <div class="row g-3">
+                  <div class="col-12">
+                    <div class="empresa-section-box">
+                      <div id="esocial-integracao-status" class="alert alert-secondary d-flex align-items-center gap-2 mb-0" role="status">
+                        <i id="esocial-integracao-icon" class="bi bi-circle text-secondary"></i>
+                        <span id="esocial-integracao-text">Funcionário ainda não integrado no eSocial.</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-12">
+                    <div class="empresa-section-box">
+                      {{ form.func_esocial_integrado.as_hidden }}
+                      {{ form.func_esocial_data_integracao.as_hidden }}
+                      {{ form.func_esocial_numero_recibo.as_hidden }}
+                      <div class="row g-3 align-items-start">
+                        <div class="col-12">
+                          <label class="form-label" for="esocial_integracao_nome_display">Nome</label>
+                          <input
+                            id="esocial_integracao_nome_display"
+                            type="text"
+                            class="form-control funcionario-readonly"
+                            value="{{ form.func_nome.value|default_if_none:'' }}"
+                            readonly
+                          >
+                        </div>
+
+                        <div class="col-12 col-lg-3">
+                          <label class="form-label" for="esocial_integracao_cpf_display">CPF</label>
+                          <input
+                            id="esocial_integracao_cpf_display"
+                            type="text"
+                            class="form-control funcionario-readonly"
+                            value="{{ form.func_cpf.value|default_if_none:'' }}"
+                            readonly
+                          >
+                        </div>
+
+                        <div class="col-12 col-lg-3">
+                          <label class="form-label" for="esocial_integracao_pis_display">PIS</label>
+                          <input
+                            id="esocial_integracao_pis_display"
+                            type="text"
+                            class="form-control funcionario-readonly"
+                            value="{{ form.func_pis.value|default_if_none:'' }}"
+                            readonly
+                          >
+                        </div>
+
+                        <div class="col-12 col-lg-3">
+                          <label class="form-label" for="esocial_integracao_nascimento_display">Nascimento</label>
+                          <input
+                            id="esocial_integracao_nascimento_display"
+                            type="text"
+                            class="form-control funcionario-readonly"
+                            value="{{ form.func_nascimento.value|default_if_none:'' }}"
+                            readonly
+                          >
+                        </div>
+
+                        <div class="col-12 d-flex gap-2 pt-2">
+                          <button type="button" class="btn btn-outline-secondary btn-sm" disabled>Integrar doméstico</button>
+                          <button type="button" class="btn btn-outline-secondary btn-sm" disabled>Integrar funcionário</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-pane fade pt-3" id="tab-outros" role="tabpanel">
+          <div class="funcionario-tab-shell funcionario-tab-shell-narrow">
+            <div class="row g-3">
+              <div class="col-12">
+                <fieldset class="funcionario-check-box{% if form.func_ultimo_exame_medico.errors or form.func_proximo_exame_medico_meses.errors or form.func_proximo_exame_medico.errors %} field-error{% endif %}">
+                  <legend>Exame médico</legend>
+                  <div class="row g-3 align-items-start">
+                    {% include "funcionarios/_field.html" with field=form.func_ultimo_exame_medico col="col-12 col-lg-3" %}
+                    {% include "funcionarios/_field.html" with field=form.func_proximo_exame_medico_meses col="col-12 col-lg-3" %}
+                    {% include "funcionarios/_field.html" with field=form.func_proximo_exame_medico col="col-12 col-lg-3" %}
+                  </div>
+                </fieldset>
+              </div>
+
+              <div class="col-12">
+                <fieldset class="funcionario-check-box{% if form.func_ultimo_exame_audiometrico.errors or form.func_proximo_exame_audiometrico_meses.errors or form.func_proximo_exame_audiometrico.errors %} field-error{% endif %}">
+                  <legend>Exame audiométrico</legend>
+                  <div class="row g-3 align-items-start">
+                    {% include "funcionarios/_field.html" with field=form.func_ultimo_exame_audiometrico col="col-12 col-lg-3" %}
+                    {% include "funcionarios/_field.html" with field=form.func_proximo_exame_audiometrico_meses col="col-12 col-lg-3" %}
+                    {% include "funcionarios/_field.html" with field=form.func_proximo_exame_audiometrico col="col-12 col-lg-3" %}
+                  </div>
+                </fieldset>
+              </div>
+
+              <div class="col-12">
+                <div class="empresa-section-box">
+                  <div class="row g-3 align-items-start">
+                    <div class="col-12{% if form.func_aprendiz_gravida.errors %} field-error{% endif %}">
+                      <div class="funcionario-check-item">
+                        {{ form.func_aprendiz_gravida }}
+                        <label for="{{ form.func_aprendiz_gravida.id_for_label }}">{{ form.func_aprendiz_gravida.label }}</label>
+                      </div>
+                      {% if form.func_aprendiz_gravida.errors %}
+                        <div class="invalid-feedback d-block">{{ form.func_aprendiz_gravida.errors|join:', ' }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="empresa-section-box">
+                  <div class="row g-3">
+                    {% include "funcionarios/_field.html" with field=form.func_observacoes col="col-12" %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="form-actions-row mt-4 pt-3 border-top">
         <button type="submit" class="btn btn-success">
           <i class="bi bi-floppy-fill"></i> Salvar
@@ -440,21 +1509,407 @@
           <i class="bi bi-arrow-left"></i> Voltar
         </a>
       </div>
-
-    </div>{# /app-form-card #}
+    </div>
   </form>
-  {% endblock %}
+</div>
+{% endblock %}
 
-  {% block extra_js %}
-  <script>
-    // Abre automaticamente a aba que contém o primeiro campo com erro
-    document.addEventListener('DOMContentLoaded', () => {
-      const firstError = document.querySelector('.is-invalid, .field-error');
-      if (!firstError) return;
-      const pane = firstError.closest('.tab-pane');
-      if (!pane) return;
-      const trigger = document.querySelector(`[data-bs-target="#${pane.id}"]`);
-      if (trigger) trigger.click();
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const nascimentoInput = document.getElementById('{{ form.func_nascimento.id_for_label }}');
+    const idadeDisplay = document.getElementById('funcionario-age-display');
+    const cepInput = document.getElementById('{{ form.func_cep.id_for_label }}');
+    const nomeInput = document.getElementById('{{ form.func_nome.id_for_label }}');
+    const cpfInput = document.getElementById('{{ form.func_cpf.id_for_label }}');
+    const pisInput = document.getElementById('{{ form.func_pis.id_for_label }}');
+    const esocialNomeDisplay = document.getElementById('esocial_nome_display');
+    const esocialCpfDisplay = document.getElementById('esocial_cpf_display');
+    const esocialNascimentoDisplay = document.getElementById('esocial_nascimento_display');
+    const esocialIntegracaoNomeDisplay = document.getElementById('esocial_integracao_nome_display');
+    const esocialIntegracaoCpfDisplay = document.getElementById('esocial_integracao_cpf_display');
+    const esocialIntegracaoPisDisplay = document.getElementById('esocial_integracao_pis_display');
+    const esocialIntegracaoNascimentoDisplay = document.getElementById('esocial_integracao_nascimento_display');
+    const esocialIntegradoInput = document.getElementById('{{ form.func_esocial_integrado.id_for_label }}');
+    const esocialDataIntegracaoInput = document.getElementById('{{ form.func_esocial_data_integracao.id_for_label }}');
+    const esocialNumeroReciboInput = document.getElementById('{{ form.func_esocial_numero_recibo.id_for_label }}');
+    const esocialIntegracaoStatus = document.getElementById('esocial-integracao-status');
+    const esocialIntegracaoIcon = document.getElementById('esocial-integracao-icon');
+    const esocialIntegracaoText = document.getElementById('esocial-integracao-text');
+
+    function applyMask(value, type) {
+      const digits = String(value || '').replace(/\D/g, '');
+
+      if (type === 'cpf') {
+        return digits
+          .slice(0, 11)
+          .replace(/^(\d{3})(\d)/, '$1.$2')
+          .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+          .replace(/\.(\d{3})(\d)/, '.$1-$2');
+      }
+
+      if (type === 'nis') {
+        return digits
+          .slice(0, 11)
+          .replace(/^(\d{3})(\d)/, '$1.$2')
+          .replace(/^(\d{3})\.(\d{5})(\d)/, '$1.$2.$3')
+          .replace(/\.(\d{2})(\d)/, '.$1-$2');
+      }
+
+      if (type === 'ddd') {
+        if (!digits) {
+          return '';
+        }
+
+        const ddd = digits.slice(0, 2);
+        return ddd.length === 2 ? `(${ddd})` : `(${ddd}`;
+      }
+
+      if (type === 'telefone') {
+        return digits
+          .slice(0, 8)
+          .replace(/^(\d{4})(\d)/, '$1-$2');
+      }
+
+      if (type === 'celular') {
+        return digits
+          .slice(0, 9)
+          .replace(/^(\d{5})(\d)/, '$1-$2');
+      }
+
+      return value;
+    }
+
+    document.querySelectorAll('[data-mask]').forEach((input) => {
+      input.value = applyMask(input.value, input.getAttribute('data-mask'));
+      input.addEventListener('input', () => {
+        input.value = applyMask(input.value, input.getAttribute('data-mask'));
+      });
     });
-  </script>
-  {% endblock %}
+
+    document.querySelectorAll('[data-digits-only="true"]').forEach((input) => {
+      input.value = input.value.replace(/\D/g, '');
+      input.addEventListener('input', () => {
+        input.value = input.value.replace(/\D/g, '');
+      });
+    });
+
+    document.querySelectorAll('[data-decimal-2="true"]').forEach((input) => {
+      const applyDecimal2 = (el) => {
+        let v = (el.value || '').toString();
+        if (!v) return;
+        v = v.replace(/[^\d,.-]/g, '');
+        const neg = v.startsWith('-');
+        if (neg) v = v.slice(1);
+        v = v.replace(/,/g, '.');
+        const parts = v.split('.');
+        if (parts.length > 2) {
+          v = parts.shift() + '.' + parts.join('');
+        } else if (parts.length === 2) {
+          parts[1] = parts[1].slice(0, 2);
+          v = parts[0] + '.' + parts[1];
+        }
+        if (neg) v = '-' + v;
+        el.value = v;
+      };
+      applyDecimal2(input);
+      input.addEventListener('input', () => applyDecimal2(input));
+    });
+
+    function parseNascimento(value) {
+      if (!value) {
+        return null;
+      }
+
+      if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        const [year, month, day] = value.split('-').map(Number);
+        return new Date(year, month - 1, day);
+      }
+
+      if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
+        const [day, month, year] = value.split('/').map(Number);
+        return new Date(year, month - 1, day);
+      }
+
+      return null;
+    }
+
+    function atualizarIdade() {
+      if (!nascimentoInput || !idadeDisplay) {
+        return;
+      }
+
+      const nascimento = parseNascimento(nascimentoInput.value);
+      if (!nascimento || Number.isNaN(nascimento.getTime())) {
+        idadeDisplay.textContent = '';
+        return;
+      }
+
+      const hoje = new Date();
+      let idade = hoje.getFullYear() - nascimento.getFullYear();
+      const mesAtual = hoje.getMonth();
+      const diaAtual = hoje.getDate();
+      const mesNascimento = nascimento.getMonth();
+      const diaNascimento = nascimento.getDate();
+
+      if (mesAtual < mesNascimento || (mesAtual === mesNascimento && diaAtual < diaNascimento)) {
+        idade -= 1;
+      }
+
+      idadeDisplay.textContent = idade >= 0 ? `${idade} anos` : '';
+    }
+
+    function formatDateForDisplay(value) {
+      if (!value) {
+        return '';
+      }
+
+      if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        const [year, month, day] = value.split('-');
+        return `${day}/${month}/${year}`;
+      }
+
+      return value;
+    }
+
+    function formatDateTimeForDisplay(value) {
+      if (!value) {
+        return '';
+      }
+
+      if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)) {
+        const [datePart, timePart] = value.split('T');
+        const [year, month, day] = datePart.split('-');
+        return `${day}/${month}/${year} ${timePart}`;
+      }
+
+      if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}(:\d{2})?$/.test(value)) {
+        const [datePart, timePart] = value.split(' ');
+        const [year, month, day] = datePart.split('-');
+        return `${day}/${month}/${year} ${timePart.slice(0, 5)}`;
+      }
+
+      return value;
+    }
+
+    function sincronizarResumoESocial() {
+      if (esocialNomeDisplay && nomeInput) {
+        esocialNomeDisplay.value = nomeInput.value || '';
+      }
+
+      if (esocialCpfDisplay && cpfInput) {
+        esocialCpfDisplay.value = applyMask(cpfInput.value || '', 'cpf');
+      }
+
+      if (esocialNascimentoDisplay && nascimentoInput) {
+        esocialNascimentoDisplay.value = formatDateForDisplay(nascimentoInput.value || '');
+      }
+
+      if (esocialIntegracaoNomeDisplay && nomeInput) {
+        esocialIntegracaoNomeDisplay.value = nomeInput.value || '';
+      }
+
+      if (esocialIntegracaoCpfDisplay && cpfInput) {
+        esocialIntegracaoCpfDisplay.value = applyMask(cpfInput.value || '', 'cpf');
+      }
+
+      if (esocialIntegracaoPisDisplay && pisInput) {
+        esocialIntegracaoPisDisplay.value = applyMask(pisInput.value || '', 'nis');
+      }
+
+      if (esocialIntegracaoNascimentoDisplay && nascimentoInput) {
+        esocialIntegracaoNascimentoDisplay.value = formatDateForDisplay(nascimentoInput.value || '');
+      }
+    }
+
+    function atualizarStatusIntegracaoESocial() {
+      if (!esocialIntegracaoStatus || !esocialIntegracaoIcon || !esocialIntegracaoText || !esocialIntegradoInput) {
+        return;
+      }
+
+      const integrado = esocialIntegradoInput.checked;
+      const dataIntegracao = esocialDataIntegracaoInput ? formatDateTimeForDisplay(esocialDataIntegracaoInput.value || '') : '';
+      const numeroRecibo = esocialNumeroReciboInput ? (esocialNumeroReciboInput.value || '').trim() : '';
+
+      esocialIntegracaoStatus.classList.remove('alert-secondary', 'alert-success');
+      esocialIntegracaoIcon.className = 'bi';
+
+      if (integrado) {
+        esocialIntegracaoStatus.classList.add('alert-success');
+        esocialIntegracaoIcon.classList.add('bi-check-circle-fill', 'text-success');
+
+        const partes = ['Funcionário integrado no eSocial'];
+        if (dataIntegracao) {
+          partes.push(`em ${dataIntegracao}`);
+        }
+        if (numeroRecibo) {
+          partes.push(`número do recibo: ${numeroRecibo}`);
+        }
+        esocialIntegracaoText.textContent = `${partes.join(' ')}.`;
+        return;
+      }
+
+      esocialIntegracaoStatus.classList.add('alert-secondary');
+      esocialIntegracaoIcon.classList.add('bi-circle', 'text-secondary');
+      esocialIntegracaoText.textContent = 'Funcionário ainda não integrado no eSocial.';
+    }
+
+    function getField(fieldName) {
+      return document.querySelector(`[name="${fieldName}"]`);
+    }
+
+    function fillCepFields(data, options) {
+      const overwrite = options && options.overwrite === true;
+      const mapping = [
+        ['func_ende', data.logradouro || ''],
+        ['func_ende_comp', data.complemento || ''],
+        ['func_ende_bair', data.bairro || ''],
+        ['func_ende_cida', data.localidade || ''],
+        ['func_ende_uf', data.uf || ''],
+      ];
+
+      mapping.forEach(([name, value]) => {
+        const field = getField(name);
+        if (!field || !value) {
+          return;
+        }
+
+        if (!overwrite && (field.value || '').trim()) {
+          return;
+        }
+
+        field.value = value;
+        field.dispatchEvent(new Event('input', { bubbles: true }));
+        field.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+    }
+
+    function bindCepLookup() {
+      if (!cepInput) {
+        return;
+      }
+
+      let lastFetchedCep = '';
+
+      function clearCepError() {
+        cepInput.setCustomValidity('');
+      }
+
+      function handleCepLookup(overwrite) {
+        const cep = cepInput.value.replace(/\D/g, '');
+        clearCepError();
+
+        if (cep.length !== 8 || cep === lastFetchedCep) {
+          return;
+        }
+
+        fetch('https://viacep.com.br/ws/' + cep + '/json/')
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error('Falha ao consultar o CEP.');
+            }
+            return response.json();
+          })
+          .then((data) => {
+            if (data.erro) {
+              lastFetchedCep = '';
+              cepInput.setCustomValidity('CEP nao encontrado.');
+              cepInput.reportValidity();
+              return;
+            }
+
+            lastFetchedCep = cep;
+            clearCepError();
+            fillCepFields(data, { overwrite: overwrite === true });
+          })
+          .catch(() => {
+            lastFetchedCep = '';
+            cepInput.setCustomValidity('Nao foi possivel consultar o CEP agora.');
+            cepInput.reportValidity();
+          });
+      }
+
+      cepInput.addEventListener('input', () => {
+        clearCepError();
+        if (cepInput.value.replace(/\D/g, '').length < 8) {
+          lastFetchedCep = '';
+        }
+      });
+
+      cepInput.addEventListener('blur', () => {
+        handleCepLookup(true);
+      });
+
+      cepInput.addEventListener('change', () => {
+        handleCepLookup(true);
+      });
+
+      if (cepInput.value.replace(/\D/g, '').length === 8) {
+        handleCepLookup(false);
+      }
+    }
+
+    if (nascimentoInput) {
+      nascimentoInput.addEventListener('input', atualizarIdade);
+      nascimentoInput.addEventListener('change', atualizarIdade);
+      atualizarIdade();
+      nascimentoInput.addEventListener('input', sincronizarResumoESocial);
+      nascimentoInput.addEventListener('change', sincronizarResumoESocial);
+    }
+
+    if (nomeInput) {
+      nomeInput.addEventListener('input', sincronizarResumoESocial);
+      nomeInput.addEventListener('change', sincronizarResumoESocial);
+    }
+
+    if (cpfInput) {
+      cpfInput.addEventListener('input', sincronizarResumoESocial);
+      cpfInput.addEventListener('change', sincronizarResumoESocial);
+    }
+
+    if (pisInput) {
+      pisInput.addEventListener('input', sincronizarResumoESocial);
+      pisInput.addEventListener('change', sincronizarResumoESocial);
+    }
+
+    if (esocialIntegradoInput) {
+      esocialIntegradoInput.addEventListener('change', atualizarStatusIntegracaoESocial);
+    }
+
+    if (esocialDataIntegracaoInput) {
+      esocialDataIntegracaoInput.addEventListener('input', atualizarStatusIntegracaoESocial);
+      esocialDataIntegracaoInput.addEventListener('change', atualizarStatusIntegracaoESocial);
+    }
+
+    if (esocialNumeroReciboInput) {
+      esocialNumeroReciboInput.addEventListener('input', atualizarStatusIntegracaoESocial);
+      esocialNumeroReciboInput.addEventListener('change', atualizarStatusIntegracaoESocial);
+    }
+
+    bindCepLookup();
+    sincronizarResumoESocial();
+    atualizarStatusIntegracaoESocial();
+
+    function mascaraCPF(apenasDigitos) {
+      const d = (apenasDigitos || '').replace(/\D/g, '').slice(0, 11);
+      if (d.length <= 3) return d;
+      if (d.length <= 6) return d.slice(0, 3) + '.' + d.slice(3);
+      if (d.length <= 9) return d.slice(0, 3) + '.' + d.slice(3, 6) + '.' + d.slice(6);
+      return d.slice(0, 3) + '.' + d.slice(3, 6) + '.' + d.slice(6, 9) + '-' + d.slice(9);
+    }
+    document.querySelectorAll('.cpf-mask').forEach((el) => {
+      const raw = (el.textContent || '').trim();
+      if (raw && /^\d{11}$/.test(raw.replace(/\D/g, ''))) {
+        el.textContent = mascaraCPF(raw);
+      }
+    });
+
+    const firstError = document.querySelector('.is-invalid, .field-error');
+    if (!firstError) return;
+    const pane = firstError.closest('.tab-pane');
+    if (!pane) return;
+    const trigger = document.querySelector(`[data-bs-target="#${pane.id}"]`);
+    if (trigger) trigger.click();
+  });
+</script>
+{% endblock %}

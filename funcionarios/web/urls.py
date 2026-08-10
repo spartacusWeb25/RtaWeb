@@ -10,6 +10,6 @@ app_name = "funcionarios"
 urlpatterns = [
     path("", FuncionarioListView.as_view(), name="listar"),
     path("novo/", FuncionarioCreateView.as_view(), name="criar"),
-    path("<int:func_codi>/editar/", FuncionarioUpdateView.as_view(), name="atualizar"),
-    path("<int:func_codi>/excluir/", FuncionarioDeleteView.as_view(), name="deletar"),
+    path("<int:func_empr>/<int:func_fili>/<int:func_codi>/editar/", FuncionarioUpdateView.as_view(), name="atualizar"),
+    path("<int:func_empr>/<int:func_fili>/<int:func_codi>/excluir/", FuncionarioDeleteView.as_view(), name="deletar"),
 ]

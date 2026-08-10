@@ -1,27 +1,41 @@
 from django.db import models
 from core.consultas import BancoConsulta
 
-class Dependentesrh(models.Model):
-    registro = models.CharField(max_length=14, db_column='registro', primary_key=True)
-    depe_empr = models.IntegerField()
-    depe_func = models.IntegerField()
-    depe_nome = models.CharField(max_length=60, blank=True, null=True)
-    depe_sexo = models.CharField(max_length=1, blank=True, null=True)
-    depe_tipo = models.IntegerField(blank=True, null=True)
-    depe_dana = models.DateField(blank=True, null=True)
-    depe_sate = models.DateField(blank=True, null=True)
-    depe_iate = models.DateField(blank=True, null=True)
-    depe_pate = models.DateField(blank=True, null=True)
-    depe_obse = models.TextField(blank=True, null=True)
-    field_log_data = models.DateField(db_column='_log_data', blank=True, null=True)  # Field renamed because it started with '_'.   
-    field_log_time = models.TimeField(db_column='_log_time', blank=True, null=True)  # Field renamed because it started with '_'.   
-    depe_codi = models.IntegerField()
-    depe_cpf = models.CharField(max_length=11, blank=True, null=True)
-    depe_inca = models.BooleanField(blank=True, null=True)
 
-    objects = BancoConsulta()   
-    
+class Dependentesrh(models.Model):
+    registro = models.CharField(max_length=14, primary_key=True)
+    depe_empr = models.IntegerField()
+    depe_fili = models.IntegerField()
+    depe_func = models.IntegerField()
+    depe_codi = models.IntegerField()
+
+    depe_nome = models.CharField(max_length=120, blank=True, null=True)
+    depe_nascimento = models.DateField(blank=True, null=True)
+    depe_cpf = models.CharField(max_length=11, blank=True, null=True)
+    depe_matricula = models.CharField(max_length=30, blank=True, null=True)
+    depe_local_nascimento = models.CharField(max_length=60, blank=True, null=True)
+    depe_cidade_codigo = models.IntegerField(blank=True, null=True)
+    depe_cidade = models.CharField(max_length=60, blank=True, null=True)
+    depe_cartorio = models.CharField(max_length=120, blank=True, null=True)
+    depe_numero_registro = models.CharField(max_length=20, blank=True, null=True)
+    depe_numero_livro = models.CharField(max_length=20, blank=True, null=True)
+    depe_numero_folha = models.CharField(max_length=20, blank=True, null=True)
+    depe_data_entrega = models.DateField(blank=True, null=True)
+    depe_tipo_dependencia = models.IntegerField(blank=True, null=True)
+    depe_data_baixa = models.DateField(blank=True, null=True)
+    depe_ir_ate = models.CharField(max_length=7, blank=True, null=True)
+    depe_tipo_dependente = models.IntegerField(blank=True, null=True)
+    depe_invalido = models.BooleanField(default=False, blank=True, null=True)
+    depe_observacoes = models.TextField(blank=True, null=True)
+
+    objects = BancoConsulta()
+
     class Meta:
         managed = False
-        db_table = 'dependentesrh'
-        unique_together = (('registro', 'depe_empr', 'depe_func', 'depe_codi'),)
+        db_table = "dependentesrh"
+        unique_together = (
+            ("registro", "depe_empr", "depe_fili", "depe_func", "depe_codi"),
+        )
+
+    def __str__(self):
+        return self.depe_nome or f"Dependente #{self.depe_codi}"

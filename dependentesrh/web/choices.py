@@ -1,0 +1,302 @@
+UF_POR_CODIGO_IBGE = {
+    11: "RO", 12: "AC", 13: "AM", 14: "RR", 15: "PA", 16: "AP", 17: "TO",
+    21: "MA", 22: "PI", 23: "CE", 24: "RN", 25: "PB", 26: "PE", 27: "AL", 28: "SE", 29: "BA",
+    31: "MG", 32: "ES", 33: "RJ",
+    41: "PR", 42: "SC", 43: "RS",
+    50: "MS", 51: "MT", 52: "GO", 53: "DF",
+}
+
+TIPO_DEPENDENCIA_CHOICES = [
+    ("1", "1 - IR (Imposto de Renda)"),
+    ("2", "2 - SF (Salário Família)"),
+    ("3", "3 - PL (Plano de Saúde)"),
+    ("4", "4 - PE (Previdência)"),
+    ("9", "9 - OU (Outros)"),
+]
+
+TIPO_DEPENDENTE_CHOICES = [
+    ("01", "01 - Cônjuge"),
+    ("02", "02 - Companheiro(a) com o(a) qual tenha filho ou viva há mais de 5 anos"),
+    ("03", "03 - Filho(a) ou enteado(a)"),
+    ("04", "04 - Filho(a) ou enteado(a), universitário(a) ou cursando escola técnica de 2º grau"),
+    ("05", "05 - Irmão(ã), neto(a) ou bisneto(a) sem arrimo dos pais"),
+    ("06", "06 - Irmão(ã), neto(a) ou bisneto(a) sem arrimo dos pais, universitário(a)"),
+    ("07", "07 - Pais, avós e bisavós"),
+    ("08", "08 - Menor pobre até 14 anos, sob guarda do titular"),
+    ("09", "09 - Tutelado até 21 anos, ou universitário até 24 anos"),
+    ("10", "10 - Pessoas absolutamente incapazes, sob curatela do titular"),
+    ("11", "11 - Filho(a) ou enteado(a) com deficiência física ou mental"),
+    ("12", "12 - Irmão(ã), neto(a) ou bisneto(a) com deficiência física ou mental"),
+    ("13", "13 - Cônjuge com deficiência física ou mental"),
+    ("14", "14 - Companheiro(a) com deficiência física ou mental"),
+    ("15", "15 - Pais, avós e bisavós com deficiência física ou mental"),
+    ("99", "99 - Outros"),
+]
+
+_TOP_CIDADES_IBGE = [
+    ("1100288", "Porto Velho", "RO"),
+    ("1100106", "Cacoal", "RO"),
+    ("1100205", "Ji-Paraná", "RO"),
+    ("1100122", "Colorado do Oeste", "RO"),
+    ("1100189", "Guajará-Mirim", "RO"),
+    ("1100338", "Rolim de Moura", "RO"),
+    ("1100403", "Vilhena", "RO"),
+    ("1100023", "Ariquemes", "RO"),
+    ("1100304", "Presidente Médici", "RO"),
+    ("1100015", "Alta Floresta D'Oeste", "RO"),
+
+    ("1200344", "Rio Branco", "AC"),
+    ("1200138", "Cruzeiro do Sul", "AC"),
+    ("1200104", "Brasiléia", "AC"),
+    ("1200385", "Sena Madureira", "AC"),
+    ("1200203", "Feijó", "AC"),
+    ("1200013", "Acrelândia", "AC"),
+
+    ("1302404", "Manaus", "AM"),
+    ("1302602", "Parintins", "AM"),
+    ("1302305", "Manaquiri", "AM"),
+    ("1302206", "Manacapuru", "AM"),
+    ("1304401", "Humaitá", "AM"),
+    ("1300602", "Altamira", "AM"),
+    ("1301653", "Itacoatiara", "AM"),
+    ("1301109", "Coari", "AM"),
+    ("1301000", "Codajás", "AM"),
+    ("1301406", "Guajará", "AM"),
+
+    ("1400068", "Boa Vista", "RR"),
+    ("1400282", "Pacaraima", "RR"),
+    ("1400159", "Caracaraí", "RR"),
+    ("1400200", "Cantá", "RR"),
+    ("1400050", "Amajari", "RR"),
+
+    ("1501402", "Belém", "PA"),
+    ("1500800", "Ananindeua", "PA"),
+    ("1504455", "Marabá", "PA"),
+    ("1500602", "Altamira", "PA"),
+    ("1500107", "Abaetetuba", "PA"),
+    ("1500206", "Camaragibe", "PA"),
+    ("1502909", "Barcarena", "PA"),
+    ("1502509", "Castanhal", "PA"),
+    ("1501501", "Benevides", "PA"),
+    ("1507003", "Santarém", "PA"),
+
+    ("1600213", "Macapá", "AP"),
+    ("1600304", "Santana", "AP"),
+    ("1600205", "Laranjal do Jari", "AP"),
+    ("1600080", "Cutias", "AP"),
+    ("1600056", "Calçoene", "AP"),
+
+    ("1705309", "Palmas", "TO"),
+    ("1703701", "Gurupi", "TO"),
+    ("1700350", "Araguaína", "TO"),
+    ("1705853", "Porto Nacional", "TO"),
+    ("1705457", "Paraíso do Tocantins", "TO"),
+    ("1707206", "Tocantinópolis", "TO"),
+    ("1704708", "Miracema do Tocantins", "TO"),
+    ("1700251", "Aragominas", "TO"),
+    ("1704500", "Marianópolis do Tocantins", "TO"),
+    ("1700301", "Araguaçu", "TO"),
+
+    ("2103802", "São Luís", "MA"),
+    ("2101871", "Imperatriz", "MA"),
+    ("2103471", "Santa Inês", "MA"),
+    ("2105402", "Timon", "MA"),
+    ("2100055", "Açailândia", "MA"),
+    ("2103402", "Caxias", "MA"),
+    ("2100501", "Balsas", "MA"),
+    ("2101806", "Icatu", "MA"),
+    ("2103786", "São José de Ribamar", "MA"),
+    ("2100105", "Afonso Cunha", "MA"),
+
+    ("2203851", "Teresina", "PI"),
+    ("2202555", "Picos", "PI"),
+    ("2202381", "Parnaíba", "PI"),
+    ("2201001", "Esperantina", "PI"),
+    ("2202225", "Oeiras", "PI"),
+    ("2200151", "Altos", "PI"),
+    ("2200235", "Amarante", "PI"),
+    ("2201605", "José de Freitas", "PI"),
+    ("2200367", "Barras", "PI"),
+    ("2201308", "Gurupi", "PI"),
+
+    ("2304281", "Uiraúna", "PB"),
+    ("2304274", "Santa Rita", "PB"),
+    ("2304266", "Patos", "PB"),
+    ("2304258", "Sousa", "PB"),
+    ("2304240", "Cajazeiras", "PB"),
+    ("2304232", "Campina Grande", "PB"),
+    ("2304224", "Cabedelo", "PB"),
+    ("2304216", "Bayeux", "PB"),
+    ("2304208", "João Pessoa", "PB"),
+    ("2304193", "Pombal", "PB"),
+
+    ("2611606", "Recife", "PE"),
+    ("2602902", "Jaboatão dos Guararapes", "PE"),
+    ("2604106", "Olinda", "PE"),
+    ("2605309", "Paulista", "PE"),
+    ("2607901", "São Lourenço da Mata", "PE"),
+    ("2609602", "Cabo", "PE"),
+    ("2611101", "Pernambuco", "PE"),
+    ("2601901", "Santo Agostinho", "PE"),
+    ("2607107", "Camaragibe", "PE"),
+    ("2601607", "Igarassu", "PE"),
+
+    ("2704302", "Maceió", "AL"),
+    ("2702409", "Arapiraca", "AL"),
+    ("2700308", "Atalaia", "AL"),
+    ("2701701", "Delmiro Gouveia", "AL"),
+    ("2703704", "Palmeira dos Índios", "AL"),
+    ("2703506", "Penedo", "AL"),
+    ("2705408", "Porto Calvo", "AL"),
+    ("2706009", "Piranhas", "AL"),
+    ("2706108", "Coruripe", "AL"),
+    ("2704203", "Marechal Deodoro", "AL"),
+
+    ("2800308", "Aracaju", "SE"),
+    ("2800100", "América Dourada", "SE"),
+    ("2800209", "Barra dos Coqueiros", "SE"),
+    ("2800407", "Boquim", "SE"),
+    ("2800506", "Capela", "SE"),
+    ("2800605", "Carmópolis", "SE"),
+    ("2800704", "Carira", "SE"),
+    ("2801000", "Canindé de São Francisco", "SE"),
+    ("2801109", "Conceição do Coité", "SE"),
+    ("2801208", "Cristinápolis", "SE"),
+
+    ("2927408", "Salvador", "BA"),
+    ("2930906", "Feira de Santana", "BA"),
+    ("2925284", "Vitoria da Conquista", "BA"),
+    ("2914651", "Camaçari", "BA"),
+    ("2916809", "Itabuna", "BA"),
+    ("2919508", "Jequié", "BA"),
+    ("2920506", "Juazeiro", "BA"),
+    ("2922304", "Alagoinhas", "BA"),
+    ("2911305", "Barreiras", "BA"),
+    ("2919201", "Ilhéus", "BA"),
+
+    ("3170206", "Belo Horizonte", "MG"),
+    ("3170107", "Uberlândia", "MG"),
+    ("3169307", "Contagem", "MG"),
+    ("3168712", "Juiz de Fora", "MG"),
+    ("3168603", "Betim", "MG"),
+    ("3167209", "Montes Claros", "MG"),
+    ("3167100", "Sete Lagoas", "MG"),
+    ("3166605", "Ipatinga", "MG"),
+    ("3166100", "Uberaba", "MG"),
+    ("3165605", "Governador Valadares", "MG"),
+
+    ("3205309", "Vitória", "ES"),
+    ("3205200", "Vila Velha", "ES"),
+    ("3205101", "Serra", "ES"),
+    ("3205068", "Cariacica", "ES"),
+    ("3201504", "Colatina", "ES"),
+    ("3201306", "Cachoeiro de Itapemirim", "ES"),
+    ("3202405", "Linhares", "ES"),
+    ("3202108", "Guarapari", "ES"),
+    ("3201801", "Itapemirim", "ES"),
+    ("3203304", "São Mateus", "ES"),
+
+    ("3304557", "Rio de Janeiro", "RJ"),
+    ("3304904", "São Gonçalo", "RJ"),
+    ("3303906", "Duque de Caxias", "RJ"),
+    ("3301702", "Nova Iguaçu", "RJ"),
+    ("3304707", "Niterói", "RJ"),
+    ("3302403", "Belford Roxo", "RJ"),
+    ("3302304", "Campos dos Goytacazes", "RJ"),
+    ("3301900", "São João de Meriti", "RJ"),
+    ("3300255", "Petrópolis", "RJ"),
+    ("3304201", "Volta Redonda", "RJ"),
+
+    ("4106902", "Curitiba", "PR"),
+    ("4113700", "Londrina", "PR"),
+    ("4115200", "Maringá", "PR"),
+    ("4119905", "Ponta Grossa", "PR"),
+    ("4108204", "Cascavel", "PR"),
+    ("4104808", "Foz do Iguaçu", "PR"),
+    ("4107652", "Guarapuava", "PR"),
+    ("4127108", "Paranaguá", "PR"),
+    ("4103909", "Campo Mourão", "PR"),
+    ("4109401", "Colombo", "PR"),
+
+    ("4205407", "Florianópolis", "SC"),
+    ("4209102", "Joinville", "SC"),
+    ("4202404", "Blumenau", "SC"),
+    ("4211004", "São José", "SC"),
+    ("4212650", "Chapecó", "SC"),
+    ("4216605", "Criciúma", "SC"),
+    ("4205001", "Balneário Camboriú", "SC"),
+    ("4205708", "Itajaí", "SC"),
+    ("4207502", "Lages", "SC"),
+    ("4210608", "Xanxerê", "SC"),
+
+    ("4314902", "Porto Alegre", "RS"),
+    ("4305108", "Caxias do Sul", "RS"),
+    ("4316008", "Pelotas", "RS"),
+    ("4318705", "Santa Maria", "RS"),
+    ("4308906", "Gramado", "RS"),
+    ("4312608", "Novo Hamburgo", "RS"),
+    ("4311701", "Gravataí", "RS"),
+    ("4308607", "Viamão", "RS"),
+    ("4309302", "São Leopoldo", "RS"),
+    ("4323002", "Rio Grande", "RS"),
+
+    ("5002704", "Campo Grande", "MS"),
+    ("5003702", "Dourados", "MS"),
+    ("5006605", "Três Lagoas", "MS"),
+    ("5006209", "Corumbá", "MS"),
+    ("5007902", "Naviraí", "MS"),
+    ("5003207", "Coxim", "MS"),
+    ("5005700", "Ponta Porã", "MS"),
+    ("5001902", "Maracaju", "MS"),
+    ("5004506", "Sidrolândia", "MS"),
+    ("5001530", "Aquidauana", "MS"),
+
+    ("5103403", "Cuiabá", "MT"),
+    ("5107204", "Várzea Grande", "MT"),
+    ("5107600", "Rondonópolis", "MT"),
+    ("5104629", "Sinop", "MT"),
+    ("5102603", "Barra do Garças", "MT"),
+    ("5105106", "Diamantino", "MT"),
+    ("5101309", "Alta Floresta", "MT"),
+    ("5103154", "Cáceres", "MT"),
+    ("5106259", "Primavera do Leste", "MT"),
+    ("5105801", "Lucas do Rio Verde", "MT"),
+
+    ("5208707", "Goiânia", "GO"),
+    ("5201405", "Anápolis", "GO"),
+    ("5203105", "Itumbiara", "GO"),
+    ("5205109", "Catalão", "GO"),
+    ("5204705", "Rio Verde", "GO"),
+    ("5201108", "Aparecida de Goiânia", "GO"),
+    ("5202205", "Luziânia", "GO"),
+    ("5208257", "Porangatu", "GO"),
+    ("5203709", "Novo Gama", "GO"),
+    ("5206209", "Valparaíso de Goiás", "GO"),
+
+    ("5300108", "Brasília", "DF"),
+]
+
+def _build_cidades_choices():
+    choices = [("", "Selecione a cidade...")]
+    seen = set()
+    for codigo, nome, uf in _TOP_CIDADES_IBGE:
+        try:
+            codigo_num = int(codigo)
+        except Exception:
+            continue
+        if codigo_num in seen:
+            continue
+        seen.add(codigo_num)
+        choices.append((codigo_num, f"{codigo:0>7} — {nome} / {uf}"))
+    return choices
+
+CIDADES_TOP_BR_CHOICES = _build_cidades_choices()
+
+CIDADES_POR_CODIGO = {}
+for codigo, nome, uf in _TOP_CIDADES_IBGE:
+    try:
+        codigo_num = int(codigo)
+    except Exception:
+        continue
+    if codigo_num not in CIDADES_POR_CODIGO:
+        CIDADES_POR_CODIGO[codigo_num] = (nome, uf)

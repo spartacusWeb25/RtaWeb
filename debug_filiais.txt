@@ -1,0 +1,36 @@
+
+============================================================
+[DEBUG FILIAIS] 2026-08-07 16:01:08 | banco='22553164000189' | db_alias='default'
+[DEBUG FILIAIS] empr_padrao_cod=1, fili_padrao_cod=1
+[DEBUG FILIAIS] qs.count() = 3 (se 0, query nao voltou nada)
+  [0] empr_empr=1 | empr_fili=1 | empr_nome='DELTA LTDA'
+  [1] empr_empr=1 | empr_fili=2 | empr_nome='GALVANICA'
+  [2] empr_empr=2 | empr_fili=1 | empr_nome='TESTE'
+[DEBUG FILIAIS] filiais_da_empresa_logada (final) = [(1, 1, 'DELTA LTDA'), (1, 2, 'GALVANICA')]
+  [opcao 1] value=1 → label='1 — DELTA LTDA'
+  [opcao 2] value=2 → label='1 — GALVANICA'
+============================================================
+
+============================================================
+[DEBUG FILIAIS] 2026-08-07 16:01:08 | banco='22553164000189' | db_alias='default'
+[DEBUG FILIAIS] empr_padrao_cod=1, fili_padrao_cod=1
+[DEBUG FILIAIS] qs.count() = 3 (se 0, query nao voltou nada)
+  [0] empr_empr=1 | empr_fili=1 | empr_nome='DELTA LTDA'
+  [1] empr_empr=1 | empr_fili=2 | empr_nome='GALVANICA'
+  [2] empr_empr=2 | empr_fili=1 | empr_nome='TESTE'
+[DEBUG FILIAIS] filiais_da_empresa_logada (final) = [(1, 1, 'DELTA LTDA'), (1, 2, 'GALVANICA')]
+  [opcao 1] value=1 → label='1 — DELTA LTDA'
+  [opcao 2] value=2 → label='1 — GALVANICA'
+============================================================
+
+============================================================
+[DEBUG FILIAIS] 2026-08-07 16:01:08 | banco='22553164000189' | db_alias='default'
+[DEBUG FILIAIS] empr_padrao_cod=1, fili_padrao_cod=1
+[DEBUG FILIAIS] qs.count() = 3 (se 0, query nao voltou nada)
+  [0] empr_empr=1 | empr_fili=1 | empr_nome='DELTA LTDA'
+  [1] empr_empr=1 | empr_fili=2 | empr_nome='GALVANICA'
+  [2] empr_empr=2 | empr_fili=1 | empr_nome='TESTE'
+[DEBUG FILIAIS] filiais_da_empresa_logada (final) = [(1, 1, 'DELTA LTDA'), (1, 2, 'GALVANICA')]
+  [opcao 1] value=1 → label='1 — DELTA LTDA'
+  [opcao 2] value=2 → label='1 — GALVANICA'
+============================================================

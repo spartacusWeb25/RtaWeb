@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Excluir Dependente — RtaWeb{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    {% if funcionario_contexto %}
+    <div class="card mb-4" style="border-color: var(--bs-primary-border-subtle, var(--border-default));">
+        <div class="card-header py-2" style="background: var(--bs-primary-bg-subtle); color: var(--bs-primary-text-emphasis);">
+            <div class="d-flex flex-wrap align-items-center gap-3">
+                <i class="bi bi-person-badge fs-4" style="color: var(--bs-primary-text-emphasis);"></i>
+                <div class="flex-grow-1">
+                    <div class="d-flex flex-wrap gap-3 align-items-baseline">
+                        <span class="fw-bold fs-6" style="color: var(--text-primary, var(--bs-emphasis-color));">{{ funcionario_contexto.funcionario.func_nome|default:"-" }}</span>
+                        <small style="color: var(--text-secondary, var(--bs-secondary-color));">
+                            Cód. Funcionário: #{{ funcionario_contexto.funcionario.func_codi|default:"-" }}
+                        </small>
+                        {% if funcionario_contexto.empresa_nome %}
+                            <small style="color: var(--text-secondary, var(--bs-secondary-color)); margin-left: .5rem;">
+                                <i class="bi bi-building ms-2"></i>{{ funcionario_contexto.empresa_nome }}
+                            </small>
+                        {% endif %}
+                    </div>
+                </div>
+                <a href="{{ url_voltar|default:'#' }}"
+                   {% if not url_voltar %}onclick="window.history.back(); return false;"{% endif %}
+                   class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-arrow-left"></i> Voltar
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card shadow-sm" style="background: var(--surface-card, var(--bs-card-bg)); border-color: var(--border-default, var(--bs-border-color));">
+        <div class="card-header fw-semibold" style="background: var(--surface-th, var(--bs-secondary-bg)); color: var(--text-primary, var(--bs-emphasis-color)); border-color: var(--border-default, var(--bs-border-color));">
+            Confirmação
+        </div>
+        <div class="card-body" style="color: var(--text-primary, var(--bs-body-color));">
+            <p>Deseja realmente excluir o dependente <strong>{{ dependente.depe_nome|default:objeto_nome }} (Cód. {{ dependente.depe_codi|default:"-" }})</strong>?</p>
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-trash"></i> Confirmar Exclusão
+                </button>
+                <a href="{{ url_voltar|default:'#' }}"
+                   {% if not url_voltar %}onclick="window.history.back(); return false;"{% endif %}
+                   class="btn btn-outline-secondary">
+                    <i class="bi bi-x"></i> Cancelar
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,513 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Admissão preliminar - RtaWeb{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+<style>
+    .admissao-preliminar-page .app-form-card {
+        max-width: 1180px;
+        margin: 0 auto;
+    }
+
+    .admissao-preliminar-page .form-grid {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 1rem;
+    }
+
+    .admissao-preliminar-page .form-grid > .full {
+        grid-column: 1 / -1;
+    }
+
+    .admissao-preliminar-page .form-grid > .span-1 {
+        grid-column: span 1;
+    }
+
+    .admissao-preliminar-page .form-grid > .span-2 {
+        grid-column: span 2;
+    }
+
+    .admissao-preliminar-page .form-grid > .span-3 {
+        grid-column: span 3;
+    }
+
+    .admissao-preliminar-page .form-grid > .span-4 {
+        grid-column: span 4;
+    }
+
+    .admissao-preliminar-page .form-grid > .span-5 {
+        grid-column: span 5;
+    }
+
+    .admissao-preliminar-page .form-grid > .span-6 {
+        grid-column: span 6;
+    }
+
+    .admissao-preliminar-page .form-grid > .span-7 {
+        grid-column: span 7;
+    }
+
+    .admissao-preliminar-page .form-grid > .span-8 {
+        grid-column: span 8;
+    }
+
+    .admissao-preliminar-page .form-grid > .span-9 {
+        grid-column: span 9;
+    }
+
+    .admissao-preliminar-page .form-grid > .span-10 {
+        grid-column: span 10;
+    }
+
+    .admissao-preliminar-page .section-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-primary, var(--bs-body-color));
+        margin-bottom: .75rem;
+    }
+
+    [data-theme='dark'] .admissao-preliminar-page .section-title {
+        color: var(--text-primary, #e6edf3);
+    }
+
+    .admissao-preliminar-page .compact-label {
+        margin-top: 2rem;
+    }
+
+    .admissao-preliminar-page .compact-readonly input {
+        background: var(--bs-secondary-bg);
+    }
+
+    .admissao-preliminar-page .ap-separator {
+        border: 0;
+        border-top: 1px solid var(--bs-border-color);
+        margin: 0 0 1rem 0;
+    }
+
+    .admissao-preliminar-page .ap-section-header {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        font-size: .95rem;
+        font-weight: 600;
+        color: var(--text-primary, var(--bs-body-color));
+        margin-bottom: .5rem;
+    }
+
+    .admissao-preliminar-page .ap-section-header .ap-icon {
+        width: 22px;
+        height: 22px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--accent-subtle, var(--bs-primary-bg-subtle));
+        color: var(--accent, var(--bs-primary-text-emphasis));
+        border-radius: 6px;
+        font-size: .85rem;
+    }
+
+    [data-theme='dark'] .admissao-preliminar-page .ap-section-header {
+        color: var(--text-primary, #e6edf3);
+    }
+
+    [data-theme='dark'] .admissao-preliminar-page .ap-section-header .ap-icon {
+        background: var(--accent-subtle, #1d2d44);
+        color: var(--accent, #4493f8);
+    }
+
+    .admissao-preliminar-page .ap-badge-auto {
+        display: inline-flex;
+        align-items: center;
+        gap: .25rem;
+        padding: .25rem .6rem;
+        border-radius: 999px;
+        font-size: .75rem;
+        font-weight: 600;
+        background: var(--bs-success-bg-subtle);
+        color: var(--bs-success-text-emphasis);
+        border: 1px solid var(--bs-success-border-subtle);
+        height: calc(1.5em + .75rem + 2px);
+        margin-top: 2rem;
+    }
+
+    .admissao-preliminar-page .ap-inline-readonly {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .5rem;
+    }
+
+    .admissao-preliminar-page .ap-inline-readonly > *:first-child {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .funcionario-age-row {
+        display: flex;
+        align-items: end;
+        gap: .75rem;
+    }
+
+    .funcionario-age-row .form-control {
+        flex: 1 1 auto;
+    }
+
+    .funcionario-age-display {
+        min-width: 4.5rem;
+        padding-bottom: .35rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    @media (max-width: 991.98px) {
+        .admissao-preliminar-page .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .admissao-preliminar-page .form-grid > * {
+            grid-column: auto !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4 admissao-preliminar-page">
+    <div class="app-form-card p-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+            <h3 class="mb-0"><i class="bi bi-person-vcard"></i> {{ titulo }}</h3>
+            <a href="{% url 'funcionarios:listar' %}?banco={{ request.banco }}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left"></i> Voltar para funcionários
+            </a>
+        </div>
+
+        <div class="alert alert-info d-flex align-items-start gap-2 mb-4">
+            <i class="bi bi-info-circle-fill flex-shrink-0 fs-5 lh-1 mt-1"></i>
+            <div>
+                <strong>Orientações:</strong> preencha os dados iniciais do colaborador abaixo. Os campos marcados com
+                <span class="text-danger">*</span> são obrigatórios. Ao finalizar, você será direcionado
+                para completar o cadastro completo e enviar os eventos iniciais ao eSocial.
+            </div>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'warning' %}alert-warning{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger">{{ form.non_field_errors|join:", " }}</div>
+        {% endif %}
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="acao" value="gerar">
+
+            <div class="mb-4">
+                <div class="ap-section-header">
+                    <span class="ap-icon"><i class="bi bi-building"></i></span>
+                    Identificação da empresa
+                </div>
+                <div class="form-grid">
+                    <div class="span-2{% if form.empresa.errors %} field-error{% endif %}">
+                        <label class="form-label" for="{{ form.empresa.id_for_label }}">{{ form.empresa.label }}</label>
+                        {{ form.empresa }}
+                        {% if form.empresa.errors %}
+                        <div class="invalid-feedback d-block">{{ form.empresa.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="span-10 compact-readonly{% if form.empresa_nome.errors %} field-error{% endif %}">
+                        <label class="form-label" for="{{ form.empresa_nome.id_for_label }}">{{ form.empresa_nome.label }}</label>
+                        {{ form.empresa_nome }}
+                    </div>
+                </div>
+            </div>
+
+            <hr class="ap-separator">
+            <div class="mb-4">
+                <div class="ap-section-header">
+                    <span class="ap-icon"><i class="bi bi-person-badge"></i></span>
+                    Dados do colaborador
+                </div>
+                <div class="form-grid">
+                    {% include "funcionarios/_field.html" with field=form.codigo col="span-2" %}
+                    {% include "funcionarios/_field.html" with field=form.nome col="span-8" %}
+                    {% include "funcionarios/_field.html" with field=form.codigo_funcionario col="span-2" %}
+
+                    {% include "funcionarios/_field.html" with field=form.tipo col="span-8" %}
+                    <div class="span-4"></div>
+
+                    {% include "funcionarios/_field.html" with field=form.cpf col="span-3" %}
+                    {% include "funcionarios/_field.html" with field=form.nis col="span-3" %}
+                    <div class="span-4{% if form.nascimento.errors %} field-error{% endif %}">
+                        <label class="form-label" for="{{ form.nascimento.id_for_label }}">
+                            {{ form.nascimento.label }}
+                            {% if form.nascimento.field.required %}<span class="text-danger">*</span>{% endif %}
+                        </label>
+                        <div class="funcionario-age-row">
+                            {{ form.nascimento }}
+                            <span id="ap_idade_display" class="funcionario-age-display"></span>
+                        </div>
+                        {% if form.nascimento.errors %}
+                        <div class="invalid-feedback d-block">{{ form.nascimento.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="span-2"></div>
+
+                    {% include "funcionarios/_field.html" with field=form.admissao col="span-2" %}
+                    {% include "funcionarios/_field.html" with field=form.tipo_funcionario col="span-5" %}
+                    {% include "funcionarios/_field.html" with field=form.salario_base col="span-3" %}
+                    <div class="span-2"></div>
+
+                    {% include "funcionarios/_field.html" with field=form.matricula_esocial col="full" %}
+                </div>
+            </div>
+
+            <hr class="ap-separator">
+            <div class="mb-4">
+                <div class="ap-section-header">
+                    <span class="ap-icon"><i class="bi bi-briefcase"></i></span>
+                    Contrato e cargo
+                </div>
+                <div class="form-grid">
+                    {% include "funcionarios/_field.html" with field=form.categoria_esocial col="full" %}
+
+                    {% include "funcionarios/_field.html" with field=form.vinculo_empregaticio col="full" %}
+
+                    {% include "funcionarios/_field.html" with field=form.cargo col="full" %}
+
+                    {% include "funcionarios/_field.html" with field=form.cbo col="full" %}
+
+                    {% include "funcionarios/_field.html" with field=form.prazo_experiencia_dias col="span-3" %}
+                    <div class="span-3{% if form.fim_primeiro_prazo.errors %} field-error{% endif %}">
+                        <label class="form-label" for="{{ form.fim_primeiro_prazo.id_for_label }}">
+                            {{ form.fim_primeiro_prazo.label }}
+                        </label>
+                        <div class="ap-inline-readonly">
+                            {{ form.fim_primeiro_prazo }}
+                        </div>
+                        {% if form.fim_primeiro_prazo.errors %}
+                        <div class="invalid-feedback d-block">{{ form.fim_primeiro_prazo.errors|join:", " }}</div>
+                        {% endif %}
+                    </div>
+                    {% include "funcionarios/_field.html" with field=form.tipo_contrato col="span-6" %}
+                </div>
+            </div>
+
+            <hr class="ap-separator">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="text-body-secondary small">
+                    <i class="bi bi-shield-check"></i> Dados validados localmente. Ao enviar, você será direcionado para completar o cadastro.
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="{% url 'admissaopreliminar:index' %}?banco={{ request.banco }}" class="btn btn-outline-danger">
+                        <i class="bi bi-eraser"></i> Limpar
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-person-plus"></i> Enviar para Funcionários
+                        <i class="bi bi-arrow-right-short ms-1"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        function applyMask(value, type) {
+            const digits = String(value || '').replace(/\D/g, '');
+
+            if (type === 'cpf') {
+                return digits
+                    .slice(0, 11)
+                    .replace(/^(\d{3})(\d)/, '$1.$2')
+                    .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+                    .replace(/\.(\d{3})(\d)/, '.$1-$2');
+            }
+
+            if (type === 'nis') {
+                return digits
+                    .slice(0, 11)
+                    .replace(/^(\d{3})(\d)/, '$1.$2')
+                    .replace(/^(\d{3})\.(\d{5})(\d)/, '$1.$2.$3')
+                    .replace(/\.(\d{2})(\d)/, '.$1-$2');
+            }
+
+            return value;
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('[data-mask]').forEach(function (input) {
+                input.value = applyMask(input.value, input.getAttribute('data-mask'));
+                input.addEventListener('input', function () {
+                    input.value = applyMask(input.value, input.getAttribute('data-mask'));
+                });
+            });
+
+            document.querySelectorAll('[data-digits-only="true"]').forEach(function (input) {
+                input.value = input.value.replace(/\D/g, '');
+                input.addEventListener('input', function () {
+                    input.value = input.value.replace(/\D/g, '');
+                });
+            });
+
+            const inputAdmissao = document.querySelector('[data-ap-field="admissao"], #id_admissao, [name="admissao"]');
+            const inputDias = document.querySelector('[data-ap-field="prazo_experiencia_dias"], #id_prazo_experiencia_dias, [name="prazo_experiencia_dias"]');
+            const inputFimPrazo = document.querySelector('[data-ap-field="fim_primeiro_prazo"], #id_fim_primeiro_prazo, [name="fim_primeiro_prazo"]');
+
+            if (typeof console !== 'undefined') {
+                console.log('[Admissao Preliminar] Campos localizados:', {
+                    admissao: !!inputAdmissao,
+                    dias: !!inputDias,
+                    fimPrazo: !!inputFimPrazo,
+                    admissaoValor: inputAdmissao ? inputAdmissao.value : null,
+                    diasValor: inputDias ? inputDias.value : null,
+                });
+            }
+
+            function calcularFimPrazo() {
+                if (!inputAdmissao || !inputDias || !inputFimPrazo) {
+                    return;
+                }
+                const valorAdmissao = String(inputAdmissao.value || '').trim();
+                const valorDias = String(inputDias.value || '').replace(/\D/g, '');
+                if (!valorAdmissao || !valorDias) {
+                    inputFimPrazo.value = '';
+                    return;
+                }
+                let dataAdmissao = null;
+                if (valorAdmissao.includes('/')) {
+                    const partesBarra = valorAdmissao.split('/');
+                    if (partesBarra.length === 3) {
+                        const dia = parseInt(partesBarra[0], 10);
+                        const mes = parseInt(partesBarra[1], 10);
+                        const ano = parseInt(partesBarra[2], 10);
+                        dataAdmissao = new Date(ano, mes - 1, dia);
+                    }
+                } else if (valorAdmissao.includes('-')) {
+                    const partes = valorAdmissao.split('-');
+                    if (partes.length === 3) {
+                        const primeira = String(partes[0] || '');
+                        if (primeira.length === 4) {
+                            const ano = parseInt(partes[0], 10);
+                            const mes = parseInt(partes[1], 10);
+                            const dia = parseInt(partes[2], 10);
+                            dataAdmissao = new Date(ano, mes - 1, dia);
+                        } else {
+                            const dia = parseInt(partes[0], 10);
+                            const mes = parseInt(partes[1], 10);
+                            const ano = parseInt(partes[2], 10);
+                            dataAdmissao = new Date(ano, mes - 1, dia);
+                        }
+                    }
+                } else {
+                    const apenasDigitos = valorAdmissao.replace(/\D/g, '');
+                    if (apenasDigitos.length === 8) {
+                        const dia = parseInt(apenasDigitos.slice(0, 2), 10);
+                        const mes = parseInt(apenasDigitos.slice(2, 4), 10);
+                        const ano = parseInt(apenasDigitos.slice(4, 8), 10);
+                        dataAdmissao = new Date(ano, mes - 1, dia);
+                    }
+                }
+                if (!dataAdmissao || isNaN(dataAdmissao.getTime())) {
+                    inputFimPrazo.value = '';
+                    return;
+                }
+                const dias = Number(valorDias);
+                if (isNaN(dias) || dias <= 0) {
+                    inputFimPrazo.value = '';
+                    return;
+                }
+                dataAdmissao.setDate(dataAdmissao.getDate() + dias);
+                const dd = String(dataAdmissao.getDate()).padStart(2, '0');
+                const mm = String(dataAdmissao.getMonth() + 1).padStart(2, '0');
+                const aaaa = String(dataAdmissao.getFullYear());
+
+                const inputType = (inputFimPrazo.getAttribute('type') || '').toLowerCase();
+                if (inputType === 'date') {
+                    inputFimPrazo.value = `${aaaa}-${mm}-${dd}`;
+                } else {
+                    inputFimPrazo.value = `${dd}/${mm}/${aaaa}`;
+                }
+            }
+
+            if (inputAdmissao) {
+                inputAdmissao.addEventListener('change', calcularFimPrazo);
+                inputAdmissao.addEventListener('blur', calcularFimPrazo);
+            }
+            if (inputDias) {
+                inputDias.addEventListener('input', calcularFimPrazo);
+                inputDias.addEventListener('change', calcularFimPrazo);
+                inputDias.addEventListener('blur', calcularFimPrazo);
+            }
+            calcularFimPrazo();
+
+            // ---------- Cálculo automático da Idade ----------
+            const inputNascimento = document.querySelector('[data-ap-field="nascimento"], #id_nascimento, [name="nascimento"]');
+            const idadeDisplay = document.getElementById('ap_idade_display');
+
+            function parseNascimento(valor) {
+                const texto = String(valor || '').trim();
+                if (!texto) return null;
+                if (texto.includes('/')) {
+                    const p = texto.split('/');
+                    if (p.length === 3) {
+                        return new Date(parseInt(p[2], 10), parseInt(p[1], 10) - 1, parseInt(p[0], 10));
+                    }
+                }
+                if (texto.includes('-')) {
+                    const p = texto.split('-');
+                    if (p.length === 3) {
+                        const primeira = String(p[0] || '');
+                        if (primeira.length === 4) {
+                            return new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
+                        } else {
+                            return new Date(parseInt(p[2], 10), parseInt(p[1], 10) - 1, parseInt(p[0], 10));
+                        }
+                    }
+                }
+                const digits = texto.replace(/\D/g, '');
+                if (digits.length === 8) {
+                    return new Date(parseInt(digits.slice(4, 8), 10), parseInt(digits.slice(2, 4), 10) - 1, parseInt(digits.slice(0, 2), 10));
+                }
+                return null;
+            }
+
+            function calcularIdade() {
+                if (!inputNascimento || !idadeDisplay) return;
+                const nasc = parseNascimento(inputNascimento.value);
+                if (!nasc || isNaN(nasc.getTime())) {
+                    idadeDisplay.textContent = '';
+                    return;
+                }
+                const hoje = new Date();
+                let idade = hoje.getFullYear() - nasc.getFullYear();
+                const mesAtual = hoje.getMonth();
+                const diaAtual = hoje.getDate();
+                const mesNascimento = nasc.getMonth();
+                const diaNascimento = nasc.getDate();
+
+                if (mesAtual < mesNascimento || (mesAtual === mesNascimento && diaAtual < diaNascimento)) {
+                    idade -= 1;
+                }
+
+                idadeDisplay.textContent = idade >= 0 ? `${idade} anos` : '';
+            }
+
+            if (inputNascimento) {
+                inputNascimento.addEventListener('change', calcularIdade);
+                inputNascimento.addEventListener('blur', calcularIdade);
+            }
+            calcularIdade();
+        });
+    })();
+</script>
+{% endblock %}

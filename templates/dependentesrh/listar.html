@@ -1,99 +1,163 @@
 {% extends "base.html" %}
 {% load static %}
 
-
 {% block title %}Dependentes RH — RtaWeb{% endblock %}
 
-{% block extra_css %}
-<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
-<link href="{% static 'core/css/list-cards.css' %}" rel="stylesheet">
-<link href="{% static 'core/css/tabelas-layout.css' %}" rel="stylesheet">
+{% block content %}
 <link rel="stylesheet" href="{% static 'css/botoes.css' %}">
 <link rel="stylesheet" href="{% static 'css/buscas.css' %}">
 <link rel="stylesheet" href="{% static 'css/tabelas.css' %}">
 
-{% endblock %}
-
-{% block content %}
 <div class="container mt-4">
+
     <div class="d-flex justify-content-center align-items-center mb-3">
         <h3><i class="bi bi-people-fill"></i> Dependentes RH</h3>
     </div>
 
+    {% if funcionario_contexto %}
+    <div class="card mb-4 border-primary">
+        <div class="card-header bg-primary-subtle py-2">
+            <div class="d-flex flex-wrap align-items-center gap-3">
+                <i class="bi bi-person-badge fs-4 text-primary"></i>
+                <div class="flex-grow-1">
+                    <div class="d-flex flex-wrap gap-3 align-items-baseline">
+                        <span class="fw-bold fs-6">{{ funcionario_contexto.funcionario.func_nome|default:"-" }}</span>
+                        <small class="text-muted">
+                            Cód. Funcionário: #{{ funcionario_contexto.funcionario.func_codi|default:"-" }}
+                        </small>
+                        {% if funcionario_contexto.empresa_nome %}
+                            <small class="text-muted ms-2">
+                                <i class="bi bi-building ms-2"></i>{{ funcionario_contexto.empresa_nome }}
+                            </small>
+                        {% endif %}
+                        <small class="text-muted ms-2">
+                            <i class="bi bi-calendar-event ms-2"></i>
+                            Admissão: {{ funcionario_contexto.funcionario.func_admissao|date:"d/m/Y"|default:"-" }}
+                        </small>
+                    </div>
+                </div>
+                <a href="{% url 'funcionarios:atualizar' func_empr=funcionario_contexto.empresa func_fili=funcionario_contexto.filial func_codi=funcionario_contexto.funcionario.func_codi %}?banco={{ request.banco }}#tab-parentes"
+                   class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-arrow-left"></i> Voltar para o Funcionário
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="filtros-acoes mb-3">
+        <a href="{% url 'dependentesrh:criar' %}?banco={{ request.banco }}
+            {% if request.GET.empresa %}&empresa={{ request.GET.empresa }}{% endif %}
+            {% if request.GET.filial %}&filial={{ request.GET.filial }}{% endif %}
+            {% if request.GET.funcionario %}&funcionario={{ request.GET.funcionario }}{% endif %}
+            {% if request.GET.nome %}&nome={{ request.GET.nome }}{% endif %}
+            {% if request.GET.cpf %}&cpf={{ request.GET.cpf }}{% endif %}
+            {% if request.GET.codigo_dependente %}&codigo_dependente={{ request.GET.codigo_dependente }}{% endif %}
+            {% if request.GET.invalido %}&invalido={{ request.GET.invalido }}{% endif %}"
+           class="botao botao-adicionar">
+            <i class="bi bi-plus"></i> Novo Dependente
+        </a>
         <button class="botao botao-detalhar botao-filtro-toggle" type="button" data-bs-toggle="collapse"
             data-bs-target="#filtrosCollapse" id="btn-filtros" aria-expanded="false" aria-controls="filtrosCollapse">
             <i class="bi bi-funnel"></i> Filtros
         </button>
     </div>
 
-    <div class="app-form-card mb-3 collapse filtros-collapse" id="filtrosCollapse">
-        <form method="get" class="form-grid form-grid-compact">
+    <div class="collapse filtros-collapse" id="filtrosCollapse">
+
+        <form method="get" class="form-grid form-grid-compact mb-3">
             <input type="hidden" name="banco" value="{{ request.banco }}">
 
             <div class="form-group">
-                <label class="form-label">Código</label>
-                <input class="form-control" type="text" name="referencia" value="{{ depe_codi }}">
+                <label class="form-label">Empresa</label>
+                <input class="form-control" type="text" name="empresa" value="{{ request.GET.empresa }}">
             </div>
 
             <div class="form-group">
-                <label class="form-label">Nome</label>
-                <input class="form-control" type="text" name="descricao" value="{{ depe_nome }}">
+                <label class="form-label">Filial</label>
+                <input class="form-control" type="text" name="filial" value="{{ request.GET.filial }}">
             </div>
 
             <div class="form-group">
                 <label class="form-label">Funcionário</label>
-                <input class="form-control" type="text" name="empresas" value="{{ depe_func }}">
+                <input class="form-control" type="text" name="funcionario" value="{{ request.GET.funcionario }}">
             </div>
 
             <div class="form-group">
-                <label class="form-label">Ordenar</label>
-                <select name="ordenar" class="form-control">
-                    <option value="">Padrão</option>
-                    <option value="referencia" {% if ordenar == "referencia" %}selected{% endif %}>Código</option>
-                    <option value="referencia_desc" {% if ordenar == "referencia_desc" %}selected{% endif %}>Referência desc</option>
-                    <option value="funcionario" {% if ordenar == "funcionario" %}selected{% endif %}>Descrição</option>
-                    <option value="valor" {% if ordenar == "valor" %}selected{% endif %}>Menor valor</option>
-                    <option value="valor_desc" {% if ordenar == "valor_desc" %}selected{% endif %}>Maior valor</option>
+                <label class="form-label">Nome</label>
+                <input class="form-control" type="text" name="nome" value="{{ request.GET.nome }}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">CPF</label>
+                <input class="form-control" type="text" name="cpf" value="{{ request.GET.cpf }}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Código Dependente</label>
+                <input class="form-control" type="text" name="codigo_dependente" value="{{ request.GET.codigo_dependente }}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Inválido</label>
+                <select class="form-control" name="invalido">
+                    <option value="">Todos</option>
+                    <option value="sim" {% if request.GET.invalido == "sim" %}selected{% endif %}>Sim</option>
+                    <option value="nao" {% if request.GET.invalido == "nao" %}selected{% endif %}>Não</option>
                 </select>
             </div>
 
-            <div class="form-group d-flex align-items-end">
-                <a href="?banco={{ request.banco }}" class="botao botao-limpar">
-                    <i class="bi bi-eraser"></i> Limpar
-                </a>
-            </div>
-
             <div class="form-group">
-                <button type="submit" class="botao botao-buscar">
-                    <i class="bi bi-search"></i> Buscar
-                </button>
+                <button type="submit" class="botao botao-buscar"><i class="bi bi-search"></i> Filtrar</button>
             </div>
         </form>
     </div>
 
     {% if dependentesrh %}
+
     <div class="table-responsive">
         <table class="tabela-moderna">
             <thead>
                 <tr>
-                    <th><i class="bi bi-hash"></i> Código</th>
-                    <th><i class="bi bi-person"></i> Nome</th>
+                    <th><i class="bi bi-key"></i> Cód.</th>
                     <th><i class="bi bi-person-badge"></i> Funcionário</th>
+                    <th><i class="bi bi-person"></i> Nome</th>
+                    <th><i class="bi bi-calendar3"></i> Nascimento</th>
+                    <th><i class="bi bi-credit-card"></i> CPF</th>
+                    <th><i class="bi bi-diagram-3"></i> Tipo Dependência</th>
+                    <th><i class="bi bi-x-circle"></i> Inválido</th>
                     <th><i class="bi bi-gear"></i> Ações</th>
                 </tr>
             </thead>
+
             <tbody data-infinite-scroll-items>
-                {% for item in dependentesrh %}
+                {% for dep in dependentesrh %}
                 <tr>
-                    <td data-label="Código">{{ item.depe_codi }}</td>
-                    <td data-label="Nome">{{ item.depe_nome|default:'-' }}</td>
-                    <td data-label="Funcionário">{{ item.depe_func|default:'-' }}</td>
+                    <td data-label="Cód.">{{ dep.depe_codi }}</td>
+                    <td data-label="Funcionário">{{ dep.depe_func }}</td>
+                    <td data-label="Nome">{{ dep.depe_nome|default:'-' }}</td>
+                    <td data-label="Nascimento">{{ dep.depe_nascimento|date:"d/m/Y" }}</td>
+                    <td data-label="CPF" class="cpf-col">{{ dep.depe_cpf|default:'' }}</td>
+                    <td data-label="Tipo Dependência">
+                        {% if dep.depe_tipo_dependencia == 1 %}1 - IR
+                        {% elif dep.depe_tipo_dependencia == 2 %}2 - SF
+                        {% elif dep.depe_tipo_dependencia == 3 %}3 - PL
+                        {% elif dep.depe_tipo_dependencia == 4 %}4 - PE
+                        {% elif dep.depe_tipo_dependencia == 9 %}9 - OU
+                        {% else %}-
+                        {% endif %}
+                    </td>
+                    <td data-label="Inválido">
+                        <input type="checkbox" class="form-check-input" {% if dep.depe_invalido %}checked{% endif %} disabled>
+                    </td>
                     <td data-label="Ações" class="tabela-acoes">
-                        <a class="botao botao-editar" href="{% url 'dependentesrh:atualizar' item.depe_codi %}?banco={{ request.banco }}">
+                        <a href="{% url 'dependentesrh:editar' empresa=dep.depe_empr filial=dep.depe_fili funcionario=dep.depe_func codigo=dep.depe_codi %}?banco={{ request.banco }}"
+                            class="botao botao-editar">
                             <i class="bi bi-pencil"></i> Editar
                         </a>
-                        <a class="botao botao-remover" href="{% url 'dependentesrh:deletar' item.depe_codi %}?banco={{ request.banco }}">
+
+                        <a href="{% url 'dependentesrh:deletar' empresa=dep.depe_empr filial=dep.depe_fili funcionario=dep.depe_func codigo=dep.depe_codi %}?banco={{ request.banco }}"
+                            class="botao botao-remover">
                             <i class="bi bi-trash"></i> Excluir
                         </a>
                     </td>
@@ -104,10 +168,30 @@
     </div>
 
     {% include "partials/componentes/infinite_scroll.html" %}
+
     {% else %}
+
     <div class="alert alert-warning">
         Nenhum registro encontrado.
     </div>
+
     {% endif %}
+
 </div>
+
+<script>
+    (function () {
+        function formatarCPF(cpf) {
+            const digitos = String(cpf || '').replace(/\D/g, '');
+            if (digitos.length !== 11) return cpf || '-';
+            return digitos.slice(0, 3) + '.' + digitos.slice(3, 6) + '.' + digitos.slice(6, 9) + '-' + digitos.slice(9, 11);
+        }
+        document.querySelectorAll('.cpf-col').forEach(function (td) {
+            if (td.textContent && td.textContent !== '-') {
+                td.textContent = formatarCPF(td.textContent);
+            }
+        });
+    })();
+</script>
+
 {% endblock %}

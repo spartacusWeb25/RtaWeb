@@ -2,10 +2,21 @@
     <button class="nav-btn"> <i class="bi bi-people-fill" style="font-size: 1.2rem;  color: #eccb6e;"></i> Cadastros <i
             class="bi bi-chevron-down chevron"></i>
     </button>
-    <div class="dropdown-panel sortable-submenu">
+    <div class="dropdown-panel ">
         <a href="{% url 'empresas:listar' %}?banco={{ request.banco|default:'rta0001' }}">
             Empresas
         </a>
+        <a href="{% url 'admissaopreliminar:index' %}?banco={{ request.banco|default:'rta0001' }}">
+            Admissao preliminar
+        </a>
+        <a href="{% url 'funcionarios:listar' %}?banco={{ request.banco|default:'rta0001' }}">
+            Funcionários
+        </a>
+        {% comment %} DESABILITADO TEMPORARIAMENTE — reativar no futuro removendo o bloco de comentário
+        <a href="{% url 'dependentesrh:listar' %}?banco={{ request.banco|default:'rta0001' }}" style="display:none; pointer-events:none; opacity:0.4;" aria-disabled="true">
+            Dependentes
+        </a>
+        {% endcomment %}
         <a href="{% url 'usuarios:listar' %}?banco={{ request.banco|default:'rta0001' }}">
             Usuários
         </a>

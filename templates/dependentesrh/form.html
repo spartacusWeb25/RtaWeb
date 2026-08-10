@@ -1,0 +1,430 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if modo_edicao %}Editar Dependente{% else %}Novo Dependente{% endif %} — RtaWeb{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+<style>
+  .empresa-section-box {
+    border: 1px solid var(--border-default, #d8dee8);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    background: var(--surface-card, #fff);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .empresa-section-title {
+    font-size: 1rem;
+    font-weight: 400;
+    color: inherit;
+    margin-bottom: 0.5rem;
+  }
+
+  .funcionario-readonly {
+    background: var(--bs-secondary-bg);
+  }
+
+  .empresa-checkbox {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    min-height: 1.05rem;
+    padding: 0;
+  }
+
+  .empresa-checkbox .form-check {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
+  }
+
+  .empresa-checkbox .empresa-check-input {
+    margin: 0;
+    flex: 0 0 auto;
+    width: 1.05rem;
+    height: 1.05rem;
+    cursor: pointer;
+  }
+
+  .empresa-checkbox .form-check-label {
+    margin: 0;
+    line-height: 1.35;
+    cursor: pointer;
+    color: inherit;
+    font-weight: 500;
+  }
+
+  .empresa-checkbox-col .empresa-checkbox {
+    min-height: calc(2.25rem + 2px);
+    display: flex;
+    align-items: center;
+  }
+
+  .field-error .form-control,
+  .field-error .form-select,
+  .field-error .form-check-input {
+    border-color: var(--bs-danger);
+    box-shadow: 0 0 0 0.12rem rgba(220, 53, 69, .12);
+  }
+
+  .invalid-feedback.d-block {
+    font-weight: 500;
+  }
+
+  .field-error {
+    scroll-margin-top: 6rem;
+  }
+
+  .form-footer {
+    display: flex;
+    gap: .5rem;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-default, #d8dee8);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<datalist id="dl_cidades_ibge">
+  <option value="">Selecione a cidade...</option>
+  {% for c in cidades_lista %}
+  <option value="{{ c.label }}" data-codigo="{{ c.codigo_num }}" data-nome="{{ c.nome }}" data-uf="{{ c.uf }}">
+  {% endfor %}
+</datalist>
+
+<div class="container mt-4">
+  <h4>{% if modo_edicao %}Editar Dependente{% else %}Novo Dependente{% endif %}</h4>
+
+  {% if funcionario_contexto %}
+  <div class="card mb-4 border-primary mt-3">
+    <div class="card-header bg-primary-subtle py-2">
+      <div class="d-flex flex-wrap align-items-center gap-3">
+        <i class="bi bi-person-badge fs-4 text-primary"></i>
+        <div class="flex-grow-1">
+          <div class="d-flex flex-wrap gap-3 align-items-baseline">
+            <span class="fw-bold fs-6">{{ funcionario_contexto.funcionario.func_nome|default:"-" }}</span>
+            <small class="text-muted">
+              Cód. Funcionário: #{{ funcionario_contexto.funcionario.func_codi|default:"-" }}
+            </small>
+            {% if funcionario_contexto.empresa_nome %}
+              <small class="text-muted ms-2">
+                <i class="bi bi-building ms-2"></i>{{ funcionario_contexto.empresa_nome }}
+              </small>
+            {% endif %}
+            <small class="text-muted ms-2">
+              <i class="bi bi-calendar-event ms-2"></i>
+              Admissão: {{ funcionario_contexto.funcionario.func_admissao|date:"d/m/Y"|default:"-" }}
+            </small>
+          </div>
+        </div>
+        <a href="{{ url_voltar|default:'#' }}"
+           class="btn btn-sm btn-outline-primary">
+          <i class="bi bi-arrow-left"></i> Voltar
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if messages %}
+    {% for message in messages %}
+    <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'warning' %}alert-warning{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %} mt-3" role="alert">
+      {{ message }}
+    </div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger mt-3" role="alert">
+      {{ form.non_field_errors }}
+    </div>
+    {% endif %}
+
+    {% if form.errors %}
+    <div class="alert alert-warning mt-3" role="alert">
+      Revise os campos destacados em vermelho antes de salvar.
+      <ul class="mb-0 mt-2">
+        {% for field in form.visible_fields %}
+          {% for error in field.errors %}
+          <li>{{ field.label }}: {{ error }}</li>
+          {% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    <div class="empresa-section-box mb-3">
+      <div class="empresa-section-title">Cadastrais</div>
+      <div class="row g-3">
+
+        {% include "funcionarios/_field.html" with field=form.depe_empr col="col-12 col-lg-4" %}
+        {% include "funcionarios/_field.html" with field=form.depe_fili col="col-12 col-lg-4" %}
+        {% include "funcionarios/_field.html" with field=form.depe_func col="col-12 col-lg-4" %}
+
+        <div class="col-12 col-lg-3">
+          <label class="form-label">Código do Dependente</label>
+          <input
+            type="text"
+            class="form-control funcionario-readonly"
+            value="{{ form.depe_codi.value|default:'' }}"
+            readonly
+          >
+        </div>
+        {% include "funcionarios/_field.html" with field=form.depe_nome col="col-12 col-lg-9" %}
+
+        {% if form.depe_nascimento %}
+        <div class="col-12 col-lg-3{% if form.depe_nascimento.errors %} field-error{% endif %}">
+          <label class="form-label" for="{{ form.depe_nascimento.id_for_label }}">
+            {{ form.depe_nascimento.label }}
+            {% if form.depe_nascimento.field.required %}<span class="text-danger">*</span>{% endif %}
+          </label>
+          <input type="date"
+                 name="{{ form.depe_nascimento.name }}"
+                 id="{{ form.depe_nascimento.id_for_label }}"
+                 class="form-control"
+                 value="{{ form.depe_nascimento.value|date:'Y-m-d' }}"
+                 {% if form.depe_nascimento.field.required %}required{% endif %}>
+          {% if form.depe_nascimento.help_text %}
+            <div class="form-text">{{ form.depe_nascimento.help_text }}</div>
+          {% endif %}
+          {% if form.depe_nascimento.errors %}
+            <div class="invalid-feedback d-block">{{ form.depe_nascimento.errors|join:', ' }}</div>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        {% if form.depe_cpf %}
+        <div class="col-12 col-lg-3{% if form.depe_cpf.errors %} field-error{% endif %}">
+          <label class="form-label" for="{{ form.depe_cpf.id_for_label }}">
+            {{ form.depe_cpf.label }}
+            {% if form.depe_cpf.field.required %}<span class="text-danger">*</span>{% endif %}
+          </label>
+          <input type="text"
+                 name="{{ form.depe_cpf.name }}"
+                 id="{{ form.depe_cpf.id_for_label }}"
+                 class="form-control"
+                 data-mask="cpf"
+                 maxlength="14"
+                 value="{{ form.depe_cpf.value|default:'' }}"
+                 {% if form.depe_cpf.field.required %}required{% endif %}>
+          {% if form.depe_cpf.help_text %}
+            <div class="form-text">{{ form.depe_cpf.help_text }}</div>
+          {% endif %}
+          {% if form.depe_cpf.errors %}
+            <div class="invalid-feedback d-block">{{ form.depe_cpf.errors|join:', ' }}</div>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        {% include "funcionarios/_field.html" with field=form.depe_matricula col="col-12 col-lg-3" %}
+        {% include "funcionarios/_field.html" with field=form.depe_local_nascimento col="col-12 col-lg-3" %}
+
+        {% include "funcionarios/_field.html" with field=form.depe_cidade_codigo col="col-12 col-lg-7" %}
+        {% include "funcionarios/_field.html" with field=form.depe_cartorio col="col-12 col-lg-5" %}
+
+        {% include "funcionarios/_field.html" with field=form.depe_numero_registro col="col-12 col-lg-4" %}
+        {% include "funcionarios/_field.html" with field=form.depe_numero_livro col="col-12 col-lg-4" %}
+        {% include "funcionarios/_field.html" with field=form.depe_numero_folha col="col-12 col-lg-4" %}
+
+        {% if form.depe_data_entrega %}
+        <div class="col-12 col-lg-3{% if form.depe_data_entrega.errors %} field-error{% endif %}">
+          <label class="form-label" for="{{ form.depe_data_entrega.id_for_label }}">
+            {{ form.depe_data_entrega.label }}
+            {% if form.depe_data_entrega.field.required %}<span class="text-danger">*</span>{% endif %}
+          </label>
+          <input type="date"
+                 name="{{ form.depe_data_entrega.name }}"
+                 id="{{ form.depe_data_entrega.id_for_label }}"
+                 class="form-control"
+                 value="{{ form.depe_data_entrega.value|date:'Y-m-d' }}"
+                 {% if form.depe_data_entrega.field.required %}required{% endif %}>
+          {% if form.depe_data_entrega.help_text %}
+            <div class="form-text">{{ form.depe_data_entrega.help_text }}</div>
+          {% endif %}
+          {% if form.depe_data_entrega.errors %}
+            <div class="invalid-feedback d-block">{{ form.depe_data_entrega.errors|join:', ' }}</div>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        {% if form.depe_data_baixa %}
+        <div class="col-12 col-lg-3{% if form.depe_data_baixa.errors %} field-error{% endif %}">
+          <label class="form-label" for="{{ form.depe_data_baixa.id_for_label }}">
+            {{ form.depe_data_baixa.label }}
+            {% if form.depe_data_baixa.field.required %}<span class="text-danger">*</span>{% endif %}
+          </label>
+          <input type="date"
+                 name="{{ form.depe_data_baixa.name }}"
+                 id="{{ form.depe_data_baixa.id_for_label }}"
+                 class="form-control"
+                 value="{{ form.depe_data_baixa.value|date:'Y-m-d' }}"
+                 {% if form.depe_data_baixa.field.required %}required{% endif %}>
+          {% if form.depe_data_baixa.help_text %}
+            <div class="form-text">{{ form.depe_data_baixa.help_text }}</div>
+          {% endif %}
+          {% if form.depe_data_baixa.errors %}
+            <div class="invalid-feedback d-block">{{ form.depe_data_baixa.errors|join:', ' }}</div>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        {% include "funcionarios/_field.html" with field=form.depe_ir_ate col="col-12 col-lg-3" %}
+
+        {% include "funcionarios/_field.html" with field=form.depe_tipo_dependencia col="col-12" %}
+
+        {% include "funcionarios/_field.html" with field=form.depe_tipo_dependente col="col-12" %}
+
+        <div class="col-12 empresa-checkbox-col{% if form.depe_invalido.errors %} field-error{% endif %}">
+          <div class="empresa-checkbox">
+            <div class="form-check">
+              {{ form.depe_invalido }}
+              <label class="form-check-label" for="{{ form.depe_invalido.id_for_label }}">{{ form.depe_invalido.label }}</label>
+            </div>
+          </div>
+          {% if form.depe_invalido.errors %}
+            <div class="invalid-feedback d-block">{{ form.depe_invalido.errors|join:', ' }}</div>
+          {% endif %}
+        </div>
+
+        {% include "funcionarios/_field.html" with field=form.depe_observacoes col="col-12" %}
+      </div>
+    </div>
+
+    <div class="form-footer">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-save"></i> Salvar
+      </button>
+      <button type="reset" class="btn btn-outline-secondary">
+        <i class="bi bi-eraser"></i> Limpar
+      </button>
+      <a href="{{ url_voltar|default:'#' }}"
+         {% if not url_voltar %}onclick="window.history.back(); return false;"{% endif %}
+         class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Voltar
+      </a>
+    </div>
+  </form>
+</div>
+
+<script>
+  (function () {
+    const DEP_FUNC_POR_EMPRFILI = {{ funcionarios_por_empfili_json|default:"{}"|safe }};
+    const DEP_EMPR_PADRAO_COD = {{ empr_padrao_cod|default:1 }};
+
+    function popularSelect(select, opcoes, valorAtual) {
+      if (!select) return;
+      select.innerHTML = '';
+      for (const [val, lbl] of (opcoes || [["", "Selecione..."]])) {
+        const opt = document.createElement('option');
+        opt.value = val;
+        opt.textContent = lbl;
+        if (String(valorAtual || '') === String(val || '')) opt.selected = true;
+        select.appendChild(opt);
+      }
+    }
+
+    function atualizarFuncionarios(selEmp, inpFili, selFunc) {
+      if (!selEmp || !inpFili || !selFunc) return;
+      const empr = DEP_EMPR_PADRAO_COD;
+      let fili = (inpFili && inpFili.value != null && inpFili.value !== '') ? inpFili.value : (selEmp && selEmp.value);
+      if (!fili) {
+        popularSelect(selFunc, [["", "Selecione a empresa e a filial primeiro..."]], selFunc.value);
+        return;
+      }
+      const chave = String(empr) + "_" + String(fili);
+      const opcoes = (DEP_FUNC_POR_EMPRFILI && DEP_FUNC_POR_EMPRFILI[chave])
+        || [["", "Nenhum funcionário cadastrado nesta filial"]];
+      popularSelect(selFunc, opcoes, selFunc.value);
+    }
+
+    function conectarEventos() {
+      const selEmp = document.getElementById('id_depe_empr');
+      const inpFili = document.getElementById('id_depe_fili');
+      const selFunc = document.getElementById('id_depe_func');
+      if (!selEmp || !inpFili || !selFunc) return false;
+
+      if (!selEmp.__depEventoAnexado) {
+        selEmp.__depEventoAnexado = true;
+        selEmp.addEventListener('change', function () {
+          if (inpFili && selEmp.value) {
+            inpFili.value = selEmp.value;
+          }
+          atualizarFuncionarios(selEmp, inpFili, selFunc);
+        });
+      }
+
+      if (!inpFili.__depEventoAnexado) {
+        inpFili.__depEventoAnexado = true;
+        inpFili.addEventListener('change', function () {
+          if (selEmp && inpFili.value) {
+            const filiDesejada = String(inpFili.value);
+            for (let i = 0; i < selEmp.options.length; i++) {
+              if (String(selEmp.options[i].value) === filiDesejada) {
+                selEmp.selectedIndex = i;
+                break;
+              }
+            }
+          }
+          atualizarFuncionarios(selEmp, inpFili, selFunc);
+        });
+        inpFili.addEventListener('blur', function () {
+          inpFili.dispatchEvent(new Event('change'));
+        });
+        inpFili.addEventListener('keyup', function (e) {
+          if (e.key === 'Enter') inpFili.dispatchEvent(new Event('change'));
+        });
+      }
+
+      atualizarFuncionarios(selEmp, inpFili, selFunc);
+      return true;
+    }
+
+    document.addEventListener('DOMContentLoaded', conectarEventos);
+    window.addEventListener('load', conectarEventos);
+    let tentativas = 0;
+    const timer = setInterval(function () {
+      tentativas++;
+      if (conectarEventos() || tentativas >= 10) clearInterval(timer);
+    }, 300);
+  })();
+</script>
+
+<script>
+  (function () {
+    function applyMask(value, type) {
+      const digits = String(value || '').replace(/\D/g, '');
+
+      if (type === 'cpf') {
+        return digits
+          .slice(0, 11)
+          .replace(/(\d{3})(\d)/, '$1.$2')
+          .replace(/(\d{3})(\d)/, '$1.$2')
+          .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+      }
+      return value;
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('[data-mask]').forEach(function (input) {
+        input.value = applyMask(input.value, input.getAttribute('data-mask'));
+        input.addEventListener('input', function () {
+          input.value = applyMask(input.value, input.getAttribute('data-mask'));
+        });
+      });
+    });
+  })();
+</script>
+
+{% endblock %}

@@ -7,6 +7,7 @@ from .views import AuditoriaLogsView, HomeView, RootRedirectView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path("admissao-preliminar/", include("admissaopreliminar.web.urls")),
     path("folhamensal/", include("folhamensal.web.urls")),
     path("funcionarios/", include("funcionarios.web.urls")),
     path('home/', HomeView.as_view(), name="home"),
