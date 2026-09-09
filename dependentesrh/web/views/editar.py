@@ -11,6 +11,7 @@ from dependentesrh.web.views.criar import (
     _obter_contexto_funcionario,
     _carregar_choices_empresas,
     _carregar_choices_funcionarios,
+    _digits_only,
 )
 
 
@@ -28,8 +29,9 @@ class DependentesrhUpdateView(BancoObrigatorioMixin, FormView):
         }
 
     def get_object(self):
+        banco_limpo = _digits_only(self.request.banco)
         return DependentesChaveService.buscar(
-            banco=self.request.banco,
+            banco=banco_limpo,
             db_alias=self.request.db_alias,
             dados=self.get_chave_dados(),
         )
@@ -53,13 +55,14 @@ class DependentesrhUpdateView(BancoObrigatorioMixin, FormView):
         empr = self.kwargs["empresa"]
         fili = self.kwargs["filial"]
         func = self.kwargs["funcionario"]
+        banco_limpo = _digits_only(self.request.banco)
 
         (
             choices_empresa_combo,
             empr_padrao_cod,
             _,
             funcionarios_por_empfili,
-        ) = _carregar_choices_empresas(self.request.db_alias, self.request.banco)
+        ) = _carregar_choices_empresas(self.request.db_alias, banco_limpo)
         self._funcionarios_por_empfili_json = funcionarios_por_empfili
         self._empr_padrao_cod = empr_padrao_cod
 
@@ -82,6 +85,7 @@ class DependentesrhUpdateView(BancoObrigatorioMixin, FormView):
         return form
 
     def form_valid(self, form):
+        banco_limpo = _digits_only(self.request.banco)
         dados = form.cleaned_data.copy()
         dados["depe_empr"] = self.kwargs["empresa"]
         dados["depe_fili"] = self.kwargs["filial"]
@@ -89,7 +93,7 @@ class DependentesrhUpdateView(BancoObrigatorioMixin, FormView):
         dados["depe_codi"] = self.kwargs["codigo"]
 
         DependentesEditarService.editar(
-            banco=self.request.banco,
+            banco=banco_limpo,
             db_alias=self.request.db_alias,
             dados=dados,
         )
@@ -98,6 +102,7 @@ class DependentesrhUpdateView(BancoObrigatorioMixin, FormView):
         return redirect(self.get_success_url())
 
     def _base_sucesso_url(self):
+        banco_limpo = _digits_only(self.request.banco)
         empr = self.kwargs["empresa"]
         fili = self.kwargs["filial"]
         func = self.kwargs["funcionario"]
@@ -112,17 +117,18 @@ class DependentesrhUpdateView(BancoObrigatorioMixin, FormView):
                             "func_codi": int(func),
                         },
                     )
-                    + f"?banco={self.request.banco}#tab-parentes"
+                    + f"?banco={banco_limpo}#tab-parentes"
                 )
             except Exception:
                 pass
-        return reverse("dependentesrh:listar") + f"?banco={self.request.banco}"
+        return reverse("funcionarios:listar") + f"?banco={banco_limpo}"
 
     def get_success_url(self):
         return self._base_sucesso_url()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        banco_limpo = _digits_only(self.request.banco)
         import json
         if not hasattr(self, "_funcionarios_por_empfili_json") or not hasattr(self, "_empr_padrao_cod"):
             (
@@ -130,7 +136,7 @@ class DependentesrhUpdateView(BancoObrigatorioMixin, FormView):
                 empr_padrao_cod,
                 _,
                 funcionarios_json,
-            ) = _carregar_choices_empresas(self.request.db_alias, self.request.banco)
+            ) = _carregar_choices_empresas(self.request.db_alias, banco_limpo)
         else:
             funcionarios_json = self._funcionarios_por_empfili_json
             empr_padrao_cod = self._empr_padrao_cod

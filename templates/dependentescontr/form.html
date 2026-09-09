@@ -1,0 +1,492 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if modo_edicao %}Editar Dependente de Contribuinte{% else %}Novo Dependente de Contribuinte{% endif %} — RtaWeb{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+<style>
+  .empresa-section-box {
+    border: 1px solid var(--border-default, #d8dee8);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    background: var(--surface-card, #fff);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+  }
+
+  .empresa-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: inherit;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-default, #d8dee8);
+  }
+
+  .contribuinte-readonly {
+    background: var(--bs-secondary-bg);
+  }
+
+  .empresa-checkbox {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    min-height: 1.05rem;
+    padding: 0;
+  }
+
+  .empresa-checkbox .form-check {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
+  }
+
+  .empresa-checkbox .empresa-check-input {
+    margin: 0;
+    flex: 0 0 auto;
+    width: 1.05rem;
+    height: 1.05rem;
+    cursor: pointer;
+  }
+
+  .empresa-checkbox .form-check-label {
+    margin: 0;
+    line-height: 1.35;
+    cursor: pointer;
+    color: inherit;
+    font-weight: 500;
+  }
+
+  .empresa-checkbox-col .empresa-checkbox {
+    min-height: calc(2.25rem + 2px);
+    display: flex;
+    align-items: center;
+  }
+
+  .field-error .form-control,
+  .field-error .form-select,
+  .field-error .form-check-input {
+    border-color: var(--bs-danger);
+    box-shadow: 0 0 0 0.12rem rgba(220, 53, 69, .12);
+  }
+
+  .invalid-feedback.d-block {
+    font-weight: 500;
+  }
+
+  .field-error {
+    scroll-margin-top: 6rem;
+  }
+
+  .form-footer {
+    display: flex;
+    gap: .5rem;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-default, #d8dee8);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<datalist id="dl_cidades_ibge">
+  <option value="">Selecione a cidade...</option>
+  {% for c in cidades_lista %}
+  <option value="{{ c.label }}" data-codigo="{{ c.codigo_num }}" data-nome="{{ c.nome }}" data-uf="{{ c.uf }}">
+  {% endfor %}
+</datalist>
+
+<div class="container mt-4">
+  <h4>{% if modo_edicao %}Editar Dependente de Contribuinte{% else %}Novo Dependente de Contribuinte{% endif %}</h4>
+
+  {% if contribuinte_contexto %}
+  <div class="card mb-4 border-primary mt-3">
+    <div class="card-header bg-primary-subtle py-2">
+      <div class="d-flex flex-wrap align-items-center gap-3">
+        <i class="bi bi-person-badge fs-4 text-primary"></i>
+        <div class="flex-grow-1">
+          <div class="d-flex flex-wrap gap-3 align-items-baseline">
+            <span class="fw-bold fs-6">{{ contribuinte_contexto.contribuinte.contr_nome|default:"-" }}</span>
+            <small class="text-muted">
+              Cód. Contribuinte: #{{ contribuinte_contexto.contribuinte.contr_codi|default:"-" }}
+            </small>
+            {% if contribuinte_contexto.empresa_nome %}
+              <small class="text-muted ms-2">
+                <i class="bi bi-building ms-2"></i>{{ contribuinte_contexto.empresa_nome }}
+              </small>
+            {% endif %}
+            <small class="text-muted ms-2">
+              <i class="bi bi-calendar-event ms-2"></i>
+              Admissão: {{ contribuinte_contexto.contribuinte.contr_admissao|date:"d/m/Y"|default:"-" }}
+            </small>
+          </div>
+        </div>
+        <a href="{{ url_voltar|default:'#' }}"
+           class="btn btn-sm btn-outline-primary">
+          <i class="bi bi-arrow-left"></i> Voltar
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger mt-3" role="alert">
+      {{ form.non_field_errors }}
+    </div>
+    {% endif %}
+
+    {% if form.errors %}
+    <div class="alert alert-warning mt-3" role="alert">
+      Revise os campos destacados em vermelho antes de salvar.
+      <ul class="mb-0 mt-2">
+        {% for field in form.visible_fields %}
+          {% for error in field.errors %}
+          <li>{{ field.label }}: {{ error }}</li>
+          {% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    <div class="empresa-section-box">
+      <div class="empresa-section-title">1. Dados do Vínculo</div>
+      <div class="row g-3">
+        {% include "dependentescontr/_field.html" with field=form.depecontr_empr col="col-12 col-lg-4" %}
+        {% include "dependentescontr/_field.html" with field=form.depecontr_fili col="col-12 col-lg-4" %}
+        {% include "dependentescontr/_field.html" with field=form.depecontr_contr col="col-12 col-lg-4" %}
+
+        <div class="col-12 col-lg-3">
+          <label class="form-label">Código do Dependente</label>
+          <input
+            type="text"
+            class="form-control contribuinte-readonly"
+            value="{{ form.depecontr_codi.value|default:'' }}"
+            readonly
+          >
+        </div>
+
+        {% include "dependentescontr/_field.html" with field=form.depecontr_nome col="col-12 col-lg-9" %}
+      </div>
+    </div>
+
+    <div class="empresa-section-box">
+      <div class="empresa-section-title">2. Cadastro Básico</div>
+      <div class="row g-3">
+        {% if form.depecontr_nascimento %}
+        <div class="col-12 col-lg-3{% if form.depecontr_nascimento.errors %} field-error{% endif %}">
+          <label class="form-label" for="{{ form.depecontr_nascimento.id_for_label }}">
+            {{ form.depecontr_nascimento.label }}
+            {% if form.depecontr_nascimento.field.required %}<span class="text-danger">*</span>{% endif %}
+          </label>
+          <input type="date"
+                 name="{{ form.depecontr_nascimento.name }}"
+                 id="{{ form.depecontr_nascimento.id_for_label }}"
+                 class="form-control"
+                 value="{{ form.depecontr_nascimento.value|date:'Y-m-d' }}"
+                 {% if form.depecontr_nascimento.field.required %}required{% endif %}>
+          {% if form.depecontr_nascimento.help_text %}
+            <div class="form-text">{{ form.depecontr_nascimento.help_text }}</div>
+          {% endif %}
+          {% if form.depecontr_nascimento.errors %}
+            <div class="invalid-feedback d-block">{{ form.depecontr_nascimento.errors|join:', ' }}</div>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        {% if form.depecontr_cpf %}
+        <div class="col-12 col-lg-3{% if form.depecontr_cpf.errors %} field-error{% endif %}">
+          <label class="form-label" for="{{ form.depecontr_cpf.id_for_label }}">
+            {{ form.depecontr_cpf.label }}
+            {% if form.depecontr_cpf.field.required %}<span class="text-danger">*</span>{% endif %}
+          </label>
+          <input type="text"
+                 name="{{ form.depecontr_cpf.name }}"
+                 id="{{ form.depecontr_cpf.id_for_label }}"
+                 class="form-control"
+                 data-mask="cpf"
+                 maxlength="14"
+                 value="{{ form.depecontr_cpf.value|default:'' }}"
+                 {% if form.depecontr_cpf.field.required %}required{% endif %}>
+          {% if form.depecontr_cpf.help_text %}
+            <div class="form-text">{{ form.depecontr_cpf.help_text }}</div>
+          {% endif %}
+          {% if form.depecontr_cpf.errors %}
+            <div class="invalid-feedback d-block">{{ form.depecontr_cpf.errors|join:', ' }}</div>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        {% include "dependentescontr/_field.html" with field=form.depecontr_rg col="col-12 col-lg-3" %}
+        {% include "dependentescontr/_field.html" with field=form.depecontr_orgao_emissor_rg col="col-12 col-lg-3" %}
+
+        {% if form.depecontr_emissao_rg %}
+        <div class="col-12 col-lg-3{% if form.depecontr_emissao_rg.errors %} field-error{% endif %}">
+          <label class="form-label" for="{{ form.depecontr_emissao_rg.id_for_label }}">
+            {{ form.depecontr_emissao_rg.label }}
+            {% if form.depecontr_emissao_rg.field.required %}<span class="text-danger">*</span>{% endif %}
+          </label>
+          <input type="date"
+                 name="{{ form.depecontr_emissao_rg.name }}"
+                 id="{{ form.depecontr_emissao_rg.id_for_label }}"
+                 class="form-control"
+                 value="{{ form.depecontr_emissao_rg.value|date:'Y-m-d' }}"
+                 {% if form.depecontr_emissao_rg.field.required %}required{% endif %}>
+          {% if form.depecontr_emissao_rg.help_text %}
+            <div class="form-text">{{ form.depecontr_emissao_rg.help_text }}</div>
+          {% endif %}
+          {% if form.depecontr_emissao_rg.errors %}
+            <div class="invalid-feedback d-block">{{ form.depecontr_emissao_rg.errors|join:', ' }}</div>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        {% include "dependentescontr/_field.html" with field=form.depecontr_uf_rg col="col-12 col-lg-3" %}
+        {% include "dependentescontr/_field.html" with field=form.depecontr_matricula col="col-12 col-lg-3" %}
+        {% include "dependentescontr/_field.html" with field=form.depecontr_local_nascimento col="col-12 col-lg-6" %}
+      </div>
+    </div>
+
+    <div class="empresa-section-box">
+      <div class="empresa-section-title">3. Tipo e Grau de Dependência</div>
+      <div class="row g-3">
+        {% include "dependentescontr/_field.html" with field=form.depecontr_tipo_dependente col="col-12 col-lg-6" %}
+        {% include "dependentescontr/_field.html" with field=form.depecontr_tipo_dependencia col="col-12 col-lg-6" %}
+        {% include "dependentescontr/_field.html" with field=form.depecontr_grau_parentesco col="col-12 col-lg-6" %}
+        {% include "dependentescontr/_field.html" with field=form.depecontr_desc_dependencia col="col-12 col-lg-6" %}
+
+        <div class="col-12 col-lg-4 empresa-checkbox-col{% if form.depecontr_invalido.errors %} field-error{% endif %}">
+          <div class="empresa-checkbox">
+            <div class="form-check">
+              {{ form.depecontr_invalido }}
+              <label class="form-check-label" for="{{ form.depecontr_invalido.id_for_label }}">{{ form.depecontr_invalido.label }}</label>
+            </div>
+          </div>
+          {% if form.depecontr_invalido.errors %}
+            <div class="invalid-feedback d-block">{{ form.depecontr_invalido.errors|join:', ' }}</div>
+          {% endif %}
+        </div>
+
+        <div class="col-12 col-lg-4 empresa-checkbox-col{% if form.depecontr_dependente_irrf.errors %} field-error{% endif %}">
+          <div class="empresa-checkbox">
+            <div class="form-check">
+              {{ form.depecontr_dependente_irrf }}
+              <label class="form-check-label" for="{{ form.depecontr_dependente_irrf.id_for_label }}">{{ form.depecontr_dependente_irrf.label }}</label>
+            </div>
+          </div>
+          {% if form.depecontr_dependente_irrf.errors %}
+            <div class="invalid-feedback d-block">{{ form.depecontr_dependente_irrf.errors|join:', ' }}</div>
+          {% endif %}
+        </div>
+
+        <div class="col-12 col-lg-4 empresa-checkbox-col{% if form.depecontr_dependente_salario_familia.errors %} field-error{% endif %}">
+          <div class="empresa-checkbox">
+            <div class="form-check">
+              {{ form.depecontr_dependente_salario_familia }}
+              <label class="form-check-label" for="{{ form.depecontr_dependente_salario_familia.id_for_label }}">{{ form.depecontr_dependente_salario_familia.label }}</label>
+            </div>
+          </div>
+          {% if form.depecontr_dependente_salario_familia.errors %}
+            <div class="invalid-feedback d-block">{{ form.depecontr_dependente_salario_familia.errors|join:', ' }}</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="empresa-section-box">
+      <div class="empresa-section-title">4. Pensão Alimentícia</div>
+      <div class="row g-3">
+        {% include "dependentescontr/_field.html" with field=form.depecontr_pensao_alimenticia_valor col="col-12 col-lg-6" %}
+        {% include "dependentescontr/_field.html" with field=form.depecontr_pensao_alimenticia_percentual col="col-12 col-lg-6" %}
+      </div>
+    </div>
+
+    <div class="empresa-section-box">
+      <div class="empresa-section-title">5. Certidão de Nascimento e Documentos</div>
+      <div class="row g-3">
+        {% include "dependentescontr/_field.html" with field=form.depecontr_certidao_nascimento col="col-12 col-lg-4" %}
+        {% include "dependentescontr/_field.html" with field=form.depecontr_cartorio col="col-12 col-lg-4" %}
+        {% include "dependentescontr/_field.html" with field=form.depecontr_cidade_codigo col="col-12 col-lg-4" %}
+
+        {% include "dependentescontr/_field.html" with field=form.depecontr_numero_registro col="col-12 col-lg-4" %}
+        {% include "dependentescontr/_field.html" with field=form.depecontr_numero_livro col="col-12 col-lg-4" %}
+        {% include "dependentescontr/_field.html" with field=form.depecontr_numero_folha col="col-12 col-lg-4" %}
+
+        {% if form.depecontr_data_entrega %}
+        <div class="col-12 col-lg-3{% if form.depecontr_data_entrega.errors %} field-error{% endif %}">
+          <label class="form-label" for="{{ form.depecontr_data_entrega.id_for_label }}">
+            {{ form.depecontr_data_entrega.label }}
+            {% if form.depecontr_data_entrega.field.required %}<span class="text-danger">*</span>{% endif %}
+          </label>
+          <input type="date"
+                 name="{{ form.depecontr_data_entrega.name }}"
+                 id="{{ form.depecontr_data_entrega.id_for_label }}"
+                 class="form-control"
+                 value="{{ form.depecontr_data_entrega.value|date:'Y-m-d' }}"
+                 {% if form.depecontr_data_entrega.field.required %}required{% endif %}>
+          {% if form.depecontr_data_entrega.help_text %}
+            <div class="form-text">{{ form.depecontr_data_entrega.help_text }}</div>
+          {% endif %}
+          {% if form.depecontr_data_entrega.errors %}
+            <div class="invalid-feedback d-block">{{ form.depecontr_data_entrega.errors|join:', ' }}</div>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        {% if form.depecontr_data_baixa %}
+        <div class="col-12 col-lg-3{% if form.depecontr_data_baixa.errors %} field-error{% endif %}">
+          <label class="form-label" for="{{ form.depecontr_data_baixa.id_for_label }}">
+            {{ form.depecontr_data_baixa.label }}
+            {% if form.depecontr_data_baixa.field.required %}<span class="text-danger">*</span>{% endif %}
+          </label>
+          <input type="date"
+                 name="{{ form.depecontr_data_baixa.name }}"
+                 id="{{ form.depecontr_data_baixa.id_for_label }}"
+                 class="form-control"
+                 value="{{ form.depecontr_data_baixa.value|date:'Y-m-d' }}"
+                 {% if form.depecontr_data_baixa.field.required %}required{% endif %}>
+          {% if form.depecontr_data_baixa.help_text %}
+            <div class="form-text">{{ form.depecontr_data_baixa.help_text }}</div>
+          {% endif %}
+          {% if form.depecontr_data_baixa.errors %}
+            <div class="invalid-feedback d-block">{{ form.depecontr_data_baixa.errors|join:', ' }}</div>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        {% include "dependentescontr/_field.html" with field=form.depecontr_ir_ate col="col-12 col-lg-3" %}
+      </div>
+    </div>
+
+    <div class="empresa-section-box">
+      <div class="empresa-section-title">6. Observações</div>
+      <div class="row g-3">
+        {% include "dependentescontr/_field.html" with field=form.depecontr_observacoes col="col-12" %}
+      </div>
+    </div>
+
+    {% include "partials/ui/form_actions.html" with form_actions_url_voltar=url_voltar|default:"#" %}
+  </form>
+</div>
+
+<script>
+  (function () {
+    const DEP_CONTR_POR_EMPRFILI = {{ contribuintes_por_empfili_json|default:"{}"|safe }};
+    const DEP_EMPR_PADRAO_COD = {{ empr_padrao_cod|default:1 }};
+
+    function popularSelect(select, opcoes, valorAtual) {
+      if (!select) return;
+      select.innerHTML = '';
+      for (const [val, lbl] of (opcoes || [["", "Selecione..."]])) {
+        const opt = document.createElement('option');
+        opt.value = val;
+        opt.textContent = lbl;
+        if (String(valorAtual || '') === String(val || '')) opt.selected = true;
+        select.appendChild(opt);
+      }
+    }
+
+    function atualizarContribuintes(selEmp, inpFili, selContr) {
+      if (!selEmp || !inpFili || !selContr) return;
+      const empr = DEP_EMPR_PADRAO_COD;
+      let fili = (inpFili && inpFili.value != null && inpFili.value !== '') ? inpFili.value : (selEmp && selEmp.value);
+      if (!fili) {
+        popularSelect(selContr, [["", "Selecione a empresa e a filial primeiro..."]], selContr.value);
+        return;
+      }
+      const chave = String(empr) + "_" + String(fili);
+      const opcoes = (DEP_CONTR_POR_EMPRFILI && DEP_CONTR_POR_EMPRFILI[chave])
+        || [["", "Nenhum contribuinte cadastrado nesta filial"]];
+      popularSelect(selContr, opcoes, selContr.value);
+    }
+
+    function conectarEventos() {
+      const selEmp = document.getElementById('id_depecontr_empr');
+      const inpFili = document.getElementById('id_depecontr_fili');
+      const selContr = document.getElementById('id_depecontr_contr');
+      if (!selEmp || !inpFili || !selContr) return false;
+
+      if (!selEmp.__depEventoAnexado) {
+        selEmp.__depEventoAnexado = true;
+        selEmp.addEventListener('change', function () {
+          if (inpFili && selEmp.value) {
+            inpFili.value = selEmp.value;
+          }
+          atualizarContribuintes(selEmp, inpFili, selContr);
+        });
+      }
+
+      if (!inpFili.__depEventoAnexado) {
+        inpFili.__depEventoAnexado = true;
+        inpFili.addEventListener('change', function () {
+          if (selEmp && inpFili.value) {
+            const filiDesejada = String(inpFili.value);
+            for (let i = 0; i < selEmp.options.length; i++) {
+              if (String(selEmp.options[i].value) === filiDesejada) {
+                selEmp.selectedIndex = i;
+                break;
+              }
+            }
+          }
+          atualizarContribuintes(selEmp, inpFili, selContr);
+        });
+        inpFili.addEventListener('blur', function () {
+          inpFili.dispatchEvent(new Event('change'));
+        });
+        inpFili.addEventListener('keyup', function (e) {
+          if (e.key === 'Enter') inpFili.dispatchEvent(new Event('change'));
+        });
+      }
+
+      atualizarContribuintes(selEmp, inpFili, selContr);
+      return true;
+    }
+
+    document.addEventListener('DOMContentLoaded', conectarEventos);
+    window.addEventListener('load', conectarEventos);
+    let tentativas = 0;
+    const timer = setInterval(function () {
+      tentativas++;
+      if (conectarEventos() || tentativas >= 10) clearInterval(timer);
+    }, 300);
+  })();
+</script>
+
+<script>
+  (function () {
+    function applyMask(value, type) {
+      const digits = String(value || '').replace(/\D/g, '');
+
+      if (type === 'cpf') {
+        return digits
+          .slice(0, 11)
+          .replace(/(\d{3})(\d)/, '$1.$2')
+          .replace(/(\d{3})(\d)/, '$1.$2')
+          .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+      }
+      return value;
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('[data-mask]').forEach(function (input) {
+        input.value = applyMask(input.value, input.getAttribute('data-mask'));
+        input.addEventListener('input', function () {
+          input.value = applyMask(input.value, input.getAttribute('data-mask'));
+        });
+      });
+    });
+  })();
+</script>
+
+{% endblock %}

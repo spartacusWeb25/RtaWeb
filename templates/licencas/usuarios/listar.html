@@ -32,14 +32,7 @@
         <h3><i class="bi bi-person-fill-gear"></i> Usuários</h3>
     </div>
 
-    {% if messages %}
-        {% for message in messages %}
-        <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'warning' %}alert-warning{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %} mt-3"
-            role="alert">
-            {{ message }}
-        </div>
-        {% endfor %}
-    {% endif %}
+
 
     <div class="filtros-acoes mb-3">
         <a href="{% url 'usuarios:criar' %}?banco={{ banco }}" class="botao botao-adicionar">

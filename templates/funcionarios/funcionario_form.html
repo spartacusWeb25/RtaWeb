@@ -194,13 +194,7 @@
   </div>
   {% endif %}
 
-  {% if messages %}
-    {% for message in messages %}
-    <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'warning' %}alert-warning{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %} mt-3" role="alert">
-      {{ message }}
-    </div>
-    {% endfor %}
-  {% endif %}
+
 
   <form method="post" novalidate>
     {% csrf_token %}
@@ -223,9 +217,17 @@
         {% for error in form.non_field_errors %}
         <li>{{ error }}</li>
         {% endfor %}
-      </ul>
     </div>
     {% endif %}
+
+    <div class="app-form-card mb-3">
+      <div class="row g-3 p-3">
+        <div class="row g-3">
+          {% include "funcionarios/_field.html" with field=form.func_codi col="col-12 col-lg-2" %}
+          {% include "funcionarios/_field.html" with field=form.func_nome col="col-12 col-lg-10" %}
+        </div>
+      </div>
+    </div>
 
     <ul class="nav nav-tabs nav-tabs-scroll mb-0" id="funcionarioTabs" role="tablist">
       <li class="nav-item" role="presentation">
@@ -260,7 +262,7 @@
       </li>
       <li class="nav-item" role="presentation">
         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-parentes" type="button">
-          <i class="bi bi-people"></i> Parentes
+          <i class="bi bi-people"></i> Dependentes
           {% if has_errors.parentes %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
         </button>
       </li>
@@ -365,8 +367,6 @@
                 <div class="col-12 col-xl-9">
                   <div class="empresa-section-box">
                     <div class="row g-3">
-                      {% include "funcionarios/_field.html" with field=form.func_codi col="col-12 col-lg-2" %}
-                      {% include "funcionarios/_field.html" with field=form.func_nome col="col-12 col-lg-10" %}
                       {% include "funcionarios/_field.html" with field=form.func_email col="col-12" %}
                       {% include "funcionarios/_field.html" with field=form.func_ddd col="col-12 col-lg-2 col-xl-1" %}
                       {% include "funcionarios/_field.html" with field=form.func_telefone col="col-12 col-lg-4 col-xl-5" %}
@@ -773,7 +773,7 @@
                           <th class="px-3 py-3 fw-semibold text-nowrap" style="width:180px;">Ações</th>
                         </tr>
                       </thead>
-                      <tbody>
+                      <tbody style="--bs-table-color: var(--text-primary); --bs-table-striped-color: var(--text-primary); --bs-table-hover-color: var(--text-primary);">
                         {% if dependentes_funcionario %}
                         {% for dep in dependentes_funcionario %}
                         <tr>
@@ -781,22 +781,22 @@
                             <span class="badge bg-light text-dark border rounded-pill px-3 py-1 fw-semibold">{{ dep.depe_codi|default:"-" }}</span>
                           </td>
                           <td class="px-3 py-2 text-start">
-                            <span class="fw-medium text-dark">{{ dep.depe_nome|default:"-" }}</span>
+                            <span class="fw-medium" style="color: var(--text-primary);">{{ dep.depe_nome|default:"-" }}</span>
                           </td>
                           <td class="px-2 py-2 text-nowrap">
                             {% if dep.depe_nascimento %}
                             <i class="bi bi-calendar3 text-primary me-1"></i>
-                            <span>{{ dep.depe_nascimento|date:"d/m/Y" }}</span>
+                            <span style="color: var(--text-primary);">{{ dep.depe_nascimento|date:"d/m/Y" }}</span>
                             {% else %}
-                            <span class="badge bg-secondary-subtle text-secondary-emphasis rounded-pill">—</span>
+                            <span class="badge rounded-pill" style="background: var(--surface-raised, #e9ecef); color: var(--text-secondary, #475569);">—</span>
                             {% endif %}
                           </td>
                           <td class="px-2 py-2 cpf-col text-nowrap">
                             {% if dep.depe_cpf %}
                             <i class="bi bi-person-vcard text-primary me-1"></i>
-                            <span class="cpf-mask fw-mono">{{ dep.depe_cpf }}</span>
+                            <span class="cpf-mask fw-mono" style="color: var(--text-primary);">{{ dep.depe_cpf }}</span>
                             {% else %}
-                            <span class="badge bg-secondary-subtle text-secondary-emphasis rounded-pill">—</span>
+                            <span class="badge rounded-pill" style="background: var(--surface-raised, #e9ecef); color: var(--text-secondary, #475569);">—</span>
                             {% endif %}
                           </td>
                           <td class="px-2 py-2">
@@ -813,17 +813,17 @@
                             {% elif dep.depe_tipo_dependente == 7 %}
                             <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis px-3 py-1">07 - Irmão(ã) Univ. Guarda</span>
                             {% elif dep.depe_tipo_dependente == 9 %}
-                            <span class="badge rounded-pill bg-secondary-subtle text-secondary-emphasis px-3 py-1">09 - Pais/Avós/Bisavós</span>
+                            <span class="badge rounded-pill bg-body-secondary text-body-secondary px-3 py-1">09 - Pais/Avós/Bisavós</span>
                             {% elif dep.depe_tipo_dependente == 10 %}
                             <span class="badge rounded-pill bg-danger-subtle text-danger-emphasis px-3 py-1">10 - Menor pobre Guarda</span>
                             {% elif dep.depe_tipo_dependente == 11 %}
                             <span class="badge rounded-pill bg-danger-subtle text-danger-emphasis px-3 py-1">11 - Incapaz/Tutor/Curador</span>
                             {% elif dep.depe_tipo_dependente == 12 %}
-                            <span class="badge rounded-pill bg-secondary-subtle text-secondary-emphasis px-3 py-1">12 - Ex-cônjuge</span>
+                            <span class="badge rounded-pill bg-body-secondary text-body-secondary px-3 py-1">12 - Ex-cônjuge</span>
                             {% elif dep.depe_tipo_dependente == 99 %}
                             <span class="badge rounded-pill bg-light text-dark border px-3 py-1">99 - Agregado/Outros</span>
                             {% else %}
-                            <span class="badge bg-secondary-subtle text-secondary-emphasis rounded-pill">—</span>
+                            <span class="badge bg-body-secondary text-body-secondary rounded-pill">—</span>
                             {% endif %}
                           </td>
                           <td class="px-2 py-2">
@@ -838,17 +838,17 @@
                             {% elif dep.depe_tipo_dependencia == 9 %}
                             <span class="badge rounded-pill bg-light text-dark border px-3 py-1 fw-medium">9 - OU</span>
                             {% else %}
-                            <span class="badge bg-secondary-subtle text-secondary-emphasis rounded-pill">—</span>
+                            <span class="badge bg-body-secondary text-body-secondary rounded-pill">—</span>
                             {% endif %}
                           </td>
                           <td class="px-2 py-2">
                             {% if dep.depe_invalido %}
                             <span class="badge rounded-pill bg-danger px-3 py-1">
-                              <i class="bi bi-exclamation-triangle-fill me-1"></i> Inválido
+                              <i class="bi bi-exclamation-triangle-fill me-1"></i> Sim
                             </span>
                             {% else %}
                             <span class="badge rounded-pill bg-success px-3 py-1">
-                              <i class="bi bi-check-circle-fill me-1"></i> Válido
+                              <i class="bi bi-check-circle-fill me-1"></i> Não
                             </span>
                             {% endif %}
                           </td>
@@ -1513,14 +1513,8 @@
         </div>
       </div>
 
-      <div class="form-actions-row mt-4 pt-3 border-top">
-        <button type="submit" class="btn btn-success">
-          <i class="bi bi-floppy-fill"></i> Salvar
-        </button>
-        <a href="{% url 'funcionarios:listar' %}?banco={{ request.banco }}" class="btn btn-outline-secondary">
-          <i class="bi bi-arrow-left"></i> Voltar
-        </a>
-      </div>
+      {% url 'funcionarios:listar' as url_voltar_func %}
+      {% include "partials/ui/form_actions.html" with form_actions_url_voltar=url_voltar_func|add:"?banco="|add:request.banco %}
     </div>
   </form>
 </div>
@@ -1548,6 +1542,50 @@
     const esocialIntegracaoStatus = document.getElementById('esocial-integracao-status');
     const esocialIntegracaoIcon = document.getElementById('esocial-integracao-icon');
     const esocialIntegracaoText = document.getElementById('esocial-integracao-text');
+
+    (function bindTabsHash() {
+      const abas = document.querySelectorAll('button.nav-link[data-bs-toggle="tab"], a.nav-link[data-bs-toggle="tab"]');
+      if (!abas.length || typeof bootstrap === 'undefined' || !bootstrap.Tab) return;
+
+      const triggerDaAba = (idAba) => {
+        if (!idAba) return null;
+        return document.querySelector(`[data-bs-target="${idAba}"]`);
+      };
+
+      const ativarAbaPeloHash = (hash) => {
+        const h = (hash || window.location.hash || '').trim();
+        if (!h || !h.startsWith('#tab-')) return false;
+        const trigger = triggerDaAba(h);
+        if (!trigger) return false;
+        if (trigger.classList && trigger.classList.contains('active')) return true;
+        try {
+          const tab = new bootstrap.Tab(trigger);
+          tab.show();
+          return true;
+        } catch (_) {
+          trigger.click();
+          return true;
+        }
+      };
+
+      ativarAbaPeloHash();
+
+      abas.forEach((trigger) => {
+        trigger.addEventListener('shown.bs.tab', () => {
+          const target = trigger.getAttribute('data-bs-target') || '';
+          if (target.startsWith('#tab-')) {
+            const novaUrl = window.location.pathname + window.location.search + target;
+            try {
+              window.history.replaceState(null, '', novaUrl);
+            } catch (_) {}
+          }
+        });
+      });
+
+      window.addEventListener('hashchange', () => {
+        ativarAbaPeloHash();
+      });
+    })();
 
     function applyMask(value, type) {
       const digits = String(value || '').replace(/\D/g, '');

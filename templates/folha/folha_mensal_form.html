@@ -64,10 +64,8 @@
         <div class="alert alert-danger mt-3">{{ form.non_field_errors }}</div>
         {% endif %}
 
-        <div class="form-actions-row">
-            <button type="submit" class="btn btn-success">Salvar</button>
-            <a href="{% url 'folha:folha_mensal_listar' %}?banco={{ request.banco }}" class="btn btn-outline-secondary">Voltar</a>
-        </div>
+        {% url 'folha:folha_mensal_listar' as url_voltar_folha %}
+        {% include "partials/ui/form_actions.html" with form_actions_url_voltar=url_voltar_folha|add:"?banco="|add:request.banco %}
     </form>
 </div>
 {% endblock %}

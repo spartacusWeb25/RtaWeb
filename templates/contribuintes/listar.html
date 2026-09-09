@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Contribuintes — RtaWeb{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+<link href="{% static 'core/css/list-cards.css' %}" rel="stylesheet">
+<link href="{% static 'core/css/tabelas-layout.css' %}" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/botoes.css' %}">
+<link rel="stylesheet" href="{% static 'css/buscas.css' %}">
+<link rel="stylesheet" href="{% static 'css/tabelas.css' %}">
+<style>
+    @media (min-width: 992px) {
+        .contribuintes-listar .form-grid {
+            grid-template-columns: minmax(280px, 1.3fr) minmax(220px, 1fr) auto;
+        }
+
+        .contribuintes-listar .form-group:last-child .d-flex {
+            white-space: nowrap;
+        }
+    }
+</style>
+
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4 contribuintes-listar">
+    <div class="d-flex justify-content-center align-items-center mb-3">
+        <h3><i class="bi bi-people-fill"></i> Contribuintes</h3>
+    </div>
+
+    <div class="filtros-acoes mb-3">
+        <a href="{% url 'contribuintes:criar' %}?banco={{ request.banco }}" class="botao botao-adicionar">
+            <i class="bi bi-plus"></i> Novo Contribuinte
+        </a>
+        <button class="botao botao-detalhar botao-filtro-toggle" type="button" data-bs-toggle="collapse"
+            data-bs-target="#filtrosCollapse" id="btn-filtros" aria-expanded="false" aria-controls="filtrosCollapse">
+            <i class="bi bi-funnel"></i> Filtros
+        </button>
+    </div>
+
+    <div class="app-form-card mb-3 collapse filtros-collapse" id="filtrosCollapse">
+        <form method="get" class="form-grid form-grid-compact">
+            <input type="hidden" name="banco" value="{{ request.banco }}">
+
+            <div class="form-group">
+                <label class="form-label">Buscar</label>
+                <input class="form-control" type="text" name="referencia" value="{{ referencia }}"
+                    placeholder="Código, nome, CPF ou matrícula eSocial do contribuinte">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Ordenar</label>
+                <select name="ordenar" class="form-control">
+                    <option value="asc" {% if ordenar == "" or ordenar == "asc" %}selected{% endif %}>Ordem crescente</option>
+                    <option value="desc" {% if ordenar == "desc" %}selected{% endif %}>Ordem decrescente</option>
+                </select>
+            </div>
+
+            <div class="form-group d-flex align-items-end">
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="?banco={{ request.banco }}" class="botao botao-limpar">
+                        <i class="bi bi-eraser"></i> Limpar
+                    </a>
+                    <button type="submit" class="botao botao-buscar">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    {% if contribuintes %}
+    <div class="table-responsive">
+        <table class="tabela-moderna">
+            <thead>
+                <tr>
+                    <th><i class="bi bi-key"></i> Código</th>
+                    <th><i class="bi bi-person"></i> Nome</th>
+                    <th><i class="bi bi-credit-card"></i> CPF</th>
+                    <th><i class="bi bi-cloud-check"></i> Matrícula eSocial</th>
+                    <th><i class="bi bi-calendar-plus"></i> Entrada</th>
+                    <th><i class="bi bi-calendar-x"></i> Baixa</th>
+                    <th><i class="bi bi-gear"></i> Ações</th>
+                </tr>
+            </thead>
+            <tbody data-infinite-scroll-items>
+                {% for item in contribuintes %}
+                <tr>
+                    <td data-label="Código">{{ item.contr_codi }}</td>
+                    <td data-label="Nome">{{ item.contr_nome|default:'-' }}</td>
+                    <td data-label="CPF">{{ item.contr_cpf|default:'-' }}</td>
+                    <td data-label="Matrícula eSocial">{{ item.contr_matricula_esocial|default:'-' }}</td>
+                    <td data-label="Entrada">{% if item.contr_admissao %}{{ item.contr_admissao|date:"d/m/Y" }}{% else %}-{% endif %}</td>
+                    <td data-label="Baixa">{% if item.contr_data_saida %}{{ item.contr_data_saida|date:"d/m/Y" }}{% else %}-{% endif %}</td>
+                    <td data-label="Ações" class="tabela-acoes">
+                        <a class="botao botao-editar" href="{% url 'contribuintes:atualizar' empr=item.contr_empr|default:1 fili=item.contr_fili|default:1 codi=item.contr_codi %}?banco={{ request.banco }}">
+                            <i class="bi bi-pencil-fill"></i> Editar
+                        </a>
+                        <a class="botao botao-remover" href="{% url 'contribuintes:deletar' empr=item.contr_empr|default:1 fili=item.contr_fili|default:1 codi=item.contr_codi %}?banco={{ request.banco }}">
+                            <i class="bi bi-trash-fill"></i> Excluir
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% include "partials/componentes/infinite_scroll.html" %}
+    {% else %}
+    <div class="alert alert-warning">
+        Nenhum contribuinte encontrado.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

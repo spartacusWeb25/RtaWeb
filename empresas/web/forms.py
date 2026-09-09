@@ -10,10 +10,127 @@ from empresas.models import Empresas
 from empresas.services.chave import EmpresasChaveService
 from tabelainss.models import Tabelainss
 from tabelairrf.models import Tabelairrf
+from eventos.models import Eventos
+
+
+def _choices_with_current_eventos(choices_tuple, current_value):
+    if current_value is None or current_value == "":
+        return choices_tuple
+    valores_atuais = set()
+    for item in choices_tuple:
+        if isinstance(item, (list, tuple)) and len(item) >= 1:
+            valores_atuais.add(str(item[0]))
+    atual = str(current_value)
+    if atual in valores_atuais:
+        return choices_tuple
+    try:
+        current_int = int(current_value)
+        extra = [(current_int, "{} — {}".format(current_int, current_int))]
+    except (TypeError, ValueError):
+        extra = [(str(current_value), "{} — {}".format(current_value, current_value))]
+    out = list(choices_tuple)
+    out.extend(extra)
+    return tuple(out)
+
+
+def _sanitize_choices_for_select(choices):
+    """Garante que choices para Django Select sempre seja tupla/list de pares len=2."""
+    if choices is None:
+        return (("", "Selecione"),)
+    try:
+        flat = list(choices)
+    except TypeError:
+        return (("", "Selecione"),)
+    limpa = []
+    for item in flat:
+        if item is None:
+            continue
+        if isinstance(item, (list, tuple)):
+            if len(item) >= 2:
+                try:
+                    valor = item[0]
+                    label = item[1]
+                    if label is None:
+                        label = ""
+                    else:
+                        label = str(label)
+                    try:
+                        valor_int = int(valor)
+                        limpa.append((valor_int, label))
+                    except (TypeError, ValueError):
+                        if isinstance(valor, str) or valor is None:
+                            limpa.append((valor if valor is not None else "", label))
+                        else:
+                            limpa.append((str(valor), label))
+                    continue
+                except Exception:
+                    pass
+            if len(item) == 1:
+                try:
+                    v = item[0]
+                    label_str = str(v)
+                    try:
+                        vi = int(v)
+                        limpa.append((vi, label_str))
+                    except (TypeError, ValueError):
+                        limpa.append((str(v) if v is not None else "", label_str))
+                except Exception:
+                    pass
+                continue
+            # len > 2 → ignora extras
+            try:
+                v = item[0]
+                l = item[1]
+                limpa.append((v, str(l) if l is not None else ""))
+            except Exception:
+                pass
+            continue
+        # Item é escalar (não par) — transforma em (item, str(item))
+        if item is None:
+            continue
+        try:
+            try:
+                vi = int(item)
+                limpa.append((vi, str(item)))
+            except (TypeError, ValueError):
+                limpa.append((str(item), str(item)))
+        except Exception:
+            pass
+    if not limpa:
+        return (("", "Selecione"),)
+    return tuple(limpa)
 
 
 CNAE_SUBCLASSES_API_URL = "https://servicodados.ibge.gov.br/api/v2/cnae/subclasses"
 CNAE_SUBCLASSE_DETALHE_API_URL = "https://servicodados.ibge.gov.br/api/v2/cnae/subclasses/{codigo}"
+
+VERBAS_CAMPO_CODIGO_PARA_DESCRICAO = (
+    ("empr_verba_mensalista", "empr_verba_mensalista_desc"),
+    ("empr_verba_diarista", "empr_verba_diarista_desc"),
+    ("empr_verba_horista", "empr_verba_horista_desc"),
+    ("empr_verba_horista_especial", "empr_verba_horista_especial_desc"),
+    ("empr_verba_pro_labore", "empr_verba_pro_labore_desc"),
+    ("empr_verba_pro_labore_fgts", "empr_verba_pro_labore_fgts_desc"),
+    ("empr_verba_estagiario", "empr_verba_estagiario_desc"),
+    ("empr_verba_aposentado", "empr_verba_aposentado_desc"),
+    ("empr_verba_tarefeiro", "empr_verba_tarefeiro_desc"),
+    ("empr_verba_iss", "empr_verba_iss_desc"),
+    ("empr_verba_contribuicao_sest", "empr_verba_contribuicao_sest_desc"),
+    ("empr_verba_contribuicao_senat", "empr_verba_contribuicao_senat_desc"),
+    ("empr_verba_intermitente", "empr_verba_intermitente_desc"),
+    ("empr_verba_domestica_fgts", "empr_verba_domestica_fgts_desc"),
+    ("empr_verba_domestica_sem_fgts", "empr_verba_domestica_sem_fgts_desc"),
+    ("empr_verba_autonomo", "empr_verba_autonomo_desc"),
+    ("empr_verba_comissionado", "empr_verba_comissionado_desc"),
+    ("empr_verba_pagamento_semanal", "empr_verba_pagamento_semanal_desc"),
+    ("empr_verba_pagamento_semanal_pro", "empr_verba_pagamento_semanal_pro_desc"),
+    ("empr_verba_pagamento_semanal_aut", "empr_verba_pagamento_semanal_aut_desc"),
+    ("empr_verba_plr", "empr_verba_plr_desc"),
+    ("empr_verba_pagamento_quinzenal", "empr_verba_pagamento_quinzenal_desc"),
+    ("empr_verba_pagamento_quinzenal_pro", "empr_verba_pagamento_quinzenal_pro_desc"),
+    ("empr_verba_pagamento_quinzenal_aut", "empr_verba_pagamento_quinzenal_aut_desc"),
+    ("empr_verba_multa_verde_amarelo", "empr_verba_multa_verde_amarelo_desc"),
+)
 
 
 def _normalize_cnae_digits(value, pad_left=False):
@@ -733,17 +850,19 @@ class EmpresasForm(forms.ModelForm):
                 continue
 
             if campo in RADIO_CHOICES:
-                field.choices = RADIO_CHOICES[campo]
+                _radio_choices = _sanitize_choices_for_select(RADIO_CHOICES[campo])
+                field.choices = _radio_choices
                 field.widget = forms.RadioSelect(
-                    choices=RADIO_CHOICES[campo],
+                    choices=_radio_choices,
                     attrs={"class": "empresa-radio-input"},
                 )
                 continue
 
             if campo in SELECT_CHOICES:
-                field.choices = SELECT_CHOICES[campo]
+                _select_choices = _sanitize_choices_for_select(SELECT_CHOICES[campo])
+                field.choices = _select_choices
                 field.widget = forms.Select(
-                    choices=SELECT_CHOICES[campo],
+                    choices=_select_choices,
                     attrs={"class": "form-select"}
                 )
                 if campo == "empr_situ":
@@ -823,6 +942,8 @@ class EmpresasForm(forms.ModelForm):
                 }
             )
 
+        self._configure_eventos_verbas_combos()
+
     def _get_latest_reference_value(self, model_class, reference_field):
         db_alias = get_db_from_slug(self.banco)
         try:
@@ -838,6 +959,111 @@ class EmpresasForm(forms.ModelForm):
 
     def _format_reference_initial_value(self, value):
         return _format_company_table_reference_display(value)
+
+    def _configure_eventos_verbas_combos(self):
+        from eventos.models import Eventos as _EventosModelClsRef
+
+        banco = (
+            (self.initial.get("registro") or "").strip()
+            or (self.banco or "").strip()
+            or (getattr(self.instance, "registro", None) or "").strip()
+        )
+        if banco:
+            try:
+                db_alias = get_db_from_slug(banco)
+            except Exception:
+                db_alias = "default"
+        else:
+            db_alias = "default"
+
+        empr_contexto = None
+        if self.initial.get("empr_empr") not in (None, ""):
+            empr_contexto = self.initial.get("empr_empr")
+        else:
+            empr_contexto = getattr(self.instance, "empr_empr", None)
+        try:
+            empr_contexto_int = int(empr_contexto) if empr_contexto not in (None, "") else None
+        except (TypeError, ValueError):
+            empr_contexto_int = None
+
+        eventos_lista = []
+        if banco and db_alias:
+            try:
+                qs = _EventosModelClsRef.objects.using(db_alias).filter(
+                    registro=banco,
+                    even_inativo=False,
+                )
+                if empr_contexto_int is not None:
+                    qs = qs.filter(even_empr=empr_contexto_int)
+                qs = qs.order_by("even_codi")
+                eventos_lista = list(qs.values("even_codi", "even_desc"))
+            except Exception:
+                eventos_lista = []
+
+        mapa_even = {}
+        for ev in eventos_lista:
+            try:
+                mapa_even[int(ev["even_codi"])] = (ev.get("even_desc") or "").strip()
+            except (TypeError, ValueError):
+                continue
+
+        choices_base = (("", "Selecione"),)
+        if eventos_lista:
+            _temp_choices = [("", "Selecione")]
+            for ev in eventos_lista:
+                try:
+                    codigo_int = int(ev["even_codi"])
+                    descricao = (ev.get("even_desc") or "").strip() or "Sem descrição"
+                    _temp_choices.append((codigo_int, "{} — {}".format(codigo_int, descricao)))
+                except Exception:
+                    continue
+            choices_base = tuple(_temp_choices)
+        choices_base = _sanitize_choices_for_select(choices_base)
+
+        for codigo_field, desc_field in VERBAS_CAMPO_CODIGO_PARA_DESCRICAO:
+            if codigo_field not in self.fields or desc_field not in self.fields:
+                continue
+
+            codigo_atual = self.initial.get(codigo_field)
+            if codigo_atual in (None, ""):
+                codigo_atual = getattr(self.instance, codigo_field, None)
+            try:
+                codigo_atual_int = (
+                    int(codigo_atual) if codigo_atual not in (None, "") else None
+                )
+            except (TypeError, ValueError):
+                codigo_atual_int = None
+
+            choices = _choices_with_current_eventos(choices_base, codigo_atual_int)
+            choices = _sanitize_choices_for_select(choices)
+
+            self.fields[codigo_field].required = False
+            self.fields[codigo_field].choices = choices
+            self.fields[codigo_field].widget = forms.Select(
+                choices=choices,
+                attrs={"class": "form-select"},
+            )
+
+            descricao_automatica = ""
+            if codigo_atual_int is not None:
+                descricao_automatica = mapa_even.get(codigo_atual_int, "")
+                if not descricao_automatica:
+                    descricao_automatica = (
+                        (self.initial.get(desc_field) or "").strip()
+                        or (getattr(self.instance, desc_field, None) or "").strip()
+                    )
+
+            self.initial[desc_field] = descricao_automatica
+            self.fields[desc_field].initial = descricao_automatica
+            self.fields[desc_field].required = False
+            self.fields[desc_field].widget = forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "readonly": "readonly",
+                    "disabled": "disabled",
+                    "placeholder": "Descrição da verba selecionada",
+                }
+            )
 
     def _apply_table_reference_initials(self):
         latest_irrf_reference = self._get_latest_reference_value(Tabelairrf, "irrf_refe")
@@ -916,8 +1142,51 @@ class EmpresasForm(forms.ModelForm):
             "Ja existe uma empresa com este codigo e filial nesta licenca.",
         )
 
+    def _clean_eventos_verbas(self, cleaned_data):
+        banco = (cleaned_data.get("registro") or self.banco or getattr(self.instance, "registro", None) or "").strip()
+        if not banco:
+            return
+        try:
+            db_alias = get_db_from_slug(banco)
+        except Exception:
+            db_alias = "default"
+        empr_contexto = cleaned_data.get("empr_empr")
+        if empr_contexto in (None, ""):
+            empr_contexto = getattr(self.instance, "empr_empr", None)
+        if empr_contexto in (None, ""):
+            return
+
+        mapa_even = {}
+        try:
+            eventos_lista = list(
+                Eventos.objects.using(db_alias)
+                .filter(registro=banco, even_empr=empr_contexto)
+                .values("even_codi", "even_desc")
+            )
+            for ev in eventos_lista:
+                try:
+                    mapa_even[int(ev["even_codi"])] = (ev.get("even_desc") or "").strip() or ""
+                except (TypeError, ValueError):
+                    continue
+        except Exception:
+            return
+
+        for codigo_field, desc_field in VERBAS_CAMPO_CODIGO_PARA_DESCRICAO:
+            cod = cleaned_data.get(codigo_field)
+            if cod in (None, ""):
+                cleaned_data[desc_field] = ""
+                continue
+            try:
+                cod_int = int(cod)
+            except (TypeError, ValueError):
+                cleaned_data[desc_field] = ""
+                continue
+            descricao = mapa_even.get(cod_int, "")
+            cleaned_data[desc_field] = descricao
+
     def clean(self):
         cleaned_data = super().clean()
+        self._clean_eventos_verbas(cleaned_data)
         registro = cleaned_data.get("registro") or self.banco
         cnpj = cleaned_data.get("empr_cnpj")
         cpf = cleaned_data.get("empr_cpf")

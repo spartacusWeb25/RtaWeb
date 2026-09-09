@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
 
-
 {% block title %}Eventos — RtaWeb{% endblock %}
 
 {% block extra_css %}
@@ -11,16 +10,30 @@
 <link rel="stylesheet" href="{% static 'css/botoes.css' %}">
 <link rel="stylesheet" href="{% static 'css/buscas.css' %}">
 <link rel="stylesheet" href="{% static 'css/tabelas.css' %}">
+<style>
+    @media (min-width: 992px) {
+        .eventos-listar .form-grid {
+            grid-template-columns: minmax(280px, 1.3fr) minmax(220px, 1fr) auto;
+        }
+
+        .eventos-listar .form-group:last-child .d-flex {
+            white-space: nowrap;
+        }
+    }
+</style>
 
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container mt-4 eventos-listar">
     <div class="d-flex justify-content-center align-items-center mb-3">
-        <h3><i class="bi bi-people-fill"></i> Eventos</h3>
+        <h3><i class="bi bi-list-ol"></i> Eventos</h3>
     </div>
 
     <div class="filtros-acoes mb-3">
+        <a href="{% url 'eventos:criar' %}?banco={{ request.banco }}" class="botao botao-adicionar">
+            <i class="bi bi-plus"></i> Novo Evento
+        </a>
         <button class="botao botao-detalhar botao-filtro-toggle" type="button" data-bs-toggle="collapse"
             data-bs-target="#filtrosCollapse" id="btn-filtros" aria-expanded="false" aria-controls="filtrosCollapse">
             <i class="bi bi-funnel"></i> Filtros
@@ -32,37 +45,30 @@
             <input type="hidden" name="banco" value="{{ request.banco }}">
 
             <div class="form-group">
-                <label class="form-label">Código</label>
-                <input class="form-control" type="text" name="referencia" value="{{ even_codi }}">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Descrição</label>
-                <input class="form-control" type="text" name="funcionario" value="{{ even_desc }}">
+                <label class="form-label">Buscar</label>
+                <input class="form-control" type="text" name="referencia" value="{{ referencia }}"
+                    placeholder="Código ou descrição do evento">
             </div>
 
             <div class="form-group">
                 <label class="form-label">Ordenar</label>
                 <select name="ordenar" class="form-control">
-                    <option value="">Padrão</option>
-                    <option value="referencia" {% if ordenar == "referencia" %}selected{% endif %}>Código</option>
-                    <option value="referencia_desc" {% if ordenar == "referencia_desc" %}selected{% endif %}>Referência desc</option>
-                    <option value="funcionario" {% if ordenar == "funcionario" %}selected{% endif %}>Descrição</option>
-                    <option value="valor" {% if ordenar == "valor" %}selected{% endif %}>Menor valor</option>
-                    <option value="valor_desc" {% if ordenar == "valor_desc" %}selected{% endif %}>Maior valor</option>
+                    <option value="" {% if ordenar == "" %}selected{% endif %}>Código crescente</option>
+                    <option value="desc" {% if ordenar == "desc" %}selected{% endif %}>Código decrescente</option>
+                    <option value="desc_asc" {% if ordenar == "desc_asc" %}selected{% endif %}>Descrição A-Z</option>
+                    <option value="desc_desc" {% if ordenar == "desc_desc" %}selected{% endif %}>Descrição Z-A</option>
                 </select>
             </div>
 
             <div class="form-group d-flex align-items-end">
-                <a href="?banco={{ request.banco }}" class="botao botao-limpar">
-                    <i class="bi bi-eraser"></i> Limpar
-                </a>
-            </div>
-
-            <div class="form-group">
-                <button type="submit" class="botao botao-buscar">
-                    <i class="bi bi-search"></i> Buscar
-                </button>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="?banco={{ request.banco }}" class="botao botao-limpar">
+                        <i class="bi bi-eraser"></i> Limpar
+                    </a>
+                    <button type="submit" class="botao botao-buscar">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </div>
             </div>
         </form>
     </div>
@@ -72,8 +78,10 @@
         <table class="tabela-moderna">
             <thead>
                 <tr>
-                    <th><i class="bi bi-hash"></i> Código</th>
+                    <th><i class="bi bi-key"></i> Código</th>
                     <th><i class="bi bi-card-text"></i> Descrição</th>
+                    <th><i class="bi bi-tags"></i> Tipo Verba</th>
+                    <th><i class="bi bi-percent"></i> Forma</th>
                     <th><i class="bi bi-gear"></i> Ações</th>
                 </tr>
             </thead>
@@ -82,11 +90,13 @@
                 <tr>
                     <td data-label="Código">{{ item.even_codi }}</td>
                     <td data-label="Descrição">{{ item.even_desc|default:'-' }}</td>
+                    <td data-label="Tipo Verba">{{ item.get_even_tipo_verba_display|default:'-' }}</td>
+                    <td data-label="Forma">{{ item.get_even_tipo_referencia_display|default:'-' }}</td>
                     <td data-label="Ações" class="tabela-acoes">
-                        <a class="botao botao-editar" href="{% url 'eventos:atualizar' item.even_codi %}?banco={{ request.banco }}">
+                        <a class="botao botao-editar" href="{% url 'eventos:atualizar' item.even_empr item.even_codi %}?banco={{ request.banco }}">
                             <i class="bi bi-pencil"></i> Editar
                         </a>
-                        <a class="botao botao-remover" href="{% url 'eventos:deletar' item.even_codi %}?banco={{ request.banco }}">
+                        <a class="botao botao-remover" href="{% url 'eventos:deletar' item.even_empr item.even_codi %}?banco={{ request.banco }}">
                             <i class="bi bi-trash"></i> Excluir
                         </a>
                     </td>
@@ -99,7 +109,7 @@
     {% include "partials/componentes/infinite_scroll.html" %}
     {% else %}
     <div class="alert alert-warning">
-        Nenhum registro encontrado.
+        Nenhum evento encontrado.
     </div>
     {% endif %}
 </div>

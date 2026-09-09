@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dependentes de Contribuintes — RtaWeb{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/botoes.css' %}">
+<link rel="stylesheet" href="{% static 'css/buscas.css' %}">
+<link rel="stylesheet" href="{% static 'css/tabelas.css' %}">
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-center align-items-center mb-3">
+        <h3><i class="bi bi-people-fill"></i> Dependentes de Contribuintes</h3>
+    </div>
+
+    {% if contribuinte_contexto %}
+    <div class="card mb-4 border-primary">
+        <div class="card-header bg-primary-subtle py-2">
+            <div class="d-flex flex-wrap align-items-center gap-3">
+                <i class="bi bi-person-badge fs-4 text-primary"></i>
+                <div class="flex-grow-1">
+                    <div class="d-flex flex-wrap gap-3 align-items-baseline">
+                        <span class="fw-bold fs-6">{{ contribuinte_contexto.contr_nome|default:"-" }}</span>
+                        <small class="text-muted">
+                            Cód. Contribuinte: #{{ contribuinte_contexto.contr_codi|default:"-" }}
+                        </small>
+                        {% if empresa_nome_contexto %}
+                            <small class="text-muted ms-2">
+                                <i class="bi bi-building ms-2"></i>{{ empresa_nome_contexto }}
+                            </small>
+                        {% endif %}
+                        <small class="text-muted ms-2">
+                            <i class="bi bi-calendar-event ms-2"></i>
+                            Admissão: {{ contribuinte_contexto.contr_admissao|date:"d/m/Y"|default:"-" }}
+                        </small>
+                    </div>
+                </div>
+                {% if empr and fili and contr %}
+                <a href="{% url 'contribuintes:atualizar' empr=empr fili=fili codi=contribuinte_contexto.contr_codi %}?banco={{ banco_limpo }}#tab-dependentes"
+                   class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-arrow-left"></i> Voltar para o Contribuinte
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="filtros-acoes mb-3">
+        <a href="{% url 'dependentescontr:criar' %}?banco={{ banco_limpo }}
+            {% if empr %}&empr={{ empr }}{% endif %}
+            {% if fili %}&fili={{ fili }}{% endif %}
+            {% if contr %}&contr={{ contr }}{% endif %}
+            {% if nome %}&nome={{ nome }}{% endif %}
+            {% if cpf %}&cpf={{ cpf }}{% endif %}
+            {% if codigo %}&codigo={{ codigo }}{% endif %}
+            {% if invalido %}&invalido={{ invalido }}{% endif %}"
+           class="botao botao-adicionar">
+            <i class="bi bi-plus"></i> Novo Dependente
+        </a>
+        <button class="botao botao-detalhar botao-filtro-toggle" type="button" data-bs-toggle="collapse"
+            data-bs-target="#filtrosCollapse" id="btn-filtros" aria-expanded="false" aria-controls="filtrosCollapse">
+            <i class="bi bi-funnel"></i> Filtros
+        </button>
+    </div>
+
+    <div class="collapse filtros-collapse" id="filtrosCollapse">
+
+        <form method="get" class="form-grid form-grid-compact mb-3">
+            <input type="hidden" name="banco" value="{{ banco_limpo }}">
+
+            <div class="form-group">
+                <label class="form-label">Empresa</label>
+                <input class="form-control" type="text" name="empr" value="{{ empr|default:'' }}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Filial</label>
+                <input class="form-control" type="text" name="fili" value="{{ fili|default:'' }}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Contribuinte</label>
+                <input class="form-control" type="text" name="contr" value="{{ contr|default:'' }}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Nome</label>
+                <input class="form-control" type="text" name="nome" value="{{ nome|default:'' }}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">CPF</label>
+                <input class="form-control" type="text" name="cpf" value="{{ cpf|default:'' }}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Código Dependente</label>
+                <input class="form-control" type="text" name="codigo" value="{{ codigo|default:'' }}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Inválido</label>
+                <select class="form-control" name="invalido">
+                    <option value="">Todos</option>
+                    <option value="sim" {% if invalido == "sim" %}selected{% endif %}>Sim</option>
+                    <option value="nao" {% if invalido == "nao" %}selected{% endif %}>Não</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="botao botao-buscar"><i class="bi bi-search"></i> Filtrar</button>
+            </div>
+        </form>
+    </div>
+
+    {% if dependentescontr %}
+
+    <div class="table-responsive">
+        <table class="tabela-moderna">
+            <thead>
+                <tr>
+                    <th><i class="bi bi-key"></i> Código</th>
+                    <th><i class="bi bi-person"></i> Nome do Dependente</th>
+                    <th><i class="bi bi-calendar3"></i> Nascimento</th>
+                    <th><i class="bi bi-credit-card"></i> CPF</th>
+                    <th><i class="bi bi-diagram-3"></i> Tipo Dependente</th>
+                    <th><i class="bi bi-diagram-3-fill"></i> Tipo Dependência</th>
+                    <th><i class="bi bi-x-circle"></i> Inválido</th>
+                    <th><i class="bi bi-card-text"></i> Descrição da Dependência</th>
+                    <th><i class="bi bi-gear"></i> Ações</th>
+                </tr>
+            </thead>
+
+            <tbody data-infinite-scroll-items>
+                {% for dep in dependentescontr %}
+                <tr>
+                    <td data-label="Código">{{ dep.depecontr_codi }}</td>
+                    <td data-label="Nome do Dependente">{{ dep.depecontr_nome|default:'-' }}</td>
+                    <td data-label="Nascimento">{{ dep.depecontr_nascimento|date:"d/m/Y"|default:'-' }}</td>
+                    <td data-label="CPF" class="cpf-col">{{ dep.depecontr_cpf|default:'' }}</td>
+                    <td data-label="Tipo Dependente">
+                        {% if dep.depecontr_tipo_dependente == 1 %}01 - Cônjuge
+                        {% elif dep.depecontr_tipo_dependente == 2 %}02 - Companheiro(a)
+                        {% elif dep.depecontr_tipo_dependente == 3 %}03 - Filho(a)/Enteado(a)
+                        {% elif dep.depecontr_tipo_dependente == 4 %}04 - Universitário
+                        {% elif dep.depecontr_tipo_dependente == 5 %}05 - Irmão/Neto/Bisneto
+                        {% elif dep.depecontr_tipo_dependente == 6 %}06 - Irmão/Neto Univ.
+                        {% elif dep.depecontr_tipo_dependente == 7 %}07 - Pais/Avós/Bisavós
+                        {% elif dep.depecontr_tipo_dependente == 8 %}08 - Menor pobre 14 anos
+                        {% elif dep.depecontr_tipo_dependente == 9 %}09 - Tutelado
+                        {% elif dep.depecontr_tipo_dependente == 10 %}10 - Incapaz (curatela)
+                        {% elif dep.depecontr_tipo_dependente == 11 %}11 - Filho(a) Deficiente
+                        {% elif dep.depecontr_tipo_dependente == 12 %}12 - Irmão/Neto Def.
+                        {% elif dep.depecontr_tipo_dependente == 13 %}13 - Cônjuge Def.
+                        {% elif dep.depecontr_tipo_dependente == 14 %}14 - Companheiro(a) Def.
+                        {% elif dep.depecontr_tipo_dependente == 15 %}15 - Pais/Avós Def.
+                        {% elif dep.depecontr_tipo_dependente == 99 %}99 - Outros
+                        {% else %}-
+                        {% endif %}
+                    </td>
+                    <td data-label="Tipo Dependência">
+                        {% if dep.depecontr_tipo_dependencia == 1 %}1 - IR
+                        {% elif dep.depecontr_tipo_dependencia == 2 %}2 - SF
+                        {% elif dep.depecontr_tipo_dependencia == 3 %}3 - PL
+                        {% elif dep.depecontr_tipo_dependencia == 4 %}4 - PE
+                        {% elif dep.depecontr_tipo_dependencia == 5 %}5 - PA
+                        {% elif dep.depecontr_tipo_dependencia == 9 %}9 - OU
+                        {% else %}-
+                        {% endif %}
+                    </td>
+                    <td data-label="Inválido">
+                        <input type="checkbox" class="form-check-input" {% if dep.depecontr_invalido %}checked{% endif %} disabled>
+                    </td>
+                    <td data-label="Descrição da Dependência">{{ dep.depecontr_desc_dependencia|default:'-' }}</td>
+                    <td data-label="Ações" class="tabela-acoes">
+                        <a href="{% url 'dependentescontr:atualizar' empr=dep.depecontr_empr fili=dep.depecontr_fili contr=dep.depecontr_contr codi=dep.depecontr_codi %}?banco={{ banco_limpo }}"
+                            class="botao botao-editar">
+                            <i class="bi bi-pencil"></i> Editar
+                        </a>
+
+                        <a href="{% url 'dependentescontr:deletar' empr=dep.depecontr_empr fili=dep.depecontr_fili contr=dep.depecontr_contr codi=dep.depecontr_codi %}?banco={{ banco_limpo }}"
+                            class="botao botao-remover">
+                            <i class="bi bi-trash"></i> Excluir
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% include "partials/componentes/infinite_scroll.html" %}
+
+    {% else %}
+
+    <div class="alert alert-warning">
+        Nenhum registro encontrado.
+    </div>
+
+    {% endif %}
+
+</div>
+
+<script>
+    (function () {
+        function formatarCPF(cpf) {
+            const digitos = String(cpf || '').replace(/\D/g, '');
+            if (digitos.length !== 11) return cpf || '-';
+            return digitos.slice(0, 3) + '.' + digitos.slice(3, 6) + '.' + digitos.slice(6, 9) + '-' + digitos.slice(9, 11);
+        }
+        document.querySelectorAll('.cpf-col').forEach(function (td) {
+            if (td.textContent && td.textContent !== '-') {
+                td.textContent = formatarCPF(td.textContent);
+            }
+        });
+    })();
+</script>
+
+{% endblock %}

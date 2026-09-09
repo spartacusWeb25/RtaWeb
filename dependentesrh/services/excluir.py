@@ -14,4 +14,8 @@ class DependentesExcluirService:
         if not dependente:
             raise ValueError("Dependente não encontrado.")
 
-        dependente.delete(using=db_alias)
+        DependentesChaveService.remover(
+            banco=banco,
+            db_alias=db_alias,
+            dados=dados,
+        )

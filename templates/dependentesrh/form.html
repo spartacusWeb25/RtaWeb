@@ -132,13 +132,7 @@
   </div>
   {% endif %}
 
-  {% if messages %}
-    {% for message in messages %}
-    <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'warning' %}alert-warning{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %} mt-3" role="alert">
-      {{ message }}
-    </div>
-    {% endfor %}
-  {% endif %}
+
 
   <form method="post" novalidate>
     {% csrf_token %}
@@ -302,19 +296,7 @@
       </div>
     </div>
 
-    <div class="form-footer">
-      <button type="submit" class="btn btn-primary">
-        <i class="bi bi-save"></i> Salvar
-      </button>
-      <button type="reset" class="btn btn-outline-secondary">
-        <i class="bi bi-eraser"></i> Limpar
-      </button>
-      <a href="{{ url_voltar|default:'#' }}"
-         {% if not url_voltar %}onclick="window.history.back(); return false;"{% endif %}
-         class="btn btn-outline-secondary">
-        <i class="bi bi-arrow-left"></i> Voltar
-      </a>
-    </div>
+    {% include "partials/ui/form_actions.html" with form_actions_url_voltar=url_voltar|default:"#" %}
   </form>
 </div>
 

@@ -105,6 +105,88 @@ function initResponsiveFilterCollapse() {
   })
 }
 
+function initRtaMessages() {
+  try {
+    const alerts = document.querySelectorAll('.rta-alert[data-rta-message="1"]')
+    if (alerts.length === 0) return
+
+    function hideAlertEl(alertEl) {
+      if (!alertEl) return
+      try {
+        const bsAlert =
+          typeof bootstrap !== 'undefined' && bootstrap && bootstrap.Alert
+            ? bootstrap.Alert.getOrCreateInstance(alertEl)
+            : null
+        if (bsAlert && typeof bsAlert.close === 'function') {
+          bsAlert.close()
+        }
+      } catch (e) { /* noop */ }
+      try {
+        // Garantia 100% — esconde visualmente mesmo que o close() falhe
+        alertEl.style.setProperty('opacity', '0', 'important')
+        alertEl.style.setProperty('height', '0px', 'important')
+        alertEl.style.setProperty('min-height', '0px', 'important')
+        alertEl.style.setProperty('padding-top', '0px', 'important')
+        alertEl.style.setProperty('padding-bottom', '0px', 'important')
+        alertEl.style.setProperty('margin-top', '0px', 'important')
+        alertEl.style.setProperty('margin-bottom', '0px', 'important')
+        alertEl.style.setProperty('border-width', '0px', 'important')
+        alertEl.style.setProperty('pointer-events', 'none', 'important')
+        alertEl.style.setProperty('visibility', 'hidden', 'important')
+      } catch (e) { /* noop */ }
+      try {
+        // Remover do DOM após 300ms (transition)
+        setTimeout(() => {
+          if (alertEl && alertEl.parentNode) {
+            alertEl.parentNode.removeChild(alertEl)
+          }
+        }, 350)
+      } catch (e) { /* noop */ }
+    }
+
+    alerts.forEach((alertEl) => {
+      const timeout = parseInt(alertEl.getAttribute('data-rta-timeout') || '5000', 10)
+      if (timeout > 0) {
+        setTimeout(() => hideAlertEl(alertEl), timeout)
+      }
+    })
+
+    function dismissAllRtaMessages() {
+      try {
+        document.querySelectorAll('.rta-alert[data-rta-message="1"]').forEach((alertEl) => {
+          hideAlertEl(alertEl)
+        })
+      } catch (e) { /* noop */ }
+    }
+
+    try {
+      document.addEventListener(
+        'click',
+        (e) => {
+          const link = e.target.closest && e.target.closest('a[href]')
+          if (!link) return
+          const href = (link.getAttribute('href') || '').toString()
+          if (!href) return
+          if (href === '#' || href.startsWith('javascript:') || href.startsWith('mailto:') || href.startsWith('tel:')) {
+            return
+          }
+          const target = (link.getAttribute('target') || '').toString()
+          if (target === '_blank') return
+          dismissAllRtaMessages()
+        },
+        true,
+      )
+    } catch (e) { /* noop */ }
+
+    try {
+      window.addEventListener('beforeunload', dismissAllRtaMessages)
+    } catch (e) { /* noop */ }
+  } catch (e) {
+    // NÃO deixa erro no initRtaMessages quebrar o resto do app
+    try { if (window.console && console.warn) console.warn('[rta-messages]', e) } catch (_e) {}
+  }
+}
+
 ;(function () {
   const html = document.documentElement
 
@@ -127,6 +209,7 @@ function initResponsiveFilterCollapse() {
         )
       })
     })
+    initRtaMessages()
     initInfiniteScroll()
     initResponsiveFilterCollapse()
     const navToggle = document.getElementById('navToggle')

@@ -5,7 +5,7 @@ from django.views.generic import View
 from core.mixin import BancoObrigatorioMixin
 from dependentesrh.services.excluir import DependentesExcluirService
 from dependentesrh.services.chave import DependentesChaveService
-from dependentesrh.web.views.criar import _obter_contexto_funcionario
+from dependentesrh.web.views.criar import _obter_contexto_funcionario, _digits_only
 
 
 class DependentesrhDeleteView(BancoObrigatorioMixin, View):
@@ -19,6 +19,7 @@ class DependentesrhDeleteView(BancoObrigatorioMixin, View):
         }
 
     def _base_sucesso_url(self, request):
+        banco_limpo = _digits_only(request.banco)
         empr = self.kwargs["empresa"]
         fili = self.kwargs["filial"]
         func = self.kwargs["funcionario"]
@@ -33,17 +34,18 @@ class DependentesrhDeleteView(BancoObrigatorioMixin, View):
                             "func_codi": int(func),
                         },
                     )
-                    + f"?banco={request.banco}#tab-parentes"
+                    + f"?banco={banco_limpo}#tab-parentes"
                 )
             except Exception:
                 pass
-        return reverse("dependentesrh:listar") + f"?banco={request.banco}"
+        return reverse("funcionarios:listar") + f"?banco={banco_limpo}"
 
     def get(self, request, *args, **kwargs):
         from django.shortcuts import render
+        banco_limpo = _digits_only(request.banco)
 
         dependente = DependentesChaveService.buscar(
-            banco=request.banco,
+            banco=banco_limpo,
             db_alias=request.db_alias,
             dados=self.get_chave_dados(),
         )
@@ -64,9 +66,10 @@ class DependentesrhDeleteView(BancoObrigatorioMixin, View):
         return render(request, "dependentesrh/confirmar_exclusao.html", context)
 
     def post(self, request, *args, **kwargs):
+        banco_limpo = _digits_only(request.banco)
         try:
             DependentesExcluirService.excluir(
-                banco=request.banco,
+                banco=banco_limpo,
                 db_alias=request.db_alias,
                 dados=self.get_chave_dados(),
             )

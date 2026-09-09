@@ -39,3 +39,43 @@ class Dependentesrh(models.Model):
 
     def __str__(self):
         return self.depe_nome or f"Dependente #{self.depe_codi}"
+
+    def save(self, *args, **kwargs):
+        using = kwargs.get("using") or "default"
+        qs = Dependentesrh.objects.using(using).filter(
+            registro=self.registro,
+            depe_empr=self.depe_empr,
+            depe_fili=self.depe_fili,
+            depe_func=self.depe_func,
+            depe_codi=self.depe_codi,
+        )
+        if qs.exists():
+            dados = {}
+            for field in self._meta.get_fields():
+                if field.primary_key:
+                    continue
+                if field.name in (
+                    "registro",
+                    "depe_empr",
+                    "depe_fili",
+                    "depe_func",
+                    "depe_codi",
+                ):
+                    continue
+                try:
+                    dados[field.name] = getattr(self, field.name)
+                except Exception:
+                    pass
+            qs.update(**dados)
+            return self
+        return super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        using = kwargs.get("using") or "default"
+        Dependentesrh.objects.using(using).filter(
+            registro=self.registro,
+            depe_empr=self.depe_empr,
+            depe_fili=self.depe_fili,
+            depe_func=self.depe_func,
+            depe_codi=self.depe_codi,
+        ).delete()

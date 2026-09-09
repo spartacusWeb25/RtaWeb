@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Excluir Contribuinte — RtaWeb{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm" style="background: var(--surface-card, var(--bs-card-bg)); border-color: var(--border-default, var(--bs-border-color));">
+    <div class="card-header fw-semibold" style="background: var(--surface-th, var(--bs-secondary-bg)); color: var(--text-primary, var(--bs-emphasis-color)); border-color: var(--border-default, var(--bs-border-color));">
+        Confirmação
+    </div>
+    <div class="card-body" style="color: var(--text-primary, var(--bs-body-color));">
+        <p>Tem certeza que deseja excluir o contribuinte "<strong>{{ object.contr_nome }}</strong>"?</p>
+        <form method="post" action="{% url 'contribuintes:deletar' empr=object.contr_empr fili=object.contr_fili codi=object.contr_codi %}?banco={{ request.banco }}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Excluir</button>
+            <a href="{% url 'contribuintes:listar' %}?banco={{ request.banco }}" class="btn btn-outline-secondary">Cancelar</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

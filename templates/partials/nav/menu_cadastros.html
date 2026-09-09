@@ -12,6 +12,12 @@
         <a href="{% url 'funcionarios:listar' %}?banco={{ request.banco|default:'rta0001' }}">
             Funcionários
         </a>
+        <a href="{% url 'contribuintes:listar' %}?banco={{ request.banco|default:'rta0001' }}">
+            Contribuintes
+        </a>
+        <a href="{% url 'eventos:listar' %}?banco={{ request.banco|default:'rta0001' }}">
+            Eventos
+        </a>
         {% comment %} DESABILITADO TEMPORARIAMENTE — reativar no futuro removendo o bloco de comentário
         <a href="{% url 'dependentesrh:listar' %}?banco={{ request.banco|default:'rta0001' }}" style="display:none; pointer-events:none; opacity:0.4;" aria-disabled="true">
             Dependentes

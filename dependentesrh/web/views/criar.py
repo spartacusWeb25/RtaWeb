@@ -12,12 +12,17 @@ from funcionarios.services.logic import FuncionariosService
 from empresas.models import Empresas
 
 
+def _digits_only(value):
+    return "".join(ch for ch in str(value or "") if ch.isdigit())
+
+
 def _obter_contexto_funcionario(request, empresa, filial, funcionario):
     if not empresa or not filial or not funcionario:
         return None
     try:
         from funcionarios.models import Funcionarios
         from empresas.models import Empresas
+        banco_limpo = _digits_only(request.banco)
 
         dados = {
             "funcionario": None,
@@ -31,7 +36,7 @@ def _obter_contexto_funcionario(request, empresa, filial, funcionario):
 
         emp = (
             Empresas.objects.using(request.db_alias)
-            .filter(registro=request.banco, empr_empr=int(empresa), empr_fili=1)
+            .filter(registro=banco_limpo, empr_empr=int(empresa), empr_fili=1)
             .values("empr_nome")
             .first()
         )
@@ -43,7 +48,7 @@ def _obter_contexto_funcionario(request, empresa, filial, funcionario):
 
         fil = (
             Empresas.objects.using(request.db_alias)
-            .filter(registro=request.banco, empr_empr=int(empresa), empr_fili=int(filial))
+            .filter(registro=banco_limpo, empr_empr=int(empresa), empr_fili=int(filial))
             .values("empr_nome")
             .first()
         )
@@ -55,7 +60,7 @@ def _obter_contexto_funcionario(request, empresa, filial, funcionario):
         func = (
             Funcionarios.objects.using(request.db_alias)
             .filter(
-                registro=request.banco,
+                registro=banco_limpo,
                 func_empr=int(empresa),
                 func_fili=int(filial),
                 func_codi=int(funcionario),
@@ -75,10 +80,11 @@ def _obter_contexto_funcionario(request, empresa, filial, funcionario):
 
 
 def _obter_empresa_padrao_e_filiais(db_alias, banco):
+    banco_limpo = _digits_only(banco)
     empresa_padrao = None
     try:
         empresa_padrao = FuncionariosService.obter_empresa_padrao(
-            banco=banco, db_alias=db_alias
+            banco=banco_limpo, db_alias=db_alias
         )
     except Exception:
         empresa_padrao = None
@@ -89,7 +95,7 @@ def _obter_empresa_padrao_e_filiais(db_alias, banco):
     try:
         qs = (
             Empresas.objects.using(db_alias)
-            .filter(registro=banco)
+            .filter(registro=banco_limpo)
             .order_by("empr_empr", "empr_fili")
         )
         for emp in list(qs):
@@ -125,12 +131,13 @@ def _obter_empresa_padrao_e_filiais(db_alias, banco):
 
 
 def _montar_mapas_dinamicos(db_alias, banco):
+    banco_limpo = _digits_only(banco)
     (
         empresa_padrao,
         empr_padrao_cod,
         fili_padrao_cod,
         filiais_da_empresa_logada,
-    ) = _obter_empresa_padrao_e_filiais(db_alias, banco)
+    ) = _obter_empresa_padrao_e_filiais(db_alias, banco_limpo)
 
     choices_empresa_combo = [("", "Selecione...")]
     for (empr_c, fili_c, nome_c) in filiais_da_empresa_logada:
@@ -138,7 +145,7 @@ def _montar_mapas_dinamicos(db_alias, banco):
 
     funcionarios_por_empfili = {}
     try:
-        funcionarios = FuncionariosService.listar_por_banco(banco=banco) or []
+        funcionarios = FuncionariosService.listar_por_banco(banco=banco_limpo) or []
         for func in funcionarios:
             try:
                 fempr = int(getattr(func, "func_empr", 0) or 0)
@@ -200,12 +207,13 @@ class DependentesCreateView(BancoObrigatorioMixin, FormView):
 
     def get_initial(self):
         initial = super().get_initial()
+        banco_limpo = _digits_only(self.request.banco)
         (
             _,
             empr_padrao_cod,
             fili_padrao_cod,
             _,
-        ) = _obter_empresa_padrao_e_filiais(self.request.db_alias, self.request.banco)
+        ) = _obter_empresa_padrao_e_filiais(self.request.db_alias, banco_limpo)
 
         initial_empresa_url = self.request.GET.get("empresa")
         initial_filial_url = self.request.GET.get("filial")
@@ -226,13 +234,14 @@ class DependentesCreateView(BancoObrigatorioMixin, FormView):
         initial_fili_input = form.initial.get("depe_fili") or self.request.GET.get("filial") or 1
         filial_real = initial_fili_do_combo if initial_fili_do_combo else initial_fili_input
         initial_funcionario = form.initial.get("depe_func") or self.request.GET.get("funcionario")
+        banco_limpo = _digits_only(self.request.banco)
 
         (
             choices_empresa_combo,
             empr_padrao_cod,
             fili_padrao_cod,
             funcionarios_por_empfili,
-        ) = _carregar_choices_empresas(self.request.db_alias, self.request.banco)
+        ) = _carregar_choices_empresas(self.request.db_alias, banco_limpo)
         self._funcionarios_por_empfili_json = funcionarios_por_empfili
         self._empr_padrao_cod = empr_padrao_cod
 
@@ -248,7 +257,7 @@ class DependentesCreateView(BancoObrigatorioMixin, FormView):
 
         if initial_funcionario:
             proximo_codigo = DependentesChaveService.proximo_codigo(
-                banco=self.request.banco,
+                banco=banco_limpo,
                 db_alias=self.request.db_alias,
                 empresa=empr_padrao_cod,
                 filial=filial_real,
@@ -260,14 +269,15 @@ class DependentesCreateView(BancoObrigatorioMixin, FormView):
         return form
 
     def form_valid(self, form):
+        banco_limpo = _digits_only(self.request.banco)
         (
             _,
             empr_padrao_cod,
             _,
             _,
-        ) = _obter_empresa_padrao_e_filiais(self.request.db_alias, self.request.banco)
+        ) = _obter_empresa_padrao_e_filiais(self.request.db_alias, banco_limpo)
         dados = form.cleaned_data.copy()
-        dados["registro"] = self.request.banco
+        dados["registro"] = banco_limpo
 
         filial_escolhida = (
             (dados.get("depe_empr") if str(dados.get("depe_empr") or "").isdigit() else None)
@@ -285,7 +295,7 @@ class DependentesCreateView(BancoObrigatorioMixin, FormView):
 
         if not dados.get("depe_codi") and escolha_funcionario:
             dados["depe_codi"] = DependentesChaveService.proximo_codigo(
-                banco=self.request.banco,
+                banco=banco_limpo,
                 db_alias=self.request.db_alias,
                 empresa=empr_padrao_cod,
                 filial=filial_escolhida,
@@ -297,7 +307,7 @@ class DependentesCreateView(BancoObrigatorioMixin, FormView):
         self._sucesso_func = escolha_funcionario
 
         DependentesCriarService.criar(
-            banco=self.request.banco,
+            banco=banco_limpo,
             db_alias=self.request.db_alias,
             dados=dados,
         )
@@ -306,6 +316,7 @@ class DependentesCreateView(BancoObrigatorioMixin, FormView):
         return redirect(self.get_success_url())
 
     def _base_sucesso_url(self):
+        banco_limpo = _digits_only(self.request.banco)
         empr = getattr(self, "_sucesso_empr", None) or self.request.GET.get("empresa") or 1
         fili = getattr(self, "_sucesso_fili", None) or self.request.GET.get("filial") or 1
         func = getattr(self, "_sucesso_func", None) or self.request.GET.get("funcionario")
@@ -316,24 +327,25 @@ class DependentesCreateView(BancoObrigatorioMixin, FormView):
                         "funcionarios:atualizar",
                         kwargs={"func_empr": int(empr), "func_fili": int(fili), "func_codi": int(func)},
                     )
-                    + f"?banco={self.request.banco}#tab-parentes"
+                    + f"?banco={banco_limpo}#tab-parentes"
                 )
             except Exception:
                 pass
-        return reverse("dependentesrh:listar") + f"?banco={self.request.banco}"
+        return reverse("funcionarios:listar") + f"?banco={banco_limpo}"
 
     def get_success_url(self):
         return self._base_sucesso_url()
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
+        banco_limpo = _digits_only(self.request.banco)
         if not hasattr(self, "_funcionarios_por_empfili_json") or not hasattr(self, "_empr_padrao_cod"):
             (
                 _,
                 empr_padrao_cod,
                 _,
                 funcionarios_json,
-            ) = _carregar_choices_empresas(self.request.db_alias, self.request.banco)
+            ) = _carregar_choices_empresas(self.request.db_alias, banco_limpo)
         else:
             funcionarios_json = self._funcionarios_por_empfili_json
             empr_padrao_cod = self._empr_padrao_cod

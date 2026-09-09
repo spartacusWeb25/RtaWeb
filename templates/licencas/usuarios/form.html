@@ -22,14 +22,7 @@
     {% endif %}
 
 <div class="app-form-card">
-    {% if messages %}
-        {% for message in messages %}
-        <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'warning' %}alert-warning{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %} mt-3"
-            role="alert">
-            {{ message }}
-        </div>
-        {% endfor %}
-    {% endif %}
+
 
     <form method="post">
         {% csrf_token %}
@@ -70,10 +63,8 @@
                 </div>
             </div>
         </div>
-        <div class="form-actions-row">
-            <button type="submit" class="btn btn-success">Salvar</button>
-            <a href="{% url 'usuarios:listar' %}?banco={{ request.banco }}" class="btn btn-outline-secondary js-esc-exit">Voltar</a>
-        </div>
+        {% url 'usuarios:listar' as url_voltar_usr %}
+        {% include "partials/ui/form_actions.html" with form_actions_url_voltar=url_voltar_usr|add:"?banco="|add:request.banco form_actions_voltar_extra_class="js-esc-exit" %}
     </form>
 </div>
 </div>

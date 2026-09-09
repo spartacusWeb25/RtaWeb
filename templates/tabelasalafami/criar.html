@@ -82,15 +82,8 @@
             </div>
         </div>
 
-        <div class="d-flex justify-content-end gap-2 mt-3">
-            <button type="submit" class="btn btn-primary btn-sm">
-                Salvar
-            </button>
-            <a class="btn btn-outline-secondary btn-sm js-esc-exit"
-                href="{% url 'tabelasalafami:salafami_listar' %}?banco={{ request.banco }}">
-                Cancelar
-            </a>
-        </div>
+        {% url 'tabelasalafami:salafami_listar' as url_voltar_sf %}
+        {% include "partials/ui/form_actions.html" with form_actions_url_voltar=url_voltar_sf|add:"?banco="|add:request.banco form_actions_voltar_extra_class="js-esc-exit" form_actions_label_voltar="Cancelar" %}
     </form>
 </div>
 {% endblock %}

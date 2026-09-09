@@ -192,13 +192,7 @@
             </div>
         </div>
 
-        {% if messages %}
-            {% for message in messages %}
-            <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'warning' %}alert-warning{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %}">
-                {{ message }}
-            </div>
-            {% endfor %}
-        {% endif %}
+
 
         {% if form.non_field_errors %}
         <div class="alert alert-danger">{{ form.non_field_errors|join:", " }}</div>
@@ -305,13 +299,8 @@
                     <i class="bi bi-shield-check"></i> Dados validados localmente. Ao enviar, você será direcionado para completar o cadastro.
                 </div>
                 <div class="d-flex gap-2 flex-wrap">
-                    <a href="{% url 'admissaopreliminar:index' %}?banco={{ request.banco }}" class="btn btn-outline-danger">
-                        <i class="bi bi-eraser"></i> Limpar
-                    </a>
-                    <button type="submit" class="btn btn-success">
-                        <i class="bi bi-person-plus"></i> Enviar para Funcionários
-                        <i class="bi bi-arrow-right-short ms-1"></i>
-                    </button>
+                    {% url 'admissaopreliminar:index' as url_voltar_ap %}
+                    {% include "partials/ui/form_actions.html" with form_actions_url_voltar=url_voltar_ap|add:"?banco="|add:request.banco form_actions_label_salvar="Enviar para Funcionários" %}
                 </div>
             </div>
         </form>

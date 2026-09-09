@@ -42,9 +42,8 @@
         {% csrf_token %}
         {{ form.as_p }}
         
-        <button type="submit" class="btn btn-primary">
-            Salvar
-        </button>
+        {% url 'setores:setoresrh_listar' as url_voltar_setor %}
+        {% include "partials/ui/form_actions.html" with form_actions_url_voltar=url_voltar_setor|add:"?banco="|add:request.banco %}
     </form>
 </div>
 {% endblock %}

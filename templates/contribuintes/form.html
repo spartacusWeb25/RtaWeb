@@ -1,0 +1,1641 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} — RtaWeb{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+<style>
+  .nav-tabs-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-wrap: nowrap;
+    scrollbar-width: thin;
+  }
+
+  #contribuinteTabs {
+    overflow: visible;
+    flex-wrap: wrap;
+    row-gap: .2rem;
+  }
+
+  .nav-tabs-scroll .nav-link {
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+  }
+
+  .tab-badge {
+    margin-left: .2rem;
+    font-size: .7rem;
+    line-height: 1;
+  }
+
+  .contribuinte-form-card {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+
+  .contribuinte-subtabs {
+    margin-bottom: 1rem;
+  }
+
+  .contribuinte-section-box {
+    border: 1px solid var(--border-default, #d8dee8);
+    border-radius: .5rem;
+    padding: .75rem;
+    background: var(--surface-card, #fff);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .contribuinte-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary, inherit);
+    margin-bottom: .5rem;
+  }
+
+  [data-theme='dark'] .contribuinte-section-title {
+    color: var(--text-primary, #e6edf3);
+  }
+
+  .contribuinte-status {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: .5rem;
+    font-weight: 500;
+  }
+
+  .contribuinte-status.ok {
+    color: var(--bs-success);
+  }
+
+  .contribuinte-status.pending {
+    color: var(--bs-secondary);
+  }
+
+  .contribuinte-photo-box {
+    min-height: 230px;
+    border: 1px solid var(--border-default, #d8dee8);
+    border-radius: .5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--bs-secondary);
+    background: var(--bs-tertiary-bg);
+    padding: 1rem;
+  }
+
+  .contribuinte-readonly {
+    background: var(--bs-secondary-bg);
+  }
+
+  .field-error .form-control,
+  .field-error .form-select,
+  .field-error .form-check-input {
+    border-color: var(--bs-danger);
+    box-shadow: 0 0 0 0.12rem rgba(220, 53, 69, .12);
+  }
+
+  .funcionario-check-box {
+    border: 1px solid var(--border-default, #d8dee8);
+    border-radius: .5rem;
+    padding: 1rem;
+    background: var(--surface-card, #fff);
+  }
+
+  .funcionario-check-box legend {
+    float: none;
+    width: auto;
+    padding: 0 .35rem;
+    margin-bottom: .25rem;
+    font-size: .95rem;
+    font-weight: 500;
+  }
+
+  .funcionario-check-item {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    min-height: 38px;
+  }
+
+  .funcionario-check-item .form-check-input {
+    margin-top: 0;
+  }
+
+  .funcionario-check-item label {
+    margin-bottom: 0;
+    cursor: pointer;
+  }
+
+  .contribuinte-doc-note {
+    margin-top: -.35rem;
+    font-size: .875rem;
+    color: var(--bs-danger-text-emphasis, #842029);
+    font-weight: 500;
+  }
+
+  [data-theme='dark'] .contribuinte-doc-note {
+    color: var(--danger);
+  }
+
+  .contribuinte-tab-shell {
+    max-width: 1480px;
+    margin: 0 auto;
+  }
+
+  .contribuinte-tab-shell-narrow {
+    max-width: 980px;
+    margin: 0 auto;
+  }
+
+  .contribuinte-tab-break {
+    flex-basis: 100%;
+    width: 100%;
+    height: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    list-style: none;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<datalist id="dl_paises_esocial">
+  <option value="">Selecione o país...</option>
+  {% for p in paises_lista %}
+  <option value="{{ p.label }}" data-codigo="{{ p.codigo_num }}" data-nome="{{ p.nome }}">
+  {% endfor %}
+</datalist>
+<datalist id="dl_cidades_ibge">
+  <option value="">Selecione a cidade...</option>
+  {% for c in cidades_lista %}
+  <option value="{{ c.label }}" data-codigo="{{ c.codigo_num }}" data-nome="{{ c.nome }}" data-uf="{{ c.uf }}">
+  {% endfor %}
+</datalist>
+<div class="container mt-4">
+  <h4>{% if object %}Editar Contribuinte{% else %}Novo Contribuinte{% endif %}</h4>
+
+  {% if object %}
+  <form method="post" action="{% url 'contribuintes:atualizar' empr=object.contr_empr fili=object.contr_fili codi=object.contr_codi %}?banco={{ request.banco }}" enctype="multipart/form-data" novalidate>
+  {% else %}
+  <form method="post" action="{% url 'contribuintes:criar' %}?banco={{ request.banco }}" enctype="multipart/form-data" novalidate>
+  {% endif %}
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger mt-3" role="alert">
+      {{ form.non_field_errors }}
+    </div>
+    {% endif %}
+
+    {% if form.errors %}
+    <div class="alert alert-warning mt-3" role="alert">
+      Revise os campos destacados em vermelho antes de salvar.
+      <ul class="mb-0 mt-2">
+        {% for field in form.visible_fields %}
+          {% for error in field.errors %}
+          <li>{{ field.label }}: {{ error }}</li>
+          {% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    <div class="app-form-card mb-3">
+      <div class="row g-3 p-3">
+        <div class="row g-3">
+          {% include "contribuintes/_field.html" with field=form.contr_codi col="col-12 col-lg-2" %}
+          {% include "contribuintes/_field.html" with field=form.contr_nome col="col-12 col-lg-10" %}
+        </div>
+      </div>
+    </div>
+
+    <ul class="nav nav-tabs nav-tabs-scroll mb-0" id="contribuinteTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active {% if has_errors.cadastrais %}text-danger fw-bold border-bottom border-2 border-danger{% endif %}" data-bs-toggle="tab" data-bs-target="#tab-cadastrais" type="button">
+          <i class="bi bi-person-vcard"></i> Cadastrais
+          {% if has_errors.cadastrais %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link {% if has_errors.fisico %}text-danger fw-bold border-bottom border-2 border-danger{% endif %}" data-bs-toggle="tab" data-bs-target="#tab-fisico" type="button">
+          <i class="bi bi-universal-access"></i> Físico
+          {% if has_errors.fisico %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link {% if has_errors.historico %}text-danger fw-bold border-bottom border-2 border-danger{% endif %}" data-bs-toggle="tab" data-bs-target="#tab-historico" type="button">
+          <i class="bi bi-clock-history"></i> Histórico
+          {% if has_errors.historico %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link {% if has_errors.estrangeiro %}text-danger fw-bold border-bottom border-2 border-danger{% endif %}" data-bs-toggle="tab" data-bs-target="#tab-estrangeiro" type="button">
+          <i class="bi bi-globe-americas"></i> Estrangeiro
+          {% if has_errors.estrangeiro %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link {% if has_errors.documentos %}text-danger fw-bold border-bottom border-2 border-danger{% endif %}" data-bs-toggle="tab" data-bs-target="#tab-documentos" type="button">
+          <i class="bi bi-card-text"></i> Documentos
+          {% if has_errors.documentos %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link {% if has_errors.dependentes %}text-danger fw-bold border-bottom border-2 border-danger{% endif %}" data-bs-toggle="tab" data-bs-target="#tab-dependentes" type="button">
+          <i class="bi bi-people"></i> Dependentes
+          {% if has_errors.dependentes %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link {% if has_errors.fgts_gps %}text-danger fw-bold border-bottom border-2 border-danger{% endif %}" data-bs-toggle="tab" data-bs-target="#tab-fgts-gps" type="button">
+          <i class="bi bi-shield-check"></i> FGTS/GPS
+          {% if has_errors.fgts_gps %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link {% if has_errors.vinculos %}text-danger fw-bold border-bottom border-2 border-danger{% endif %}" data-bs-toggle="tab" data-bs-target="#tab-vinculos" type="button">
+          <i class="bi bi-diagram-3"></i> Vínculos
+          {% if has_errors.vinculos %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+      <li class="contribuinte-tab-break" aria-hidden="true"></li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link {% if has_errors.calculo %}text-danger fw-bold border-bottom border-2 border-danger{% endif %}" data-bs-toggle="tab" data-bs-target="#tab-calculo" type="button">
+          <i class="bi bi-calculator"></i> Cálculo
+          {% if has_errors.calculo %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link {% if has_errors.banco %}text-danger fw-bold border-bottom border-2 border-danger{% endif %}" data-bs-toggle="tab" data-bs-target="#tab-banco" type="button">
+          <i class="bi bi-bank"></i> Banco
+          {% if has_errors.banco %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link {% if has_errors.esocial %}text-danger fw-bold border-bottom border-2 border-danger{% endif %}" data-bs-toggle="tab" data-bs-target="#tab-esocial" type="button">
+          <i class="bi bi-cloud-check"></i> eSocial
+          {% if has_errors.esocial %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link {% if has_errors.observacoes %}text-danger fw-bold border-bottom border-2 border-danger{% endif %}" data-bs-toggle="tab" data-bs-target="#tab-observacoes" type="button">
+          <i class="bi bi-clipboard-minus"></i> Observações
+          {% if has_errors.observacoes %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+    </ul>
+
+    <div class="app-form-card contribuinte-form-card">
+      <div class="tab-content" id="contribuinteTabsContent">
+
+        <div class="tab-pane fade show active pt-3" id="tab-cadastrais" role="tabpanel">
+          <div class="contribuinte-tab-shell">
+            <div class="row g-2 mb-3">
+              <div class="col-12">
+                <div class="contribuinte-section-box">
+                  <div class="row g-2">
+                    <div class="row g-2 mb-2">
+                      {% include "contribuintes/_field.html" with field=form.contr_empr col="col-12 col-lg-2" %}
+                      <div class="col-12 col-lg-10">
+                        <label class="form-label" for="empresa_nome_display">Empresa</label>
+                        <input
+                          id="empresa_nome_display"
+                          type="text"
+                          class="form-control contribuinte-readonly"
+                          value="{{ empresa_nome|default:'Empresa padrão da licença' }}"
+                          readonly
+                        >
+                      </div>
+                    </div>
+
+                    <div class="row g-2">
+                      {% include "contribuintes/_field.html" with field=form.contr_fili col="col-12 col-lg-2" %}
+                      {% include "contribuintes/_field.html" with field=form.contr_admissao_preliminar col="col-12 col-lg-3" %}
+                      {% include "contribuintes/_field.html" with field=form.contr_matricula_esocial col="col-12 col-lg-3" %}
+                      <div class="col-12 col-lg-4">
+                        <label class="form-label d-block">&nbsp;</label>
+                        <div class="contribuinte-status {% if integracao_esocial_ok %}ok{% else %}pending{% endif %}">
+                          <span>Integração eSocial</span>
+                          <i class="bi {% if integracao_esocial_ok %}bi-check-circle-fill{% else %}bi-dash-circle{% endif %}"></i>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row g-2">
+              <div class="col-12">
+                <div class="contribuinte-section-box">
+                  <div class="row g-2">
+                    {% include "contribuintes/_field.html" with field=form.contr_cep col="col-12 col-lg-2" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_ende col="col-12 col-lg-8" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_ende_nume col="col-12 col-lg-2" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_ende_comp col="col-12 col-lg-2" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_ende_bair col="col-12 col-lg-3" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_ende_cida_desc col="col-12 col-lg-5" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_ende_uf col="col-12 col-lg-2" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_email col="col-12" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_ddd col="col-12 col-lg-2 col-xl-1" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_telefone col="col-12 col-lg-4 col-xl-5" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_ddd_celular col="col-12 col-lg-2 col-xl-1" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_celular col="col-12 col-lg-4 col-xl-5" %}
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="contribuinte-section-box">
+                  <div class="contribuinte-section-title">Residência no exterior</div>
+                  <div class="row g-3">
+                    {% include "contribuintes/_field.html" with field=form.contr_pais_residencia_codi col="col-12 col-lg-4" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_ende_exterior col="col-12 col-lg-8" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_ende_exterior_nume col="col-12 col-lg-2" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_ende_exterior_comp col="col-12 col-lg-4" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_ende_exterior_bair col="col-12 col-lg-3" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_ende_exterior_cidade col="col-12 col-lg-3" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_ende_exterior_codigo_postal col="col-12 col-lg-3" %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-pane fade pt-3" id="tab-fisico" role="tabpanel">
+          <div class="contribuinte-tab-shell">
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="contribuinte-section-box">
+                  <div class="row g-3">
+                    {% include "contribuintes/_field.html" with field=form.contr_tipo_sanguineo col="col-12 col-lg-4" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_etnia_raca col="col-12 col-lg-4" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_sexo col="col-12 col-lg-4" %}
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <fieldset class="funcionario-check-box{% if form.contr_pessoa_com_deficiencia.errors or form.contr_deficiencia_fisica.errors or form.contr_deficiencia_auditiva.errors or form.contr_deficiencia_visual.errors or form.contr_deficiencia_intelectual.errors or form.contr_deficiencia_mental.errors or form.contr_reabilitado.errors %} field-error{% endif %}">
+                  <legend>Pessoa com deficiência</legend>
+                  <div class="row g-3 align-items-center">
+                    <div class="col-12">
+                      <div class="funcionario-check-item">
+                        {{ form.contr_pessoa_com_deficiencia }}
+                        <label for="id_{{ form.contr_pessoa_com_deficiencia.html_name }}">{{ form.contr_pessoa_com_deficiencia.label }}</label>
+                      </div>
+                      {% if form.contr_pessoa_com_deficiencia.errors %}
+                        <div class="invalid-feedback d-block">{{ form.contr_pessoa_com_deficiencia.errors|join:', ' }}</div>
+                      {% endif %}
+                    </div>
+
+                    <div class="col-12 col-md-6 col-xl-4">
+                      <div class="funcionario-check-item">
+                        {{ form.contr_deficiencia_fisica }}
+                        <label for="id_{{ form.contr_deficiencia_fisica.html_name }}">{{ form.contr_deficiencia_fisica.label }}</label>
+                      </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-xl-4">
+                      <div class="funcionario-check-item">
+                        {{ form.contr_deficiencia_auditiva }}
+                        <label for="id_{{ form.contr_deficiencia_auditiva.html_name }}">{{ form.contr_deficiencia_auditiva.label }}</label>
+                      </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-xl-4">
+                      <div class="funcionario-check-item">
+                        {{ form.contr_deficiencia_visual }}
+                        <label for="id_{{ form.contr_deficiencia_visual.html_name }}">{{ form.contr_deficiencia_visual.label }}</label>
+                      </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-xl-4">
+                      <div class="funcionario-check-item">
+                        {{ form.contr_deficiencia_intelectual }}
+                        <label for="id_{{ form.contr_deficiencia_intelectual.html_name }}">{{ form.contr_deficiencia_intelectual.label }}</label>
+                      </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-xl-4">
+                      <div class="funcionario-check-item">
+                        {{ form.contr_deficiencia_mental }}
+                        <label for="id_{{ form.contr_deficiencia_mental.html_name }}">{{ form.contr_deficiencia_mental.label }}</label>
+                      </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-xl-4">
+                      <div class="funcionario-check-item">
+                        {{ form.contr_reabilitado }}
+                        <label for="id_{{ form.contr_reabilitado.html_name }}">{{ form.contr_reabilitado.label }}</label>
+                      </div>
+                    </div>
+
+                    {% include "contribuintes/_field.html" with field=form.contr_observacoes_deficiencias col="col-12" %}
+                  </div>
+                </fieldset>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-pane fade pt-3" id="tab-historico" role="tabpanel">
+          <div class="contribuinte-tab-shell">
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="contribuinte-section-box">
+                  <div class="row g-3">
+                    {% include "contribuintes/_field.html" with field=form.contr_pais_nascimento_codi col="col-12 col-lg-6" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_cidade_nascimento_codi col="col-12 col-lg-6" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_naturalidade col="col-12 col-lg-3" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_nascimento col="col-12 col-lg-3" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_estado_civil col="col-12 col-lg-3" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_grau_instrucao col="col-12 col-lg-3" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_admissao col="col-12 col-lg-3" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_cadastro col="col-12 col-lg-3" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_inicio_adicional_tempo_servico col="col-12 col-lg-3" %}
+                    <div class="w-100"></div>
+                    {% include "contribuintes/_field.html" with field=form.contr_data_saida col="col-12 col-lg-3" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_data_pagamento_baixa col="col-12 col-lg-3" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_motivo_desligamento col="col-12 col-lg-6" %}
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <fieldset class="funcionario-check-box{% if form.contr_esocial_indicativo_pensao_alimenticia_fgts.errors or form.contr_pensao_fgts_valor.errors or form.contr_pensao_fgts_percentual.errors %} field-error{% endif %}">
+                  <legend>eSocial/Indicativo de pensão alimentícia FGTS</legend>
+                  <div class="row g-3 align-items-start">
+                    <div class="col-12 col-lg-4{% if form.contr_esocial_indicativo_pensao_alimenticia_fgts.errors %} field-error{% endif %}">
+                      <label for="id_{{ form.contr_esocial_indicativo_pensao_alimenticia_fgts.html_name }}" class="form-label">{{ form.contr_esocial_indicativo_pensao_alimenticia_fgts.label }}</label>
+                      <div class="{% if form.contr_esocial_indicativo_pensao_alimenticia_fgts.errors %} is-invalid{% endif %}">
+                        {{ form.contr_esocial_indicativo_pensao_alimenticia_fgts }}
+                      </div>
+                      {% if form.contr_esocial_indicativo_pensao_alimenticia_fgts.errors %}
+                        <div class="invalid-feedback d-block">{{ form.contr_esocial_indicativo_pensao_alimenticia_fgts.errors|join:', ' }}</div>
+                      {% endif %}
+                    </div>
+                    {% include "contribuintes/_field.html" with field=form.contr_pensao_fgts_valor col="col-12 col-lg-4" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_pensao_fgts_percentual col="col-12 col-lg-4" %}
+                  </div>
+                </fieldset>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-pane fade pt-3" id="tab-estrangeiro" role="tabpanel">
+          <div class="contribuinte-tab-shell">
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="contribuinte-section-box">
+                  <div class="row g-3 align-items-end">
+                    {% include "contribuintes/_field.html" with field=form.contr_pais_nacionalidade_codi col="col-12" %}
+                  </div>
+                  <div class="row g-3 align-items-end mt-0">
+                    {% include "contribuintes/_field.html" with field=form.contr_chegada_brasil col="col-12 col-lg-6" %}
+                    <div class="col-12 col-lg-3 d-flex align-items-end{% if form.contr_casado_brasileiro.errors %} field-error{% endif %}" style="min-height: 74px;">
+                      <div class="funcionario-check-item w-100">
+                        {{ form.contr_casado_brasileiro }}
+                        <label for="id_{{ form.contr_casado_brasileiro.html_name }}">{{ form.contr_casado_brasileiro.label }}</label>
+                      </div>
+                      {% if form.contr_casado_brasileiro.errors %}
+                        <div class="invalid-feedback d-block">{{ form.contr_casado_brasileiro.errors|join:', ' }}</div>
+                      {% endif %}
+                    </div>
+                    <div class="col-12 col-lg-3 d-flex align-items-end{% if form.contr_tem_filhos_brasileiros.errors %} field-error{% endif %}" style="min-height: 74px;">
+                      <div class="funcionario-check-item w-100">
+                        {{ form.contr_tem_filhos_brasileiros }}
+                        <label for="id_{{ form.contr_tem_filhos_brasileiros.html_name }}">{{ form.contr_tem_filhos_brasileiros.label }}</label>
+                      </div>
+                      {% if form.contr_tem_filhos_brasileiros.errors %}
+                        <div class="invalid-feedback d-block">{{ form.contr_tem_filhos_brasileiros.errors|join:', ' }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="row g-3 align-items-end mt-0">
+                    {% include "contribuintes/_field.html" with field=form.contr_rne col="col-12 col-lg-3" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_orgao_uf_emissao_rne col="col-12 col-lg-4" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_emissao_rne col="col-12 col-lg-2" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_tempo_residencia col="col-12 col-lg-3" %}
+                  </div>
+                  <div class="row g-3 align-items-end mt-0">
+                    {% include "contribuintes/_field.html" with field=form.contr_condicao_ingresso col="col-12" %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-pane fade pt-3" id="tab-documentos" role="tabpanel">
+          <div class="contribuinte-tab-shell">
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="contribuinte-section-box">
+                  <div class="row g-3 align-items-start">
+                    {% include "contribuintes/_field.html" with field=form.contr_cpf col="col-12 col-lg-3" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_nis col="col-12 col-lg-3" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_emissao_nis col="col-12 col-lg-2" %}
+                    <div class="w-100"></div>
+
+                    <div class="col-12">
+                      <div class="row g-3">
+                        {% include "contribuintes/_field.html" with field=form.contr_rg col="col-12 col-lg-4" %}
+                        {% include "contribuintes/_field.html" with field=form.contr_orgao_emissor_rg col="col-12 col-lg-4" %}
+                        {% include "contribuintes/_field.html" with field=form.contr_uf_rg col="col-12 col-lg-2" %}
+                        {% include "contribuintes/_field.html" with field=form.contr_emissao_rg col="col-12 col-lg-2" %}
+                      </div>
+                    </div>
+
+                    <div class="col-12">
+                      <div class="contribuinte-doc-note">
+                        Carteira de trabalho - não preencher os campos caso trabalhador possua apenas CTPS DIGITAL.
+                      </div>
+                    </div>
+
+                    <div class="col-12">
+                      <div class="row g-3">
+                        {% include "contribuintes/_field.html" with field=form.contr_carteira_trabalho col="col-12 col-lg-3" %}
+                        {% include "contribuintes/_field.html" with field=form.contr_serie_carteira_trabalho col="col-12 col-lg-2" %}
+                        {% include "contribuintes/_field.html" with field=form.contr_digito_serie_carteira_trabalho col="col-12 col-lg-1" %}
+                        {% include "contribuintes/_field.html" with field=form.contr_uf_carteira_trabalho col="col-12 col-lg-3" %}
+                        {% include "contribuintes/_field.html" with field=form.contr_emissao_carteira_trabalho col="col-12 col-lg-3" %}
+                      </div>
+                    </div>
+
+                    <div class="col-12">
+                      <div class="row g-3">
+                        {% include "contribuintes/_field.html" with field=form.contr_cnh col="col-12 col-lg-2" %}
+                        {% include "contribuintes/_field.html" with field=form.contr_categoria_cnh col="col-12 col-lg-2" %}
+                        {% include "contribuintes/_field.html" with field=form.contr_uf_cnh col="col-12 col-lg-2" %}
+                        {% include "contribuintes/_field.html" with field=form.contr_emissao_cnh col="col-12 col-lg-2" %}
+                        {% include "contribuintes/_field.html" with field=form.contr_vencimento_cnh col="col-12 col-lg-2" %}
+                        {% include "contribuintes/_field.html" with field=form.contr_primeira_habilitacao col="col-12 col-lg-2" %}
+                      </div>
+                    </div>
+
+                    <div class="col-12">
+                      <div class="row g-3">
+                        {% include "contribuintes/_field.html" with field=form.contr_titulo_eleitor col="col-12 col-lg-4" %}
+                        {% include "contribuintes/_field.html" with field=form.contr_zona_titulo col="col-12 col-lg-2" %}
+                        {% include "contribuintes/_field.html" with field=form.contr_secao_titulo col="col-12 col-lg-2" %}
+                        {% include "contribuintes/_field.html" with field=form.contr_certificado_reservista col="col-12 col-lg-4" %}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="contribuinte-section-box">
+                  <div class="row g-3 align-items-center">
+                    <div class="col-12 col-lg-6{% if form.contr_aviso_carteira_trabalho_digital.errors %} field-error{% endif %}">
+                      <div class="funcionario-check-item">
+                        {{ form.contr_aviso_carteira_trabalho_digital }}
+                        <label for="id_{{ form.contr_aviso_carteira_trabalho_digital.html_name }}">{{ form.contr_aviso_carteira_trabalho_digital.label }}</label>
+                      </div>
+                      {% if form.contr_aviso_carteira_trabalho_digital.errors %}
+                        <div class="invalid-feedback d-block">{{ form.contr_aviso_carteira_trabalho_digital.errors|join:', ' }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <div class="contribuinte-section-box">
+                  <div class="contribuinte-section-title"></div>
+                  <div class="row g-3">
+                    {% include "contribuintes/_field.html" with field=form.contr_carteira_identidade_arquivo col="col-12" %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-pane fade pt-3" id="tab-dependentes" role="tabpanel">
+          <div class="contribuinte-tab-shell" style="max-width: 100%;">
+            <div class="row g-3 mb-3">
+              <div class="col-12">
+                <div class="contribuinte-section-box">
+                  <div class="row g-3">
+                    {% include "contribuintes/_field.html" with field=form.contr_nome_pai col="col-12 col-lg-6" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_nome_mae col="col-12 col-lg-6" %}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 mt-2">
+              <div class="card shadow-sm border-0 rounded-4 overflow-hidden" style="width: 100%;">
+                <div class="card-header bg-gradient-to-r from-primary to-primary-700 text-white py-3 px-4 d-flex flex-wrap justify-content-between align-items-center gap-3" style="background: linear-gradient(90deg,#0d6efd 0%,#0b5ed7 50%,#0a58ca 100%);">
+                  <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-people-fill fs-5"></i>
+                    <h5 class="mb-0 fw-semibold">Dependentes</h5>
+                    <span class="badge bg-white text-primary rounded-pill px-3 py-1 fw-bold">{{ dependentescontr_qtd|default:0 }}</span>
+                  </div>
+                  {% if dependentescontr_url_criar %}
+                  <a href="{{ dependentescontr_url_criar }}" class="btn btn-success btn-sm rounded-pill shadow-sm px-4 py-2">
+                    <i class="bi bi-plus-lg me-1"></i> Novo Dependente
+                  </a>
+                  {% else %}
+                  <button type="button" class="btn btn-success btn-sm rounded-pill shadow-sm px-4 py-2 disabled" title="Salve o contribuinte primeiro para cadastrar dependentes" data-bs-toggle="tooltip" data-bs-placement="top">
+                    <i class="bi bi-plus-lg me-1"></i> Novo Dependente
+                  </button>
+                  {% endif %}
+                </div>
+                <div class="card-body p-0">
+                  <div class="table-responsive rounded-3 overflow-hidden">
+                    <table class="table table-striped table-hover table-bordered table-sm align-middle text-center mb-0" style="--bs-table-striped-bg: rgba(13,110,253,0.04);">
+                      <thead class="table-dark">
+                        <tr>
+                          <th class="px-3 py-3 fw-semibold text-nowrap" style="width:70px;">Cód.</th>
+                          <th class="px-3 py-3 fw-semibold text-start">Nome do Dependente</th>
+                          <th class="px-3 py-3 fw-semibold text-nowrap" style="width:130px;">Nascimento</th>
+                          <th class="px-3 py-3 fw-semibold text-nowrap" style="width:150px;">CPF</th>
+                          <th class="px-3 py-3 fw-semibold text-nowrap" style="width:270px;">Tipo de Dependente</th>
+                          <th class="px-3 py-3 fw-semibold text-nowrap" style="width:140px;">Tipo de Dependência</th>
+                          <th class="px-3 py-3 fw-semibold text-nowrap" style="width:100px;">Inválido</th>
+                          <th class="px-3 py-3 fw-semibold text-nowrap" style="width:180px;">Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody style="--bs-table-color: var(--text-primary); --bs-table-striped-color: var(--text-primary); --bs-table-hover-color: var(--text-primary);">
+                        {% if dependentescontr_list %}
+                        {% for dep in dependentescontr_list %}
+                        <tr>
+                          <td class="px-2 py-2">
+                            <span class="badge bg-light text-dark border rounded-pill px-3 py-1 fw-semibold">{{ dep.depecontr_codi|default:"-" }}</span>
+                          </td>
+                          <td class="px-3 py-2 text-start">
+                            <span class="fw-medium" style="color: var(--text-primary);">{{ dep.depecontr_nome|default:"-" }}</span>
+                          </td>
+                          <td class="px-2 py-2 text-nowrap">
+                            {% if dep.depecontr_nascimento %}
+                            <i class="bi bi-calendar3 text-primary me-1"></i>
+                            <span style="color: var(--text-primary);">{{ dep.depecontr_nascimento|date:"d/m/Y" }}</span>
+                            {% else %}
+                            <span class="badge rounded-pill" style="background: var(--surface-raised, #e9ecef); color: var(--text-secondary, #475569);">—</span>
+                            {% endif %}
+                          </td>
+                          <td class="px-2 py-2 cpf-col text-nowrap">
+                            {% if dep.depecontr_cpf %}
+                            <i class="bi bi-person-vcard text-primary me-1"></i>
+                            <span class="cpf-mask fw-mono" style="color: var(--text-primary);">{{ dep.depecontr_cpf }}</span>
+                            {% else %}
+                            <span class="badge rounded-pill" style="background: var(--surface-raised, #e9ecef); color: var(--text-secondary, #475569);">—</span>
+                            {% endif %}
+                          </td>
+                          <td class="px-2 py-2">
+                            {% if dep.depecontr_tipo_dependente == 1 %}
+                            <span class="badge rounded-pill bg-primary-subtle text-primary-emphasis px-3 py-1">01 - Cônjuge</span>
+                            {% elif dep.depecontr_tipo_dependente == 2 %}
+                            <span class="badge rounded-pill bg-primary-subtle text-primary-emphasis px-3 py-1">02 - Companheiro(a)</span>
+                            {% elif dep.depecontr_tipo_dependente == 3 %}
+                            <span class="badge rounded-pill bg-info-subtle text-info-emphasis px-3 py-1">03 - Filho(a)/Enteado(a)</span>
+                            {% elif dep.depecontr_tipo_dependente == 4 %}
+                            <span class="badge rounded-pill bg-info-subtle text-info-emphasis px-3 py-1">04 - Filho(a) Universitário</span>
+                            {% elif dep.depecontr_tipo_dependente == 6 %}
+                            <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis px-3 py-1">06 - Irmão(ã)/Neto(a) Guarda</span>
+                            {% elif dep.depecontr_tipo_dependente == 7 %}
+                            <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis px-3 py-1">07 - Irmão(ã) Univ. Guarda</span>
+                            {% elif dep.depecontr_tipo_dependente == 9 %}
+                            <span class="badge rounded-pill bg-body-secondary text-body-secondary px-3 py-1">09 - Pais/Avós/Bisavós</span>
+                            {% elif dep.depecontr_tipo_dependente == 10 %}
+                            <span class="badge rounded-pill bg-danger-subtle text-danger-emphasis px-3 py-1">10 - Menor pobre Guarda</span>
+                            {% elif dep.depecontr_tipo_dependente == 11 %}
+                            <span class="badge rounded-pill bg-danger-subtle text-danger-emphasis px-3 py-1">11 - Incapaz/Tutor/Curador</span>
+                            {% elif dep.depecontr_tipo_dependente == 12 %}
+                            <span class="badge rounded-pill bg-body-secondary text-body-secondary px-3 py-1">12 - Ex-cônjuge</span>
+                            {% elif dep.depecontr_tipo_dependente == 99 %}
+                            <span class="badge rounded-pill bg-light text-dark border px-3 py-1">99 - Agregado/Outros</span>
+                            {% else %}
+                            <span class="badge bg-body-secondary text-body-secondary rounded-pill">{{ dep.tipo_dependente_label|default:"—" }}</span>
+                            {% endif %}
+                          </td>
+                          <td class="px-2 py-2">
+                            {% if dep.depecontr_tipo_dependencia == 1 %}
+                            <span class="badge rounded-pill bg-success-subtle text-success-emphasis px-3 py-1 fw-medium">1 - IR</span>
+                            {% elif dep.depecontr_tipo_dependencia == 2 %}
+                            <span class="badge rounded-pill bg-success-subtle text-success-emphasis px-3 py-1 fw-medium">2 - SF</span>
+                            {% elif dep.depecontr_tipo_dependencia == 3 %}
+                            <span class="badge rounded-pill bg-success-subtle text-success-emphasis px-3 py-1 fw-medium">3 - PL</span>
+                            {% elif dep.depecontr_tipo_dependencia == 4 %}
+                            <span class="badge rounded-pill bg-success-subtle text-success-emphasis px-3 py-1 fw-medium">4 - PE</span>
+                            {% elif dep.depecontr_tipo_dependencia == 9 %}
+                            <span class="badge rounded-pill bg-light text-dark border px-3 py-1 fw-medium">9 - OU</span>
+                            {% else %}
+                            <span class="badge bg-body-secondary text-body-secondary rounded-pill">{{ dep.tipo_dependencia_label|default:"—" }}</span>
+                            {% endif %}
+                          </td>
+                          <td class="px-2 py-2">
+                            {% if dep.depecontr_invalido %}
+                            <span class="badge rounded-pill bg-danger px-3 py-1">
+                              <i class="bi bi-exclamation-triangle-fill me-1"></i> Sim
+                            </span>
+                            {% else %}
+                            <span class="badge rounded-pill bg-success px-3 py-1">
+                              <i class="bi bi-check-circle-fill me-1"></i> Não
+                            </span>
+                            {% endif %}
+                          </td>
+                          <td class="px-2 py-2">
+                            <div class="d-flex justify-content-center gap-2">
+                              {% if object %}
+                              <a href="{% url 'dependentescontr:atualizar' empr=dep.depecontr_empr fili=dep.depecontr_fili contr=dep.depecontr_contr codi=dep.depecontr_codi %}?banco={{ request.banco }}"
+                                 class="text-decoration-none" title="Editar">
+                                <span class="badge bg-warning text-dark px-3 py-2 shadow-sm">
+                                  <i class="bi bi-pencil-square me-1"></i> Editar
+                                </span>
+                              </a>
+                              <a href="{% url 'dependentescontr:deletar' empr=dep.depecontr_empr fili=dep.depecontr_fili contr=dep.depecontr_contr codi=dep.depecontr_codi %}?banco={{ request.banco }}"
+                                 class="text-decoration-none" title="Excluir">
+                                <span class="badge bg-danger px-3 py-2 shadow-sm">
+                                  <i class="bi bi-trash3 me-1"></i> Excluir
+                                </span>
+                              </a>
+                              {% endif %}
+                            </div>
+                          </td>
+                        </tr>
+                        {% endfor %}
+                        {% else %}
+                        <tr>
+                          <td colspan="8" class="py-5 px-4">
+                            <div class="d-flex flex-wrap justify-content-center align-items-center gap-3 text-center">
+                              <div class="rounded-circle bg-secondary-subtle p-4">
+                                <i class="bi bi-people fs-2 text-secondary"></i>
+                              </div>
+                              <div>
+                                <p class="mb-1 fw-semibold text-secondary">Nenhum dependente cadastrado</p>
+                                <p class="mb-2 text-muted small">
+                                  {% if modo_edicao %}
+                                  Este contribuinte ainda não possui dependentes registrados.
+                                  {% else %}
+                                  Salve o contribuinte primeiro para poder cadastrar dependentes.
+                                  {% endif %}
+                                </p>
+                                {% if dependentescontr_url_criar %}
+                                <a href="{{ dependentescontr_url_criar }}" class="btn btn-primary btn-sm rounded-pill px-4">
+                                  <i class="bi bi-plus-lg me-1"></i> Cadastrar primeiro dependente
+                                </a>
+                                {% else %}
+                                <button type="button" class="btn btn-primary btn-sm rounded-pill px-4 disabled" title="Salve o contribuinte primeiro para cadastrar dependentes" data-bs-toggle="tooltip" data-bs-placement="top">
+                                  <i class="bi bi-plus-lg me-1"></i> Cadastrar primeiro dependente
+                                </button>
+                                {% endif %}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                        {% endif %}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-pane fade pt-3" id="tab-fgts-gps" role="tabpanel">
+          <div class="contribuinte-tab-shell">
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="contribuinte-section-box">
+                  <div class="row g-3 align-items-start">
+                    {% include "contribuintes/_field.html" with field=form.contr_categoria_sefip col="col-12" %}
+
+                    <div class="col-12">
+                      <div class="row g-3">
+                        {% include "contribuintes/_field.html" with field=form.contr_categoria_esocial col="col-12 col-lg-12" %}
+                      </div>
+                    </div>
+
+                    <div class="col-12 col-xl-6">
+                      <div class="contribuinte-section-box" style="padding:.5rem;">
+                        <div class="row g-3 align-items-start">
+                          {% include "contribuintes/_field.html" with field=form.contr_transp_autonomo_contribuicao_inss col="col-12 col-lg-6" %}
+                          {% include "contribuintes/_field.html" with field=form.contr_percentual_contr_ir col="col-12 col-lg-6" %}
+                          {% include "contribuintes/_field.html" with field=form.contr_data_opcao col="col-12 col-lg-6" %}
+                          {% include "contribuintes/_field.html" with field=form.contr_percentual_fgts col="col-12 col-lg-6" %}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="col-12 col-xl-6">
+                      <div class="contribuinte-section-box" style="padding:.5rem;">
+                        <div class="row g-3 align-items-start">
+                          {% include "contribuintes/_field.html" with field=form.contr_grau_risco col="col-12 col-lg-8" %}
+                          {% include "contribuintes/_field.html" with field=form.contr_rat_aposentadoria col="col-12 col-lg-4" %}
+
+                          <div class="col-12">
+                            <div class="row g-3 align-items-center">
+                              <div class="col-12 col-lg-5{% if form.contr_descontar_iss.errors %} field-error{% endif %}">
+                                <div class="funcionario-check-item">
+                                  {{ form.contr_descontar_iss }}
+                                  <label for="id_{{ form.contr_descontar_iss.html_name }}">{{ form.contr_descontar_iss.label }}</label>
+                                </div>
+                                {% if form.contr_descontar_iss.errors %}
+                                  <div class="invalid-feedback d-block">{{ form.contr_descontar_iss.errors|join:', ' }}</div>
+                                {% endif %}
+                              </div>
+                              {% include "contribuintes/_field.html" with field=form.contr_percentual_iss col="col-12 col-lg-7" %}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {% include "contribuintes/_field.html" with field=form.contr_regime_previdenciario col="col-12" %}
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <fieldset class="funcionario-check-box">
+                  <legend>Dados dirigente sindical</legend>
+                  <div class="row g-3 align-items-start">
+                    {% include "contribuintes/_field.html" with field=form.contr_categoria_origem col="col-12 col-lg-4" %}
+
+                    <div class="col-12 col-lg-4{% if form.contr_tipo_cnpj_cpf_origem.errors %} field-error{% endif %}">
+                      <label class="form-label d-block" for="id_{{ form.contr_tipo_cnpj_cpf_origem.html_name }}">{{ form.contr_tipo_cnpj_cpf_origem.label }}</label>
+                      <div class="d-flex flex-wrap gap-3 funcionario-radio-inline">
+                        {{ form.contr_tipo_cnpj_cpf_origem }}
+                      </div>
+                      {% if form.contr_tipo_cnpj_cpf_origem.errors %}
+                        <div class="invalid-feedback d-block">{{ form.contr_tipo_cnpj_cpf_origem.errors|join:', ' }}</div>
+                      {% endif %}
+                    </div>
+
+                    {% include "contribuintes/_field.html" with field=form.contr_cnpj_cpf_origem col="col-12 col-lg-4" %}
+
+                    {% include "contribuintes/_field.html" with field=form.contr_admissao_origem col="col-12 col-lg-4" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_matricula_origem col="col-12 col-lg-4" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_regime_previdenciario_origem col="col-12 col-lg-4" %}
+                  </div>
+                </fieldset>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-pane fade pt-3" id="tab-vinculos" role="tabpanel">
+          <div class="contribuinte-tab-shell">
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="contribuinte-section-box">
+                  <div class="row g-3 align-items-start">
+                    {% include "contribuintes/_field.html" with field=form.contr_classe col="col-12" %}
+
+                    <div class="col-12">
+                      <div class="row g-3">
+                        {% include "contribuintes/_field.html" with field=form.contr_vinculo_empregaticio col="col-12 col-lg-12" %}
+                      </div>
+                    </div>
+
+                    <div class="col-12">
+                      <div class="row g-3">
+                        {% include "contribuintes/_field.html" with field=form.contr_depto col="col-12 col-lg-12" %}
+                      </div>
+                    </div>
+
+                    <div class="col-12">
+                      <div class="row g-3">
+                        {% include "contribuintes/_field.html" with field=form.contr_ccusto col="col-12 col-lg-12" %}
+                      </div>
+                    </div>
+
+                    <div class="col-12">
+                      <div class="row g-3">
+                        {% include "contribuintes/_field.html" with field=form.contr_cargo col="col-12 col-lg-12" %}
+                      </div>
+                    </div>
+
+                    <div class="col-12">
+                      <div class="row g-3">
+                        {% include "contribuintes/_field.html" with field=form.contr_cbo col="col-12 col-lg-12" %}
+                      </div>
+                    </div>
+
+                    {% include "contribuintes/_field.html" with field=form.contr_natureza_ocupacao col="col-12" %}
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <fieldset class="funcionario-check-box{% if form.contr_orgao_classe.errors or form.contr_inscricao_orgao_classe.errors or form.contr_orgao_uf_emissao_orgao_classe.errors or form.contr_emissao_orgao_classe.errors or form.contr_validade_orgao_classe.errors %} field-error{% endif %}">
+                  <legend>Órgão de classe</legend>
+                  <div class="row g-3 align-items-start">
+                    <div class="col-12 col-lg-4{% if form.contr_orgao_classe.errors %} field-error{% endif %}">
+                      <div class="funcionario-check-item">
+                        {{ form.contr_orgao_classe }}
+                        <label for="id_{{ form.contr_orgao_classe.html_name }}">{{ form.contr_orgao_classe.label }}</label>
+                      </div>
+                      {% if form.contr_orgao_classe.errors %}
+                        <div class="invalid-feedback d-block">{{ form.contr_orgao_classe.errors|join:', ' }}</div>
+                      {% endif %}
+                    </div>
+
+                    {% include "contribuintes/_field.html" with field=form.contr_inscricao_orgao_classe col="col-12 col-lg-4" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_orgao_uf_emissao_orgao_classe col="col-12 col-lg-4" %}
+
+                    <div class="w-100"></div>
+
+                    {% include "contribuintes/_field.html" with field=form.contr_emissao_orgao_classe col="col-12 col-lg-6" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_validade_orgao_classe col="col-12 col-lg-6" %}
+                  </div>
+                </fieldset>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-pane fade pt-3" id="tab-calculo" role="tabpanel">
+          <div class="contribuinte-tab-shell">
+            <div class="row g-3">
+              <div class="col-12 col-xl-6">
+                <div class="contribuinte-section-box">
+                  <div class="row g-3 align-items-start">
+                    {% include "contribuintes/_field.html" with field=form.contr_forma_pagamento col="col-12" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_remuneracao col="col-12" %}
+
+                    <div class="col-12">
+                      <div class="row g-3 align-items-center">
+                        <div class="col-12 col-lg-4{% if form.contr_nao_arredondar.errors %} field-error{% endif %}">
+                          <div class="funcionario-check-item">
+                            {{ form.contr_nao_arredondar }}
+                            <label for="id_{{ form.contr_nao_arredondar.html_name }}">{{ form.contr_nao_arredondar.label }}</label>
+                          </div>
+                          {% if form.contr_nao_arredondar.errors %}
+                            <div class="invalid-feedback d-block">{{ form.contr_nao_arredondar.errors|join:', ' }}</div>
+                          {% endif %}
+                        </div>
+
+                        <div class="col-12 col-lg-4{% if form.contr_descontar_inss_do_ir.errors %} field-error{% endif %}">
+                          <div class="funcionario-check-item">
+                            {{ form.contr_descontar_inss_do_ir }}
+                            <label for="id_{{ form.contr_descontar_inss_do_ir.html_name }}">{{ form.contr_descontar_inss_do_ir.label }}</label>
+                          </div>
+                          {% if form.contr_descontar_inss_do_ir.errors %}
+                            <div class="invalid-feedback d-block">{{ form.contr_descontar_inss_do_ir.errors|join:', ' }}</div>
+                          {% endif %}
+                        </div>
+
+                        <div class="col-12 col-lg-4{% if form.contr_adiantamento.errors %} field-error{% endif %}">
+                          <div class="funcionario-check-item">
+                            {{ form.contr_adiantamento }}
+                            <label for="id_{{ form.contr_adiantamento.html_name }}">{{ form.contr_adiantamento.label }}</label>
+                          </div>
+                          {% if form.contr_adiantamento.errors %}
+                            <div class="invalid-feedback d-block">{{ form.contr_adiantamento.errors|join:', ' }}</div>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </div>
+
+                    {% include "contribuintes/_field.html" with field=form.contr_valor_previdencia_privada col="col-12 col-lg-6" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_valor_previdencia_privada_13 col="col-12 col-lg-6" %}
+
+                    <div class="col-12{% if form.contr_aplica_deducao_mais_benefica_irrf.errors %} field-error{% endif %}">
+                      <div class="funcionario-check-item">
+                        {{ form.contr_aplica_deducao_mais_benefica_irrf }}
+                        <label for="id_{{ form.contr_aplica_deducao_mais_benefica_irrf.html_name }}">{{ form.contr_aplica_deducao_mais_benefica_irrf.label }}</label>
+                      </div>
+                      {% if form.contr_aplica_deducao_mais_benefica_irrf.errors %}
+                        <div class="invalid-feedback d-block">{{ form.contr_aplica_deducao_mais_benefica_irrf.errors|join:', ' }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12 col-xl-6">
+                <div class="contribuinte-section-box">
+                  <div class="row g-3 align-items-start">
+                    <div class="col-12">
+                      <label class="form-label fw-semibold mb-1">Múltiplos vínculos (competência normal)</label>
+                    </div>
+                    <div class="col-12">
+                      <div class="row g-2 align-items-center">
+                        <div class="col-lg-4 col-form-label d-flex align-items-center {% if form.contr_base_inss_multiplos_vinculos.errors %} text-danger{% endif %}" style="min-height: calc(1.5em + .6rem + 2px);">
+                          <label for="id_{{ form.contr_base_inss_multiplos_vinculos.html_name }}" class="mb-0 text-truncate" title="{{ form.contr_base_inss_multiplos_vinculos.label }}">
+                            {{ form.contr_base_inss_multiplos_vinculos.label }}
+                            {% if form.contr_base_inss_multiplos_vinculos.field.required %}<span class="text-danger">*</span>{% endif %}
+                          </label>
+                        </div>
+                        <div class="col-lg-8{% if form.contr_base_inss_multiplos_vinculos.errors %} field-error{% endif %}">
+                          {{ form.contr_base_inss_multiplos_vinculos }}
+                          {% if form.contr_base_inss_multiplos_vinculos.errors %}
+                            <div class="invalid-feedback d-block">{{ form.contr_base_inss_multiplos_vinculos.errors|join:', ' }}</div>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <div class="row g-2 align-items-center">
+                        <div class="col-lg-4 col-form-label d-flex align-items-center {% if form.contr_valor_inss_multiplos_vinculos.errors %} text-danger{% endif %}" style="min-height: calc(1.5em + .6rem + 2px);">
+                          <label for="id_{{ form.contr_valor_inss_multiplos_vinculos.html_name }}" class="mb-0 text-truncate" title="{{ form.contr_valor_inss_multiplos_vinculos.label }}">
+                            {{ form.contr_valor_inss_multiplos_vinculos.label }}
+                            {% if form.contr_valor_inss_multiplos_vinculos.field.required %}<span class="text-danger">*</span>{% endif %}
+                          </label>
+                        </div>
+                        <div class="col-lg-8{% if form.contr_valor_inss_multiplos_vinculos.errors %} field-error{% endif %}">
+                          {{ form.contr_valor_inss_multiplos_vinculos }}
+                          {% if form.contr_valor_inss_multiplos_vinculos.errors %}
+                            <div class="invalid-feedback d-block">{{ form.contr_valor_inss_multiplos_vinculos.errors|join:', ' }}</div>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <div class="row g-2 align-items-center">
+                        <div class="col-lg-4 col-form-label d-flex align-items-center {% if form.contr_base_ir_multiplos_vinculos.errors %} text-danger{% endif %}" style="min-height: calc(1.5em + .6rem + 2px);">
+                          <label for="id_{{ form.contr_base_ir_multiplos_vinculos.html_name }}" class="mb-0 text-truncate" title="{{ form.contr_base_ir_multiplos_vinculos.label }}">
+                            {{ form.contr_base_ir_multiplos_vinculos.label }}
+                            {% if form.contr_base_ir_multiplos_vinculos.field.required %}<span class="text-danger">*</span>{% endif %}
+                          </label>
+                        </div>
+                        <div class="col-lg-8{% if form.contr_base_ir_multiplos_vinculos.errors %} field-error{% endif %}">
+                          {{ form.contr_base_ir_multiplos_vinculos }}
+                          {% if form.contr_base_ir_multiplos_vinculos.errors %}
+                            <div class="invalid-feedback d-block">{{ form.contr_base_ir_multiplos_vinculos.errors|join:', ' }}</div>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <div class="row g-2 align-items-center">
+                        <div class="col-lg-4 col-form-label d-flex align-items-center {% if form.contr_valor_ir_multiplos_vinculos.errors %} text-danger{% endif %}" style="min-height: calc(1.5em + .6rem + 2px);">
+                          <label for="id_{{ form.contr_valor_ir_multiplos_vinculos.html_name }}" class="mb-0 text-truncate" title="{{ form.contr_valor_ir_multiplos_vinculos.label }}">
+                            {{ form.contr_valor_ir_multiplos_vinculos.label }}
+                            {% if form.contr_valor_ir_multiplos_vinculos.field.required %}<span class="text-danger">*</span>{% endif %}
+                          </label>
+                        </div>
+                        <div class="col-lg-8{% if form.contr_valor_ir_multiplos_vinculos.errors %} field-error{% endif %}">
+                          {{ form.contr_valor_ir_multiplos_vinculos }}
+                          {% if form.contr_valor_ir_multiplos_vinculos.errors %}
+                            <div class="invalid-feedback d-block">{{ form.contr_valor_ir_multiplos_vinculos.errors|join:', ' }}</div>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-12 mt-2">
+                      <label class="form-label fw-semibold mb-1">Múltiplos vínculos (13º salário)</label>
+                    </div>
+                    <div class="col-12">
+                      <div class="row g-2 align-items-center">
+                        <div class="col-lg-4 col-form-label d-flex align-items-center {% if form.contr_base_inss_multiplos_vinculos_13.errors %} text-danger{% endif %}" style="min-height: calc(1.5em + .6rem + 2px);">
+                          <label for="id_{{ form.contr_base_inss_multiplos_vinculos_13.html_name }}" class="mb-0 text-truncate" title="{{ form.contr_base_inss_multiplos_vinculos_13.label }}">
+                            {{ form.contr_base_inss_multiplos_vinculos_13.label }}
+                            {% if form.contr_base_inss_multiplos_vinculos_13.field.required %}<span class="text-danger">*</span>{% endif %}
+                          </label>
+                        </div>
+                        <div class="col-lg-8{% if form.contr_base_inss_multiplos_vinculos_13.errors %} field-error{% endif %}">
+                          {{ form.contr_base_inss_multiplos_vinculos_13 }}
+                          {% if form.contr_base_inss_multiplos_vinculos_13.errors %}
+                            <div class="invalid-feedback d-block">{{ form.contr_base_inss_multiplos_vinculos_13.errors|join:', ' }}</div>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <div class="row g-2 align-items-center">
+                        <div class="col-lg-4 col-form-label d-flex align-items-center {% if form.contr_valor_inss_multiplos_vinculos_13.errors %} text-danger{% endif %}" style="min-height: calc(1.5em + .6rem + 2px);">
+                          <label for="id_{{ form.contr_valor_inss_multiplos_vinculos_13.html_name }}" class="mb-0 text-truncate" title="{{ form.contr_valor_inss_multiplos_vinculos_13.label }}">
+                            {{ form.contr_valor_inss_multiplos_vinculos_13.label }}
+                            {% if form.contr_valor_inss_multiplos_vinculos_13.field.required %}<span class="text-danger">*</span>{% endif %}
+                          </label>
+                        </div>
+                        <div class="col-lg-8{% if form.contr_valor_inss_multiplos_vinculos_13.errors %} field-error{% endif %}">
+                          {{ form.contr_valor_inss_multiplos_vinculos_13 }}
+                          {% if form.contr_valor_inss_multiplos_vinculos_13.errors %}
+                            <div class="invalid-feedback d-block">{{ form.contr_valor_inss_multiplos_vinculos_13.errors|join:', ' }}</div>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <div class="row g-2 align-items-center">
+                        <div class="col-lg-4 col-form-label d-flex align-items-center {% if form.contr_base_ir_multiplos_vinculos_13.errors %} text-danger{% endif %}" style="min-height: calc(1.5em + .6rem + 2px);">
+                          <label for="id_{{ form.contr_base_ir_multiplos_vinculos_13.html_name }}" class="mb-0 text-truncate" title="{{ form.contr_base_ir_multiplos_vinculos_13.label }}">
+                            {{ form.contr_base_ir_multiplos_vinculos_13.label }}
+                            {% if form.contr_base_ir_multiplos_vinculos_13.field.required %}<span class="text-danger">*</span>{% endif %}
+                          </label>
+                        </div>
+                        <div class="col-lg-8{% if form.contr_base_ir_multiplos_vinculos_13.errors %} field-error{% endif %}">
+                          {{ form.contr_base_ir_multiplos_vinculos_13 }}
+                          {% if form.contr_base_ir_multiplos_vinculos_13.errors %}
+                            <div class="invalid-feedback d-block">{{ form.contr_base_ir_multiplos_vinculos_13.errors|join:', ' }}</div>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <div class="row g-2 align-items-center">
+                        <div class="col-lg-4 col-form-label d-flex align-items-center {% if form.contr_valor_ir_multiplos_vinculos_13.errors %} text-danger{% endif %}" style="min-height: calc(1.5em + .6rem + 2px);">
+                          <label for="id_{{ form.contr_valor_ir_multiplos_vinculos_13.html_name }}" class="mb-0 text-truncate" title="{{ form.contr_valor_ir_multiplos_vinculos_13.label }}">
+                            {{ form.contr_valor_ir_multiplos_vinculos_13.label }}
+                            {% if form.contr_valor_ir_multiplos_vinculos_13.field.required %}<span class="text-danger">*</span>{% endif %}
+                          </label>
+                        </div>
+                        <div class="col-lg-8{% if form.contr_valor_ir_multiplos_vinculos_13.errors %} field-error{% endif %}">
+                          {{ form.contr_valor_ir_multiplos_vinculos_13 }}
+                          {% if form.contr_valor_ir_multiplos_vinculos_13.errors %}
+                            <div class="invalid-feedback d-block">{{ form.contr_valor_ir_multiplos_vinculos_13.errors|join:', ' }}</div>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-pane fade pt-3" id="tab-banco" role="tabpanel">
+          <div class="contribuinte-tab-shell contribuinte-tab-shell-narrow">
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="contribuinte-section-box">
+                  <div class="row g-3 align-items-start">
+                    <div class="col-12">
+                      <div class="row g-3">
+                        {% include "contribuintes/_field.html" with field=form.contr_banco col="col-12 col-lg-12" %}
+                      </div>
+                    </div>
+
+                    <div class="col-12">
+                      <div class="row g-3 align-items-end">
+                        {% include "contribuintes/_field.html" with field=form.contr_conta_corrente col="col-12 col-lg-9" %}
+                        {% include "contribuintes/_field.html" with field=form.contr_digito_conta_corrente col="col-12 col-lg-3" %}
+                      </div>
+                    </div>
+
+                    {% include "contribuintes/_field.html" with field=form.contr_tipo_conta col="col-12 col-lg-6" %}
+                    {% include "contribuintes/_field.html" with field=form.contr_modo_pagamento col="col-12 col-lg-6" %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-pane fade pt-3" id="tab-esocial" role="tabpanel">
+          <div class="contribuinte-tab-shell">
+            <ul class="nav nav-tabs mb-3 small border-bottom" id="esocialSubTabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="esocial-qual-tab" data-bs-toggle="tab" data-bs-target="#esocial-qualificacao" type="button" role="tab">
+                  <i class="bi bi-person-check-fill me-1"></i>Qualificação
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="esocial-int-tab" data-bs-toggle="tab" data-bs-target="#esocial-integracao" type="button" role="tab">
+                  <i class="bi bi-cloud-upload-fill me-1"></i>Integração
+                </button>
+              </li>
+            </ul>
+
+            <div class="tab-content" id="esocialSubTabsContent">
+
+              <!-- SUB-ABA 1: QUALIFICAÇÃO -->
+              <div class="tab-pane fade show active pt-2" id="esocial-qualificacao" role="tabpanel">
+
+                <div class="contribuinte-section-box mb-3">
+                  <h6 class="text-muted small mb-3 text-uppercase">Dados cadastrais (informação)</h6>
+                  <div class="row g-3">
+                    <div class="col-12 col-lg-12">
+                      <label class="form-label small text-secondary mb-1">Nome</label>
+                      <div class="form-control contribuinte-readonly">{% if object and object.contr_nome %}{{ object.contr_nome }}{% else %}—{% endif %}</div>
+                    </div>
+                    <div class="col-12 col-lg-4">
+                      <label class="form-label small text-secondary mb-1">CPF</label>
+                      <div class="form-control contribuinte-readonly font-monospace">{% if object and object.contr_cpf %}{{ object.contr_cpf }}{% else %}—{% endif %}</div>
+                    </div>
+                    <div class="col-12 col-lg-4">
+                      <label class="form-label small text-secondary mb-1">NIT</label>
+                      <div class="form-control contribuinte-readonly font-monospace">{% if object and object.contr_nis %}{{ object.contr_nis }}{% else %}—{% endif %}</div>
+                    </div>
+                    <div class="col-12 col-lg-4">
+                      <label class="form-label small text-secondary mb-1">Nascimento</label>
+                      <div class="form-control contribuinte-readonly">{% if object and object.contr_nascimento %}{{ object.contr_nascimento|date:"d/m/Y" }}{% else %}—{% endif %}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="contribuinte-section-box mb-3">
+                  <h6 class="text-muted small mb-3 text-uppercase">Qualificação cadastral</h6>
+                  <div class="row g-3">
+                    <div class="col-12">
+                      <label class="form-label fw-semibold mb-1">Status</label>
+                      {% if form.contr_esocial_qualif_status.value %}
+                        <div class="form-control contribuinte-readonly border-success text-success fw-semibold">{{ form.contr_esocial_qualif_status.value }}</div>
+                      {% else %}
+                        <div class="form-control contribuinte-readonly fst-italic text-body-secondary">Nenhuma consulta efetuada.</div>
+                      {% endif %}
+                      <div class="d-none">{% include "contribuintes/_field.html" with field=form.contr_esocial_qualif_status col="col-12" %}</div>
+                    </div>
+                    <div class="col-12">
+                      <label class="form-label fw-semibold mb-1">Mensagem</label>
+                      {% if form.contr_esocial_qualif_mensagem.value %}
+                        <div class="form-control contribuinte-readonly" style="min-height: 120px; white-space: pre-wrap;">{{ form.contr_esocial_qualif_mensagem.value }}</div>
+                      {% else %}
+                        <div class="form-control contribuinte-readonly fst-italic text-body-secondary" style="min-height: 120px;">—</div>
+                      {% endif %}
+                      <div class="d-none">{% include "contribuintes/_field.html" with field=form.contr_esocial_qualif_mensagem col="col-12" %}</div>
+                    </div>
+                    <div class="col-12 col-lg-6">
+                      <label class="form-label fw-semibold mb-1">Consulta efetuada em</label>
+                      {% if object and object.contr_esocial_qualif_data_hora %}
+                        <div class="form-control contribuinte-readonly">{{ object.contr_esocial_qualif_data_hora|date:"d/m/Y \à\s H:i:s" }}</div>
+                      {% else %}
+                        <div class="form-control contribuinte-readonly fst-italic text-body-secondary">—</div>
+                      {% endif %}
+                      <div class="d-none">{% include "contribuintes/_field.html" with field=form.contr_esocial_qualif_data_hora col="col-12" %}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- SUB-ABA 2: INTEGRAÇÃO -->
+              <div class="tab-pane fade pt-2" id="esocial-integracao" role="tabpanel">
+
+                <div class="d-none">
+                  {% include "contribuintes/_field.html" with field=form.contr_esocial_integrado col="col-12" %}
+                  {% include "contribuintes/_field.html" with field=form.contr_esocial_integra_data_hora col="col-12" %}
+                  {% include "contribuintes/_field.html" with field=form.contr_esocial_integra_numero_recibo col="col-12" %}
+                </div>
+
+                {% if object and object.contr_esocial_integrado %}
+                  <div class="alert alert-success d-flex align-items-center gap-2 mb-4" role="alert">
+                    <i class="bi bi-check-circle-fill fs-4"></i>
+                    <div>
+                      <strong>Integrado</strong> em
+                      {% if object.contr_esocial_integra_data_hora %}
+                        {{ object.contr_esocial_integra_data_hora|date:"d/m/Y \à\s H:i:s" }}
+                      {% endif %}
+                      {% if object.contr_esocial_integra_numero_recibo %}
+                        · número do recibo: <span class="font-monospace ms-1">{{ object.contr_esocial_integra_numero_recibo }}</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                {% else %}
+                  <div class="alert alert-secondary d-flex align-items-center gap-2 mb-4" role="alert">
+                    <i class="bi bi-info-circle-fill fs-4"></i>
+                    <div>Ainda não integrado no eSocial. Clique em <strong>Integrar contribuinte</strong> abaixo.</div>
+                  </div>
+                {% endif %}
+
+                <div class="contribuinte-section-box mb-4">
+                  <h6 class="text-muted small mb-3 text-uppercase">Dados do contribuinte (informação)</h6>
+                  <div class="row g-3">
+                    <div class="col-12 col-lg-12">
+                      <label class="form-label small text-secondary mb-1">Nome</label>
+                      <div class="form-control contribuinte-readonly">{% if object and object.contr_nome %}{{ object.contr_nome }}{% else %}—{% endif %}</div>
+                    </div>
+                    <div class="col-12 col-lg-4">
+                      <label class="form-label small text-secondary mb-1">CPF</label>
+                      <div class="form-control contribuinte-readonly font-monospace">{% if object and object.contr_cpf %}{{ object.contr_cpf }}{% else %}—{% endif %}</div>
+                    </div>
+                    <div class="col-12 col-lg-4">
+                      <label class="form-label small text-secondary mb-1">PIS</label>
+                      <div class="form-control contribuinte-readonly font-monospace">{% if object and object.contr_nis %}{{ object.contr_nis }}{% else %}—{% endif %}</div>
+                    </div>
+                    <div class="col-12 col-lg-4">
+                      <label class="form-label small text-secondary mb-1">Nascimento</label>
+                      <div class="form-control contribuinte-readonly">{% if object and object.contr_nascimento %}{{ object.contr_nascimento|date:"d/m/Y" }}{% else %}—{% endif %}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="d-flex justify-content-center">
+                  <button type="button" class="btn btn-primary px-5 py-2 d-inline-flex align-items-center gap-2">
+                    <i class="bi bi-cloud-upload"></i>Integrar contribuinte
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-pane fade pt-3" id="tab-observacoes" role="tabpanel">
+          <div class="contribuinte-tab-shell contribuinte-tab-shell-narrow">
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="contribuinte-section-box">
+                  <div class="row g-3">
+                    {% include "contribuintes/_field.html" with field=form.contr_observacoes col="col-12" %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {% url 'contribuintes:listar' as url_voltar_contribuinte %}
+      {% include "partials/ui/form_actions.html" with form_actions_url_voltar=url_voltar_contribuinte|add:"?banco="|add:request.banco %}
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const firstError = document.querySelector('.is-invalid, .field-error');
+    if (firstError) {
+      const pane = firstError.closest('.tab-pane');
+      if (pane) {
+        const trigger = document.querySelector(`[data-bs-target="#${pane.id}"]`);
+        if (trigger) {
+          const tab = new bootstrap.Tab(trigger);
+          tab.show();
+        }
+      }
+    }
+
+    (function bindTabsHash() {
+      const abas = document.querySelectorAll('button.nav-link[data-bs-toggle="tab"], a.nav-link[data-bs-toggle="tab"]');
+      if (!abas.length || typeof bootstrap === 'undefined' || !bootstrap.Tab) return;
+
+      const triggerDaAba = (idAba) => {
+        if (!idAba) return null;
+        return document.querySelector(`[data-bs-target="${idAba}"]`);
+      };
+
+      const ativarAbaPeloHash = (hash) => {
+        const h = (hash || window.location.hash || '').trim();
+        if (!h || !h.startsWith('#tab-')) return false;
+        const trigger = triggerDaAba(h);
+        if (!trigger) return false;
+        if (trigger.classList && trigger.classList.contains('active')) return true;
+        try {
+          const tab = new bootstrap.Tab(trigger);
+          tab.show();
+          return true;
+        } catch (_) {
+          trigger.click();
+          return true;
+        }
+      };
+
+      ativarAbaPeloHash();
+
+      abas.forEach((trigger) => {
+        trigger.addEventListener('shown.bs.tab', () => {
+          const target = trigger.getAttribute('data-bs-target') || '';
+          if (target.startsWith('#tab-')) {
+            const novaUrl = window.location.pathname + window.location.search + target;
+            try {
+              window.history.replaceState(null, '', novaUrl);
+            } catch (_) {}
+          }
+        });
+      });
+
+      window.addEventListener('hashchange', () => {
+        ativarAbaPeloHash();
+      });
+    })();
+
+    function applyMask(value, type) {
+      const digits = String(value || '').replace(/\D/g, '');
+
+      if (type === 'cpf') {
+        return digits
+          .slice(0, 11)
+          .replace(/^(\d{3})(\d)/, '$1.$2')
+          .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+          .replace(/\.(\d{3})(\d)/, '.$1-$2');
+      }
+
+      if (type === 'nis') {
+        return digits
+          .slice(0, 11)
+          .replace(/^(\d{3})(\d)/, '$1.$2')
+          .replace(/^(\d{3})\.(\d{5})(\d)/, '$1.$2.$3')
+          .replace(/\.(\d{2})(\d)/, '.$1-$2');
+      }
+
+      if (type === 'rg') {
+        return digits
+          .slice(0, 9)
+          .replace(/^(\d{2})(\d)/, '$1.$2')
+          .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+          .replace(/\.(\d{3})(\d)/, '.$1-$2');
+      }
+
+      if (type === 'cep') {
+        return digits
+          .slice(0, 8)
+          .replace(/^(\d{5})(\d)/, '$1-$2');
+      }
+
+      if (type === 'ddd') {
+        if (!digits) return '';
+        const ddd = digits.slice(0, 2);
+        return ddd.length === 2 ? `(${ddd})` : `(${ddd}`;
+      }
+
+      if (type === 'telefone') {
+        return digits
+          .slice(0, 8)
+          .replace(/^(\d{4})(\d)/, '$1-$2');
+      }
+
+      if (type === 'celular') {
+        return digits
+          .slice(0, 9)
+          .replace(/^(\d{5})(\d)/, '$1-$2');
+      }
+
+      if (type === 'cnpj_cpf') {
+        if (digits.length <= 11) {
+          return digits
+            .slice(0, 11)
+            .replace(/^(\d{3})(\d)/, '$1.$2')
+            .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+            .replace(/\.(\d{3})(\d)/, '.$1-$2');
+        }
+        return digits
+          .slice(0, 14)
+          .replace(/^(\d{2})(\d)/, '$1.$2')
+          .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+          .replace(/\.(\d{3})\.(\d{3})(\d)/, '.$1.$2/$3')
+          .replace(/\/(\d{4})(\d)/, '/$1-$2');
+      }
+
+      return value;
+    }
+
+    document.querySelectorAll('[data-digits-only="true"]').forEach((input) => {
+      input.value = input.value.replace(/\D/g, '');
+      input.addEventListener('input', () => {
+        input.value = input.value.replace(/\D/g, '');
+      });
+    });
+
+    document.querySelectorAll('[data-mask]').forEach((input) => {
+      const maskType = input.getAttribute('data-mask');
+      input.value = applyMask(input.value, maskType);
+      input.addEventListener('input', () => {
+        input.value = applyMask(input.value, maskType);
+      });
+      input.addEventListener('change', () => {
+        input.value = applyMask(input.value, maskType);
+      });
+      input.addEventListener('blur', () => {
+        input.value = applyMask(input.value, maskType);
+      });
+    });
+
+    document.querySelectorAll('[data-decimal-2="true"]').forEach((input) => {
+      const applyDecimal2 = (el) => {
+        let v = (el.value || '').toString();
+        if (!v) return;
+        v = v.replace(/[^\d,.-]/g, '');
+        const neg = v.startsWith('-');
+        if (neg) v = v.slice(1);
+        v = v.replace(/,/g, '.');
+        const parts = v.split('.');
+        if (parts.length > 2) {
+          v = parts.shift() + '.' + parts.join('');
+        } else if (parts.length === 2) {
+          parts[1] = parts[1].slice(0, 2);
+          v = parts[0] + '.' + parts[1];
+        }
+        if (neg) v = '-' + v;
+        el.value = v;
+      };
+      applyDecimal2(input);
+      input.addEventListener('input', () => applyDecimal2(input));
+    });
+
+    function mascaraCPF(apenasDigitos) {
+      const d = (apenasDigitos || '').replace(/\D/g, '').slice(0, 11);
+      if (d.length <= 3) return d;
+      if (d.length <= 6) return d.slice(0, 3) + '.' + d.slice(3);
+      if (d.length <= 9) return d.slice(0, 3) + '.' + d.slice(3, 6) + '.' + d.slice(6);
+      return d.slice(0, 3) + '.' + d.slice(3, 6) + '.' + d.slice(6, 9) + '-' + d.slice(9);
+    }
+    document.querySelectorAll('.cpf-mask').forEach((el) => {
+      const raw = (el.textContent || '').trim();
+      if (raw && /^\d{11}$/.test(raw.replace(/\D/g, ''))) {
+        el.textContent = mascaraCPF(raw);
+      }
+    });
+
+    const cepInput = document.querySelector('[name="contr_cep"]');
+
+    function getField(fieldName) {
+      return document.querySelector(`[name="${fieldName}"]`);
+    }
+
+    function fillCepFields(data, options) {
+      const overwrite = options && options.overwrite === true;
+      const mapping = [
+        ['contr_ende', data.logradouro || ''],
+        ['contr_ende_comp', data.complemento || ''],
+        ['contr_ende_bair', data.bairro || ''],
+        ['contr_ende_cida_desc', data.localidade || ''],
+        ['contr_ende_uf', data.uf || ''],
+      ];
+
+      mapping.forEach(([name, value]) => {
+        const field = getField(name);
+        if (!field || !value) {
+          return;
+        }
+
+        if (!overwrite && (field.value || '').trim()) {
+          return;
+        }
+
+        field.value = value;
+        field.dispatchEvent(new Event('input', { bubbles: true }));
+        field.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+    }
+
+    function bindCepLookup() {
+      if (!cepInput) {
+        return;
+      }
+
+      let lastFetchedCep = '';
+
+      function clearCepError() {
+        cepInput.setCustomValidity('');
+      }
+
+      function handleCepLookup(overwrite) {
+        const cep = cepInput.value.replace(/\D/g, '');
+        clearCepError();
+
+        if (cep.length !== 8 || cep === lastFetchedCep) {
+          return;
+        }
+
+        fetch('https://viacep.com.br/ws/' + cep + '/json/')
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error('Falha ao consultar o CEP.');
+            }
+            return response.json();
+          })
+          .then((data) => {
+            if (data.erro) {
+              lastFetchedCep = '';
+              cepInput.setCustomValidity('CEP nao encontrado.');
+              cepInput.reportValidity();
+              return;
+            }
+
+            lastFetchedCep = cep;
+            clearCepError();
+            fillCepFields(data, { overwrite: overwrite === true });
+          })
+          .catch(() => {
+            lastFetchedCep = '';
+            cepInput.setCustomValidity('Nao foi possivel consultar o CEP agora.');
+            cepInput.reportValidity();
+          });
+      }
+
+      cepInput.addEventListener('input', () => {
+        clearCepError();
+        if (cepInput.value.replace(/\D/g, '').length < 8) {
+          lastFetchedCep = '';
+        }
+      });
+
+      cepInput.addEventListener('blur', () => {
+        handleCepLookup(true);
+      });
+
+      cepInput.addEventListener('change', () => {
+        handleCepLookup(true);
+      });
+
+      if (cepInput.value.replace(/\D/g, '').length === 8) {
+        handleCepLookup(false);
+      }
+    }
+
+    bindCepLookup();
+  });
+</script>
+{% endblock %}
