@@ -15,9 +15,46 @@
         <a href="{% url 'contribuintes:listar' %}?banco={{ request.banco|default:'rta0001' }}">
             Contribuintes
         </a>
+        <a href="{% url 'terceiros:listar' %}?banco={{ request.banco|default:'rta0001' }}">
+            Terceiros
+        </a>
+        <div
+            class="submenu-item"
+            tabindex="0"
+            role="button"
+            aria-haspopup="true"
+            aria-expanded="false"
+            data-submenu-toggle
+        >Sindicatos
+            <div class="submenu-panel" role="menu" style="display:none;">
+                <a href="{% url 'sindicatospatronais:listar' %}?banco={{ request.banco|default:'rta0001' }}" role="menuitem">
+                    Sindicatos Patronais
+                </a>
+                <a href="{% url 'sindicatos:listar' %}?banco={{ request.banco|default:'rta0001' }}" role="menuitem">
+                    Sindicatos Trabalhadores
+                </a>
+            </div>
+        </div>
         <a href="{% url 'eventos:listar' %}?banco={{ request.banco|default:'rta0001' }}">
             Eventos
         </a>
+        <div
+            class="submenu-item"
+            tabindex="0"
+            role="button"
+            aria-haspopup="true"
+            aria-expanded="false"
+            data-submenu-toggle
+        >Planos
+            <div class="submenu-panel" role="menu" style="display:none;">
+                <a href="{% url 'cargos:listar' %}?banco={{ request.banco|default:'rta0001' }}" role="menuitem">
+                    Plano de cargos
+                </a>
+                <a href="{% url 'horarios:listar' %}?banco={{ request.banco|default:'rta0001' }}" role="menuitem">
+                    Planos de quadros de horários
+                </a>
+            </div>
+        </div>
         {% comment %} DESABILITADO TEMPORARIAMENTE — reativar no futuro removendo o bloco de comentário
         <a href="{% url 'dependentesrh:listar' %}?banco={{ request.banco|default:'rta0001' }}" style="display:none; pointer-events:none; opacity:0.4;" aria-disabled="true">
             Dependentes

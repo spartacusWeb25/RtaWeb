@@ -105,6 +105,88 @@ function initResponsiveFilterCollapse() {
   })
 }
 
+function initNavSubmenuToggle() {
+  try {
+    const toggles = document.querySelectorAll('[data-submenu-toggle]')
+    if (!toggles.length) return
+
+    function getPanel(el) {
+      return el && el.querySelector
+        ? el.querySelector(':scope > .submenu-panel') || el.querySelector('.submenu-panel')
+        : null
+    }
+
+    function closeAllSubmenus(exceptEl) {
+      toggles.forEach((el) => {
+        if (el !== exceptEl) {
+          el.classList.remove('is-open')
+          el.setAttribute('aria-expanded', 'false')
+          const p = getPanel(el)
+          if (p) p.style.display = 'none'
+        }
+      })
+    }
+
+    toggles.forEach((el) => {
+      const handler = (e) => {
+        if (e) {
+          const targetLink = e.target.closest && e.target.closest('a[href]')
+          if (targetLink) {
+            return
+          }
+          const insidePanel = e.target.closest && e.target.closest('.submenu-panel')
+          if (insidePanel) {
+            return
+          }
+          e.preventDefault && e.preventDefault()
+          e.stopPropagation && e.stopPropagation()
+        }
+        const isOpen = el.classList.contains('is-open')
+        const panel = getPanel(el)
+        closeAllSubmenus(el)
+        if (isOpen) {
+          el.classList.remove('is-open')
+          el.setAttribute('aria-expanded', 'false')
+          if (panel) panel.style.display = 'none'
+        } else {
+          el.classList.add('is-open')
+          el.setAttribute('aria-expanded', 'true')
+          if (panel) panel.style.display = 'block'
+        }
+      }
+      el.addEventListener('click', handler)
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          handler(e)
+        } else if (e.key === 'Escape') {
+          e.preventDefault()
+          el.classList.remove('is-open')
+          el.setAttribute('aria-expanded', 'false')
+          const p = getPanel(el)
+          if (p) p.style.display = 'none'
+        }
+      })
+    })
+
+    document.addEventListener(
+      'click',
+      (e) => {
+        const inside =
+          e.target.closest &&
+          (e.target.closest('[data-submenu-toggle]') ||
+            e.target.closest('.submenu-panel'))
+        if (!inside) {
+          closeAllSubmenus(null)
+        }
+      },
+      true,
+    )
+  } catch (e) {
+    try { if (window.console && console.warn) console.warn('[nav-submenu]', e) } catch (_e) {}
+  }
+}
+
 function initRtaMessages() {
   try {
     const alerts = document.querySelectorAll('.rta-alert[data-rta-message="1"]')
@@ -212,6 +294,7 @@ function initRtaMessages() {
     initRtaMessages()
     initInfiniteScroll()
     initResponsiveFilterCollapse()
+    initNavSubmenuToggle()
     const navToggle = document.getElementById('navToggle')
     const navMobilePanel = document.getElementById('navMobilePanel')
     if (navToggle && navMobilePanel) {

@@ -3,14 +3,14 @@
 {#   form_actions_url_voltar (obrigatório): URL de destino do botão Voltar #}
 {#   form_actions_label_salvar (opcional): default "Salvar" #}
 {#   form_actions_label_voltar (opcional): default "Voltar" #}
-{#   form_actions_voltar_extra_class (opcional): classes extras (ex: "js-esc-exit") #}
+{#   form_actions_voltar_extra_class (opcional): classes extras (além de js-esc-exit padrão) #}
 <div class="form-actions-row mt-4 pt-3 border-top">
   <button type="submit" class="btn btn-success">
     <i class="bi bi-floppy-fill"></i> {{ form_actions_label_salvar|default:"Salvar" }}
   </button>
   {% if form_actions_url_voltar %}
   <a href="{{ form_actions_url_voltar }}"
-     class="btn btn-outline-secondary {% if form_actions_voltar_extra_class %}{{ form_actions_voltar_extra_class }}{% endif %}">
+     class="btn btn-outline-secondary js-esc-exit {% if form_actions_voltar_extra_class %}{{ form_actions_voltar_extra_class }}{% endif %}">
     <i class="bi bi-arrow-left"></i> {{ form_actions_label_voltar|default:"Voltar" }}
   </a>
   {% endif %}

@@ -116,11 +116,14 @@ INSTALLED_APPS = [
     'horarios',
     'lancamentosfolha',
     'sindicatos',
+    'sindicatospatronais',
     'tabelainss',
     'tabelairrf',
     'tabelasalafami',
     'tabelasalarial',
     'tabelasalariominimo',
+    'terceiros',
+    'dependentesterc',
     'usuarios',
 ]
 

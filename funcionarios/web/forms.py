@@ -1468,7 +1468,7 @@ class FuncionarioForm(forms.ModelForm):
                     "maxlength": 4,
                     "inputmode": "numeric",
                     "data-mask": "ddd",
-                    "placeholder": "(42)",
+                    "placeholder": "(00)",
                     "autocomplete": "off",
                 }
             ),
@@ -1478,7 +1478,7 @@ class FuncionarioForm(forms.ModelForm):
                     "maxlength": 9,
                     "inputmode": "numeric",
                     "data-mask": "telefone",
-                    "placeholder": "9999-0000",
+                    "placeholder": "0000-0000",
                     "autocomplete": "off",
                 }
             ),
@@ -1488,7 +1488,7 @@ class FuncionarioForm(forms.ModelForm):
                     "maxlength": 4,
                     "inputmode": "numeric",
                     "data-mask": "ddd",
-                    "placeholder": "(42)",
+                    "placeholder": "(00)",
                     "autocomplete": "off",
                 }
             ),
@@ -1498,7 +1498,7 @@ class FuncionarioForm(forms.ModelForm):
                     "maxlength": 10,
                     "inputmode": "numeric",
                     "data-mask": "celular",
-                    "placeholder": "99999-0000",
+                    "placeholder": "0000-0000",
                     "autocomplete": "off",
                 }
             ),
@@ -1515,6 +1515,7 @@ class FuncionarioForm(forms.ModelForm):
                     "maxlength": 14,
                     "inputmode": "numeric",
                     "data-mask": "cpf",
+                    "placeholder": "000.000.000-00",
                     "autocomplete": "off",
                 }
             ),

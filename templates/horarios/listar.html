@@ -1,122 +1,167 @@
 {% extends "base.html" %}
 {% load static %}
 
-
-{% block title %}Horarios — RtaWeb{% endblock %}
+{% block title %}Planos de Quadros de Horários — RtaWeb{% endblock %}
 
 {% block extra_css %}
 <link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
 <link href="{% static 'core/css/list-cards.css' %}" rel="stylesheet">
 <link href="{% static 'core/css/tabelas-layout.css' %}" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/botoes.css' %}">
+<link rel="stylesheet" href="{% static 'css/buscas.css' %}">
+<link rel="stylesheet" href="{% static 'css/tabelas.css' %}">
+<style>
+    @media (min-width: 992px) {
+        .horarios-listar .form-grid {
+            grid-template-columns: minmax(280px, 1.3fr) minmax(220px, 1fr) auto;
+        }
 
+        .horarios-listar .form-group:last-child .d-flex {
+            white-space: nowrap;
+        }
+    }
+
+    .horarios-listar .col-codigo { width: 80px; }
+    .horarios-listar .col-descricao { width: 42%; }
+    .horarios-listar .col-total { width: 130px; }
+    .horarios-listar .col-status { width: 120px; }
+    .horarios-listar .col-acoes { width: 260px; }
+
+    .horarios-listar td.tabela-acoes {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        align-items: center;
+    }
+
+    .horarios-listar thead th.col-acoes {
+        text-align: center;
+    }
+
+    .horarios-listar tbody td.col-acoes {
+        text-align: center;
+    }
+
+    .horarios-listar td.col-status {
+        text-align: center !important;
+    }
+
+    .horarios-listar thead th.col-status {
+        text-align: center !important;
+    }
+
+    .horarios-listar td.col-total {
+        text-align: center !important;
+        font-weight: 700;
+        color: #0ea5e9;
+    }
+
+    .horarios-listar thead th.col-total {
+        text-align: center !important;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="page-header">
-    <div>
-        <h1 id="title"><i class="bi bi-people-fill"></i> Horarios</h1>
-        <p id="subtitle"><i class="bi bi-filter"></i> Consulta e filtro de registros de horários</p>
-
+<div class="container mt-4 horarios-listar">
+    <div class="d-flex justify-content-center align-items-center mb-3">
+        <h3><i class="bi bi-clock-history"></i> Planos de Quadros de Horários</h3>
     </div>
-</div>
 
-<div class="app-form-card mb-3">
-    <form method="get" class="form-grid form-grid-compact">
-        <input type="hidden" name="banco" value="{{ request.banco }}">
+    <div class="filtros-acoes mb-3">
+        <a href="{% url 'horarios:criar' %}?banco={{ request.banco }}" class="botao botao-adicionar">
+            <i class="bi bi-plus"></i> Novo Quadro
+        </a>
+        <button class="botao botao-detalhar botao-filtro-toggle" type="button" data-bs-toggle="collapse"
+            data-bs-target="#filtrosCollapse" id="btn-filtros" aria-expanded="false" aria-controls="filtrosCollapse">
+            <i class="bi bi-funnel"></i> Filtros
+        </button>
+    </div>
 
-        <div>
-            <label class="form-label">profissional</label>
-            <input class="form-control" type="text" name="hora_prof" value="{{ hora_prof }}">
-        </div>
+    <div class="app-form-card mb-3 collapse filtros-collapse" id="filtrosCollapse">
+        <form method="get" class="form-grid form-grid-compact">
+            <input type="hidden" name="banco" value="{{ request.banco }}">
 
-        <div>
-            <label class="form-label">hora dia </label>
-            <input class="form-control" type="text" name="hora_dia" value="{{ hora_dia }}">
-        </div>
+            <div class="form-group">
+                <label class="form-label">Buscar</label>
+                <input class="form-control" type="text" name="busca" value="{{ busca_valor|default:'' }}"
+                    placeholder="Código ou Nome do quadro">
+            </div>
 
-        <div>
-            <label class="form-label">Ordenar</label>
-            <select name="ordenar" class="form-control">
-                <option value="">Padrão</option>
-                <option value="referencia" {% if ordenar == "referencia" %}selected{% endif %}>Código</option>
-                <option value="referencia_desc" {% if ordenar == "referencia_desc" %}selected{% endif %}>Descrição
-                </option>
-                <option value="valor" {% if ordenar == "valor" %}selected{% endif %}>Menor valor</option>
-                <option value="valor_desc" {% if ordenar == "valor_desc" %}selected{% endif %}>Maior valor</option>
-            </select>
-        </div>
+            <div class="form-group">
+                <label class="form-label">Ordenar</label>
+                <select name="ordenar" class="form-control">
+                    <option value="asc" {% if ordenar_valor == "" or ordenar_valor == "asc" %}selected{% endif %}>Ordem crescente</option>
+                    <option value="desc" {% if ordenar_valor == "desc" %}selected{% endif %}>Ordem decrescente</option>
+                </select>
+            </div>
 
-        <div class="form-actions-row">
-            <button type="submit" class="btn">
-                <i class="bi bi-search" id="botao-filtrar"></i>
-            </button>
+            <div class="form-group d-flex align-items-end">
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="?banco={{ request.banco }}" class="botao botao-limpar">
+                        <i class="bi bi-eraser"></i> Limpar
+                    </a>
+                    <button type="submit" class="botao botao-buscar">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
 
-            <a href="?banco={{ request.banco }}" class="btn btn-outline-secondary btn-sm">
-                Limpar
-            </a>
-        </div>
-    </form>
-</div>
-
-<div class="table-wrapper desktop-table-only">
-    <div class="table-scroll">
-        <table class="app-table">
+    {% if horarios %}
+    <div class="table-responsive">
+        <table class="tabela-moderna">
             <thead>
                 <tr>
-                    <th>hora profissional</th>
-                    <th>hora dia </th>
-                    <th>Ações</th>
+                    <th class="col-codigo"><i class="bi bi-key"></i> Código</th>
+                    <th class="col-descricao"><i class="bi bi-card-text"></i> Nome</th>
+                    <th class="col-total"><i class="bi bi-hourglass-split"></i> Total / Sem.</th>
+                    <th class="col-status"><i class="bi bi-toggle-off"></i> Status</th>
+                    <th class="col-acoes"><i class="bi bi-gear"></i> Ações</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody data-infinite-scroll-items>
                 {% for item in horarios %}
                 <tr>
-                    <td>{{ item.hora_prof }}</td>
-                    <td>{{ item.hora_dia }}</td>
-                    <td>
-                        <a class="btn btn-sm btn-outline-primary"
-                            href="{% url 'horarios:atualizar' item.id %}?banco={{ request.banco }}">Editar</a>
-                        <a class="btn btn-sm btn-outline-danger"
-                            href="{% url 'horarios:deletar' item.id %}?banco={{ request.banco }}">Excluir</a>
+                    <td data-label="Código" class="col-codigo text-center font-weight-bold">{{ item.hora_codi }}</td>
+                    <td data-label="Nome" class="col-descricao">
+                        <div class="font-weight-semibold">{{ item.hora_nome|default:"<span class='text-muted small'>Sem nome</span>" }}</div>
                     </td>
-                </tr>
-                {% empty %}
-                <tr class="empty-row">
-                    <td colspan="6"><i class="bi bi-inbox empty-icon"></i>Nenhum registro encontrado</td>
+                    <td data-label="Total Semana" class="col-total">
+                        {{ item.hora_total_semana|default:"—" }}
+                    </td>
+                    <td data-label="Status" class="text-center">
+                        {% if item.hora_flexivel %}
+                            <span class="badge badge-inativo bg-warning text-white px-2 py-1 rounded-pill">Flexível</span>
+                        {% else %}
+                            <span class="badge badge-ativo bg-success text-white px-2 py-1 rounded-pill">Normal</span>
+                        {% endif %}
+                    </td>
+                    <td data-label="Ações" class="col-acoes tabela-acoes">
+                        <div class="d-flex flex-row flex-nowrap justify-content-center gap-2 w-100">
+                            <a class="botao botao-editar" href="{% url 'horarios:editar' hora_codi=item.hora_codi %}?banco={{ request.banco }}">
+                                <i class="bi bi-pencil-fill"></i> Editar
+                            </a>
+                            <a class="botao botao-remover" href="{% url 'horarios:excluir' hora_codi=item.hora_codi %}?banco={{ request.banco }}">
+                                <i class="bi bi-trash-fill"></i> Excluir
+                            </a>
+                        </div>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-</div>
 
-<div class="list-card-view mobile-card-only">
-    {% for item in horarios %}
-    <article class="list-card-item">
-        <div class="list-card-head">
-            <strong>{{ item.hora_prof }}</strong>
-            <span>#{{ item.id }}</span>         
-        </div>
-        <div class="list-card-grid">
-            <div><small>CNPJ</small>
-                <p>{{ item.hora_dia }}</p>
-            </div>
-            <div><small>UF dia</small>
-                <p>{{ item.hora_prof }}</p>
-            </div>
-            <div><small>UF</small>
-                <p>{{ item.hora_dia }}</p>
-            </div>
-        </div>
-        <div class="list-card-actions">
-            <a class="btn btn-sm btn-outline-primary"
-                href="{% url 'horarios:atualizar' item.id %}?banco={{ request.banco }}">Editar</a>
-            <a class="btn btn-sm btn-outline-danger"
-                href="{% url 'horarios:deletar' item.id %}?banco={{ request.banco }}">Excluir</a>   
-        </div>
-    </article>
-    {% empty %}
-    <div class="list-card-empty">Nenhum registro encontrado</div>
-    {% endfor %}
+    {% include "partials/componentes/infinite_scroll.html" %}
+    {% else %}
+    <div class="alert alert-warning">
+        Nenhum quadro de horários cadastrado.
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

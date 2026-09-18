@@ -1,0 +1,1366 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} — RtaWeb{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+<style>
+  .nav-tabs-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-wrap: nowrap;
+    scrollbar-width: thin;
+  }
+
+  #terceiroTabs {
+    overflow: visible;
+    flex-wrap: wrap;
+    row-gap: .2rem;
+  }
+
+  .nav-tabs-scroll .nav-link {
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+  }
+
+  .tab-badge {
+    margin-left: .2rem;
+    font-size: .7rem;
+    line-height: 1;
+  }
+
+  .terceiro-form-card {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+
+  .terceiro-subtabs {
+    margin-bottom: 1rem;
+  }
+
+  .terceiro-section-box {
+    border: 1px solid var(--border-default, #d8dee8);
+    border-radius: .5rem;
+    padding: .75rem;
+    background: var(--surface-card, #fff);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .terceiro-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary, inherit);
+    margin-bottom: .5rem;
+  }
+
+  [data-theme='dark'] .terceiro-section-title {
+    color: var(--text-primary, #e6edf3);
+  }
+
+  .terceiro-status {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: .5rem;
+    font-weight: 500;
+  }
+
+  .terceiro-status.ok {
+    color: var(--bs-success);
+  }
+
+  .terceiro-status.pending {
+    color: var(--bs-secondary);
+  }
+
+  .terceiro-photo-box {
+    min-height: 230px;
+    border: 1px solid var(--border-default, #d8dee8);
+    border-radius: .5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--bs-secondary);
+    background: var(--bs-tertiary-bg);
+    padding: 1rem;
+  }
+
+  .terceiro-readonly {
+    background: var(--bs-secondary-bg);
+  }
+
+  .field-error .form-control,
+  .field-error .form-select,
+  .field-error .form-check-input {
+    border-color: var(--bs-danger);
+    box-shadow: 0 0 0 0.12rem rgba(220, 53, 69, .12);
+  }
+
+  .funcionario-check-box {
+    border: 1px solid var(--border-default, #d8dee8);
+    border-radius: .5rem;
+    padding: 1rem;
+    background: var(--surface-card, #fff);
+  }
+
+  .funcionario-check-box legend {
+    float: none;
+    width: auto;
+    padding: 0 .35rem;
+    margin-bottom: .25rem;
+    font-size: .95rem;
+    font-weight: 500;
+  }
+
+  .funcionario-check-item {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    min-height: 38px;
+  }
+
+  .funcionario-check-item .form-check-input {
+    margin-top: 0;
+  }
+
+  .funcionario-check-item label {
+    margin-bottom: 0;
+    cursor: pointer;
+  }
+
+  .terceiro-doc-note {
+    margin-top: -.35rem;
+    font-size: .875rem;
+    color: var(--bs-danger-text-emphasis, #842029);
+    font-weight: 500;
+  }
+
+  [data-theme='dark'] .terceiro-doc-note {
+    color: var(--danger);
+  }
+
+  .terceiro-tab-shell {
+    max-width: 1480px;
+    margin: 0 auto;
+  }
+
+  .terceiro-tab-shell-narrow {
+    max-width: 980px;
+    margin: 0 auto;
+  }
+
+  .terceiro-tab-break {
+    flex-basis: 100%;
+    width: 100%;
+    height: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    list-style: none;
+  }
+
+  .cep-input-group .btn-cep {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<datalist id="dl_paises_esocial">
+  <option value="">Selecione o país...</option>
+  {% for p in paises_lista %}
+  <option value="{{ p.label }}" data-codigo="{{ p.codigo_num }}" data-nome="{{ p.nome }}">
+  {% endfor %}
+</datalist>
+<datalist id="dl_cidades_ibge">
+  <option value="">Selecione a cidade...</option>
+  {% for c in cidades_lista %}
+  <option value="{{ c.label }}" data-codigo="{{ c.codigo_num }}" data-nome="{{ c.nome }}" data-uf="{{ c.uf }}">
+  {% endfor %}
+</datalist>
+<div class="container mt-4">
+  <h4>{% if object %}Editar Terceiro{% else %}Novo Terceiro{% endif %}</h4>
+
+  {% if object %}
+  <form method="post" action="{% url 'terceiros:atualizar' empr=object.terc_empr fili=object.terc_fili codi=object.terc_codi %}?banco={{ request.banco }}" enctype="multipart/form-data" novalidate>
+  {% else %}
+  <form method="post" action="{% url 'terceiros:criar' %}?banco={{ request.banco }}" enctype="multipart/form-data" novalidate>
+  {% endif %}
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger mt-3" role="alert">
+      {{ form.non_field_errors }}
+    </div>
+    {% endif %}
+
+    {% if form.errors %}
+    <div class="alert alert-warning mt-3" role="alert">
+      Revise os campos destacados em vermelho antes de salvar.
+      <ul class="mb-0 mt-2">
+        {% for field in form.visible_fields %}
+          {% for error in field.errors %}
+          <li>{{ field.label }}: {{ error }}</li>
+          {% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    <div class="app-form-card mb-3">
+      <div class="row g-3 p-3">
+        <div class="row g-3 align-items-end">
+          {% include "terceiros/_field.html" with field=form.terc_codi col="col-12 col-lg-2" %}
+          {% include "terceiros/_field.html" with field=form.terc_nome col="col-12 col-lg-8" %}
+          <div class="col-12 col-lg-2 d-flex align-items-lg-end justify-content-lg-end justify-content-start{% if form.terc_inativo.errors %} field-error{% endif %}">
+            <div class="funcionario-check-item pb-2">
+              {{ form.terc_inativo }}
+              <label for="id_{{ form.terc_inativo.html_name }}">{{ form.terc_inativo.label|default:"Inativo" }}</label>
+            </div>
+            {% if form.terc_inativo.errors %}<div class="invalid-feedback d-block">{{ form.terc_inativo.errors|join:', ' }}</div>{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ul class="nav nav-tabs nav-tabs-scroll mb-0" id="terceiroTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active {% if has_errors.cadastrais %}text-danger fw-bold border-bottom border-2 border-danger{% endif %}" data-bs-toggle="tab" data-bs-target="#tab-cadastrais" type="button">
+          <i class="bi bi-person-vcard"></i> Cadastrais
+          {% if has_errors.cadastrais %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link {% if has_errors.dados_gerais %}text-danger fw-bold border-bottom border-2 border-danger{% endif %}" data-bs-toggle="tab" data-bs-target="#tab-dados-gerais" type="button">
+          <i class="bi bi-info-circle"></i> Dados Gerais
+          {% if has_errors.dados_gerais %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link {% if has_errors.documentos %}text-danger fw-bold border-bottom border-2 border-danger{% endif %}" data-bs-toggle="tab" data-bs-target="#tab-documentos" type="button">
+          <i class="bi bi-card-text"></i> Documentos
+          {% if has_errors.documentos %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link {% if has_errors.vinculos %}text-danger fw-bold border-bottom border-2 border-danger{% endif %}" data-bs-toggle="tab" data-bs-target="#tab-vinculos" type="button">
+          <i class="bi bi-diagram-3"></i> Vínculos
+          {% if has_errors.vinculos %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link {% if has_errors.dependentes %}text-danger fw-bold border-bottom border-2 border-danger{% endif %}" data-bs-toggle="tab" data-bs-target="#tab-dependentes" type="button">
+          <i class="bi bi-people"></i> Dependentes
+          {% if has_errors.dependentes %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link {% if has_errors.complementares %}text-danger fw-bold border-bottom border-2 border-danger{% endif %}" data-bs-toggle="tab" data-bs-target="#tab-complementares" type="button">
+          <i class="bi bi-puzzle"></i> Complementares
+          {% if has_errors.complementares %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+    </ul>
+
+    <div class="app-form-card terceiro-form-card">
+      <div class="tab-content" id="terceiroTabsContent">
+
+        <!-- =========================================================== -->
+        <!-- ABA 1: CADASTRADOS                                          -->
+        <!-- =========================================================== -->
+        <div class="tab-pane fade show active pt-3" id="tab-cadastrais" role="tabpanel">
+          <div class="terceiro-tab-shell">
+            <div class="row g-2 mb-3">
+              <div class="col-12">
+                <div class="terceiro-section-box">
+                  <div class="row g-2">
+
+                    <div class="row g-2 mb-2 align-items-start">
+                      {% include "terceiros/_field.html" with field=form.terc_empr col="col-12 col-lg-2" %}
+                      <div class="col-12 col-lg-7">
+                        <label class="form-label" for="empresa_nome_display">Empresa</label>
+                        <input
+                          id="empresa_nome_display"
+                          type="text"
+                          class="form-control funcionario-readonly"
+                          value="{{ empresa_nome }}"
+                          readonly
+                        >
+                      </div>
+                      {% include "terceiros/_field.html" with field=form.terc_fili col="col-12 col-lg-3" %}
+                    </div>
+
+                    <div class="row g-2 mb-2 align-items-start">
+                      {% include "terceiros/_field.html" with field=form.terc_cpf col="col-12 col-lg-3" %}
+                    </div>
+
+                    <div class="row g-2 mb-2 align-items-end">
+                      {% include "terceiros/_field.html" with field=form.terc_cep col="col-12 col-lg-2" %}
+                      {% include "terceiros/_field.html" with field=form.terc_ende col="col-12 col-lg-7" %}
+                      {% include "terceiros/_field.html" with field=form.terc_ende_nume col="col-12 col-lg-3" %}
+                    </div>
+
+                    <div class="row g-2 mb-2">
+                      {% include "terceiros/_field.html" with field=form.terc_ende_comp col="col-12 col-lg-6" %}
+                      {% include "terceiros/_field.html" with field=form.terc_ende_bair col="col-12 col-lg-6" %}
+                    </div>
+
+                    <div class="row g-2 mb-2">
+                      {% include "terceiros/_field.html" with field=form.terc_ende_cida_codi col="col-12 col-lg-3" %}
+                      {% include "terceiros/_field.html" with field=form.terc_ende_cida_desc col="col-12 col-lg-7" %}
+                      {% include "terceiros/_field.html" with field=form.terc_ende_uf col="col-12 col-lg-2" %}
+                    </div>
+
+                    <div class="row g-2 mb-2">
+                      {% include "terceiros/_field.html" with field=form.terc_ddd col="col-12 col-lg-1 col-xl-1" %}
+                      {% include "terceiros/_field.html" with field=form.terc_telefone col="col-12 col-lg-5 col-xl-5" %}
+                      {% include "terceiros/_field.html" with field=form.terc_ddd_celular col="col-12 col-lg-1 col-xl-1" %}
+                      {% include "terceiros/_field.html" with field=form.terc_celular col="col-12 col-lg-5 col-xl-5" %}
+                    </div>
+
+                    <div class="row g-2">
+                      {% include "terceiros/_field.html" with field=form.terc_email col="col-12" %}
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- =========================================================== -->
+        <!-- =========================================================== -->
+        <!-- ABA 2: DADOS GERAIS (sem sub-abas, igual tela legada)      -->
+        <!-- =========================================================== -->
+        <div class="tab-pane fade pt-3" id="tab-dados-gerais" role="tabpanel">
+          <div class="terceiro-tab-shell">
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="terceiro-section-box">
+                  <div class="row g-3">
+
+                    <div class="row g-2 mb-2 align-items-end">
+                      {% include "terceiros/_field.html" with field=form.terc_nascimento col="col-12 col-lg-4" %}
+                      <div class="col-12 col-lg-8">
+                        <div class="d-flex align-items-center" style="min-height: calc(1.5em + .6rem + 2px);">
+                          <label class="form-label mb-0 me-2" for="idade_calculada_texto"></label>
+                          <span id="idade_calculada_texto" class="fw-medium">
+                            {% if form.terc_nascimento.value %}{{ idade_calculada|default:"" }}{% else %}&nbsp;{% endif %}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="row g-2 mb-2 align-items-end">
+                      {% include "terceiros/_field.html" with field=form.terc_cidade_nascimento_codi col="col-12 col-lg-2" %}
+                      {% include "terceiros/_field.html" with field=form.terc_cidade_nascimento_desc col="col-12 col-lg-7" %}
+                      {% include "terceiros/_field.html" with field=form.terc_naturalidade col="col-12 col-lg-3" %}
+                    </div>
+
+                    <div class="row g-2 mb-2 align-items-end">
+                      {% include "terceiros/_field.html" with field=form.terc_nome_mae col="col-12 col-lg-12" %}
+                    </div>
+
+                    <div class="row g-2 mb-2 align-items-end">
+                      {% include "terceiros/_field.html" with field=form.terc_grau_instrucao col="col-12 col-lg-12" %}
+                    </div>
+
+                    <div class="row g-2 mb-2 align-items-end">
+                      {% include "terceiros/_field.html" with field=form.terc_sexo col="col-12 col-lg-6" %}
+                      {% include "terceiros/_field.html" with field=form.terc_estado_civil col="col-12 col-lg-6" %}
+                    </div>
+
+                    <div class="row g-2 mb-2 align-items-center">
+                      <div class="col-12{% if form.terc_controlar_manual_dependentes_ir.errors %} field-error{% endif %}">
+                        <div class="funcionario-check-item">
+                          {{ form.terc_controlar_manual_dependentes_ir }}
+                          <label for="id_{{ form.terc_controlar_manual_dependentes_ir.html_name }}">
+                            {{ form.terc_controlar_manual_dependentes_ir.label|default:"Controlar manualmente dependentes IR" }}
+                          </label>
+                        </div>
+                        {% if form.terc_controlar_manual_dependentes_ir.errors %}<div class="invalid-feedback d-block">{{ form.terc_controlar_manual_dependentes_ir.errors|join:', ' }}</div>{% endif %}
+                      </div>
+                    </div>
+
+                    <div class="row g-2 align-items-end">
+                      {% include "terceiros/_field.html" with field=form.terc_numero_dependentes_ir col="col-12 col-lg-3" %}
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- =========================================================== -->
+        <!-- ABA 3: DOCUMENTOS (igual tela legada, sem titulos secao)   -->
+        <!-- =========================================================== -->
+        <div class="tab-pane fade pt-3" id="tab-documentos" role="tabpanel">
+          <div class="terceiro-tab-shell">
+            <div class="row g-3">
+
+              <div class="col-12">
+                <div class="terceiro-section-box">
+                  <div class="row g-3">
+
+                    <div class="row g-2 mb-2 align-items-end">
+                      {% include "terceiros/_field.html" with field=form.terc_banco col="col-12 col-lg-12" %}
+                    </div>
+
+                    <div class="row g-2 mb-2 align-items-end">
+                      {% include "terceiros/_field.html" with field=form.terc_conta_corrente col="col-12 col-lg-3" %}
+                      {% include "terceiros/_field.html" with field=form.terc_digito_conta_corrente col="col-12 col-lg-1" %}
+                      {% include "terceiros/_field.html" with field=form.terc_tipo_conta col="col-12 col-lg-8" %}
+                    </div>
+
+                    <div class="row g-2 mb-2 align-items-end">
+                      {% include "terceiros/_field.html" with field=form.terc_modo_pagamento col="col-12 col-lg-5" %}
+                    </div>
+
+                    <div class="row g-2 mb-2 align-items-end">
+                      {% include "terceiros/_field.html" with field=form.terc_rg col="col-12 col-lg-3" %}
+                      {% include "terceiros/_field.html" with field=form.terc_orgao_emissor_rg col="col-12 col-lg-3" %}
+                      {% include "terceiros/_field.html" with field=form.terc_emissao_rg col="col-12 col-lg-2" %}
+                      {% include "terceiros/_field.html" with field=form.terc_uf_rg col="col-12 col-lg-4" %}
+                    </div>
+
+                    <div class="row g-2 mb-2 align-items-end">
+                      {% include "terceiros/_field.html" with field=form.terc_certificado_reservista col="col-12 col-lg-5" %}
+                    </div>
+
+                    <div class="row g-2 mb-2 align-items-end">
+                      {% include "terceiros/_field.html" with field=form.terc_titulo_eleitor col="col-12 col-lg-3" %}
+                      {% include "terceiros/_field.html" with field=form.terc_zona_titulo col="col-12 col-lg-3" %}
+                      {% include "terceiros/_field.html" with field=form.terc_secao_titulo col="col-12 col-lg-3" %}
+                    </div>
+
+                    <div class="row g-2 mb-2 align-items-end">
+                      {% include "terceiros/_field.html" with field=form.terc_conselho_regional_numero col="col-12 col-lg-5" %}
+                      {% include "terceiros/_field.html" with field=form.terc_conselho_regional_sigla col="col-12 col-lg-5" %}
+                    </div>
+
+                    <div class="row g-2 mb-2 align-items-end">
+                      {% include "terceiros/_field.html" with field=form.terc_ctps_numero col="col-12 col-lg-3" %}
+                      {% include "terceiros/_field.html" with field=form.terc_ctps_serie col="col-12 col-lg-2" %}
+                      {% include "terceiros/_field.html" with field=form.terc_ctps_digito col="col-12 col-lg-1" %}
+                      {% include "terceiros/_field.html" with field=form.terc_ctps_data col="col-12 col-lg-3" %}
+                      {% include "terceiros/_field.html" with field=form.terc_ctps_uf col="col-12 col-lg-3" %}
+                    </div>
+
+                    <div class="row g-2 align-items-end">
+                      {% include "terceiros/_field.html" with field=form.terc_carne_inss_numero col="col-12 col-lg-5" %}
+                      {% include "terceiros/_field.html" with field=form.terc_codigo_ccm col="col-12 col-lg-5" %}
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12 d-none">
+                <div class="card border border-primary-subtle shadow-sm h-100">
+                  <div class="card-header bg-primary-subtle d-flex align-items-center gap-2">
+                    <i class="bi bi-camera-fill text-primary"></i>
+                    <h6 class="mb-0 fw-semibold">Carteira de Identidade</h6>
+                  </div>
+                  <div class="card-body d-flex flex-column align-items-center justify-content-center gap-3" style="min-height: 300px;">
+                    <div class="terceiro-photo-box w-100" id="terc_carteira_preview">
+                      <div>
+                        <i class="bi bi-image fs-1 mb-2 d-block"></i>
+                        <div class="fw-medium">Nenhuma imagem</div>
+                        <div class="small text-muted">Faça upload da carteira de identidade</div>
+                      </div>
+                    </div>
+                    <div class="w-100{% if form.terc_carteira_identidade_arquivo.errors %} field-error{% endif %}">
+                      {{ form.terc_carteira_identidade_arquivo }}
+                      {% if form.terc_carteira_identidade_arquivo.errors %}<div class="invalid-feedback d-block">{{ form.terc_carteira_identidade_arquivo.errors|join:', ' }}</div>{% endif %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- =========================================================== -->
+        <!-- ABA 4: VÍNCULOS (igual tela legada)                         -->
+        <!-- =========================================================== -->
+        <div class="tab-pane fade pt-3" id="tab-vinculos" role="tabpanel">
+          <div class="terceiro-tab-shell">
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="terceiro-section-box">
+                  <div class="row g-3">
+
+                    <div class="row g-2 mb-2 align-items-end">
+                      {% include "terceiros/_field.html" with field=form.terc_classe col="col-12 col-lg-12" %}
+                    </div>
+
+                    <div class="row g-2 mb-2 align-items-end">
+                      {% include "terceiros/_field.html" with field=form.terc_cbo col="col-12 col-lg-12" %}
+                    </div>
+
+                    <div class="row g-2 mb-2 align-items-end">
+                      {% include "terceiros/_field.html" with field=form.terc_natureza_ocupacao col="col-12 col-lg-12" %}
+                    </div>
+
+                    <div class="row g-2 mb-2 align-items-end">
+                      {% include "terceiros/_field.html" with field=form.terc_categoria_sefip col="col-12 col-lg-12" %}
+                    </div>
+
+                    <div class="row g-2 mb-2 align-items-end">
+                      {% include "terceiros/_field.html" with field=form.terc_categoria_esocial col="col-12 col-lg-12" %}
+                    </div>
+
+                    <div class="row g-2 mb-2 align-items-end">
+                      {% include "terceiros/_field.html" with field=form.terc_grau_risco col="col-12 col-lg-12" %}
+                    </div>
+
+                    <div class="row g-2 mb-2 align-items-center">
+                      {% include "terceiros/_field.html" with field=form.terc_transportador_autonomo_perc_inss col="col-12 col-lg-3" %}
+                      {% include "terceiros/_field.html" with field=form.terc_percentual_contr_ir col="col-12 col-lg-2" %}
+                      <div class="col-12 col-lg-4{% if form.terc_descontar_iss.errors %} field-error{% endif %}">
+                        <div class="funcionario-check-item pt-lg-2">
+                          {{ form.terc_descontar_iss }}
+                          <label for="id_{{ form.terc_descontar_iss.html_name }}">{{ form.terc_descontar_iss.label|default:"Descontar ISS" }}</label>
+                        </div>
+                        {% if form.terc_descontar_iss.errors %}<div class="invalid-feedback d-block">{{ form.terc_descontar_iss.errors|join:', ' }}</div>{% endif %}
+                      </div>
+                      {% include "terceiros/_field.html" with field=form.terc_percentual_iss col="col-12 col-lg-3" %}
+                    </div>
+
+                    <div class="row g-2 mb-2 align-items-end">
+                      {% include "terceiros/_field.html" with field=form.terc_tributacao_irrf_exterior col="col-12 col-lg-8" %}
+                    </div>
+
+                    <div class="row g-2 mb-2 align-items-center">
+                      {% include "terceiros/_field.html" with field=form.terc_rat_aposentadoria_perc col="col-12 col-lg-2" %}
+                      <div class="col-12 col-lg-5{% if form.terc_acordo_internacional_inss.errors %} field-error{% endif %}">
+                        <div class="funcionario-check-item pt-lg-2">
+                          {{ form.terc_acordo_internacional_inss }}
+                          <label for="id_{{ form.terc_acordo_internacional_inss.html_name }}">{{ form.terc_acordo_internacional_inss.label|default:"Acordo internacional INSS" }}</label>
+                        </div>
+                        {% if form.terc_acordo_internacional_inss.errors %}<div class="invalid-feedback d-block">{{ form.terc_acordo_internacional_inss.errors|join:', ' }}</div>{% endif %}
+                      </div>
+                      {% include "terceiros/_field.html" with field=form.terc_percentual_irrf_exterior col="col-12 col-lg-3" %}
+                    </div>
+
+                    <div class="row g-2 mb-2 align-items-center">
+                      {% include "terceiros/_field.html" with field=form.terc_nif col="col-12 col-lg-2" %}
+                      <div class="col-12 col-lg-5{% if form.terc_beneficiario_dispensado_nif.errors %} field-error{% endif %}">
+                        <div class="funcionario-check-item pt-lg-2">
+                          {{ form.terc_beneficiario_dispensado_nif }}
+                          <label for="id_{{ form.terc_beneficiario_dispensado_nif.html_name }}">{{ form.terc_beneficiario_dispensado_nif.label|default:"Beneficiário dispensado NIF" }}</label>
+                        </div>
+                        {% if form.terc_beneficiario_dispensado_nif.errors %}<div class="invalid-feedback d-block">{{ form.terc_beneficiario_dispensado_nif.errors|join:', ' }}</div>{% endif %}
+                      </div>
+                      <div class="col-12 col-lg-5{% if form.terc_pais_nao_exige_nif.errors %} field-error{% endif %}">
+                        <div class="funcionario-check-item pt-lg-2">
+                          {{ form.terc_pais_nao_exige_nif }}
+                          <label for="id_{{ form.terc_pais_nao_exige_nif.html_name }}">{{ form.terc_pais_nao_exige_nif.label|default:"País não exige NIF" }}</label>
+                        </div>
+                        {% if form.terc_pais_nao_exige_nif.errors %}<div class="invalid-feedback d-block">{{ form.terc_pais_nao_exige_nif.errors|join:', ' }}</div>{% endif %}
+                      </div>
+                    </div>
+
+                    <div class="row g-2 align-items-end">
+                      {% include "terceiros/_field.html" with field=form.terc_cartao_ponto col="col-12 col-lg-2" %}
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- =========================================================== -->
+        <!-- ABA 5: DEPENDENTES (preservada)                             -->
+        <!-- =========================================================== -->
+        <div class="tab-pane fade pt-3" id="tab-dependentes" role="tabpanel">
+          <div class="terceiro-tab-shell" style="max-width: 100%;">
+            <div class="row g-3 mb-3">
+              <div class="col-12">
+                <div class="terceiro-section-box">
+                  <div class="row g-3">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 mt-2">
+              <div class="card shadow-sm border-0 rounded-4 overflow-hidden" style="width: 100%;">
+                <div class="card-header bg-gradient-to-r from-primary to-primary-700 text-white py-3 px-4 d-flex flex-wrap justify-content-between align-items-center gap-3" style="background: linear-gradient(90deg,#0d6efd 0%,#0b5ed7 50%,#0a58ca 100%);">
+                  <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-people-fill fs-5"></i>
+                    <h5 class="mb-0 fw-semibold">Dependentes</h5>
+                    <span class="badge bg-white text-primary rounded-pill px-3 py-1 fw-bold">{{ dependentes_qtd|default:0 }}</span>
+                  </div>
+                  {% if object %}
+                  <a href="{% url 'dependentesterc:criar' %}?empr={{ object.terc_empr }}&fili={{ object.terc_fili }}&terc={{ object.terc_codi }}&banco={{ banco_limpo }}" class="btn btn-success btn-sm rounded-pill shadow-sm px-4 py-2">
+                    <i class="bi bi-plus-lg me-1"></i> Novo Dependente
+                  </a>
+                  {% else %}
+                  <button type="button" class="btn btn-success btn-sm rounded-pill shadow-sm px-4 py-2 disabled" title="Salve o terceiro primeiro para cadastrar dependentes" data-bs-toggle="tooltip" data-bs-placement="top">
+                    <i class="bi bi-plus-lg me-1"></i> Novo Dependente
+                  </button>
+                  {% endif %}
+                </div>
+                <div class="card-body p-0">
+                  <div class="table-responsive rounded-3 overflow-hidden">
+                    <table class="table table-striped table-hover table-bordered table-sm align-middle text-center mb-0" style="--bs-table-striped-bg: rgba(13,110,253,0.04);">
+                      <thead class="table-dark">
+                        <tr>
+                          <th class="px-3 py-3 fw-semibold text-nowrap" style="width:70px;">Cód.</th>
+                          <th class="px-3 py-3 fw-semibold text-start">Nome do Dependente</th>
+                          <th class="px-3 py-3 fw-semibold text-nowrap" style="width:130px;">Nascimento</th>
+                          <th class="px-3 py-3 fw-semibold text-nowrap" style="width:150px;">CPF</th>
+                          <th class="px-3 py-3 fw-semibold text-nowrap" style="width:270px;">Tipo de Dependente</th>
+                          <th class="px-3 py-3 fw-semibold text-nowrap" style="width:100px;">Inválido</th>
+                          <th class="px-3 py-3 fw-semibold text-nowrap" style="width:180px;">Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody style="--bs-table-color: var(--text-primary); --bs-table-striped-color: var(--text-primary); --bs-table-hover-color: var(--text-primary);">
+                        {% if dependentes_list %}
+                        {% for dep in dependentes_list %}
+                        <tr>
+                          <td class="px-2 py-2">
+                            <span class="badge bg-light text-dark border rounded-pill px-3 py-1 fw-semibold">{{ dep.depe_codi|default:"-" }}</span>
+                          </td>
+                          <td class="px-3 py-2 text-start">
+                            <span class="fw-medium" style="color: var(--text-primary);">{{ dep.depe_nome|default:"-" }}</span>
+                          </td>
+                          <td class="px-2 py-2 text-nowrap">
+                            {% if dep.depe_nascimento %}
+                            <i class="bi bi-calendar3 text-primary me-1"></i>
+                            <span style="color: var(--text-primary);">{{ dep.depe_nascimento|date:"d/m/Y" }}</span>
+                            {% else %}
+                            <span class="badge rounded-pill" style="background: var(--surface-raised, #e9ecef); color: var(--text-secondary, #475569);">—</span>
+                            {% endif %}
+                          </td>
+                          <td class="px-2 py-2 cpf-col text-nowrap">
+                            {% if dep.depe_cpf %}
+                            <i class="bi bi-person-vcard text-primary me-1"></i>
+                            <span class="cpf-mask fw-mono" style="color: var(--text-primary);">{{ dep.depe_cpf }}</span>
+                            {% else %}
+                            <span class="badge rounded-pill" style="background: var(--surface-raised, #e9ecef); color: var(--text-secondary, #475569);">—</span>
+                            {% endif %}
+                          </td>
+                          <td class="px-2 py-2">
+                            {% if dep.depe_tipo_dependente == 1 %}
+                            <span class="badge rounded-pill bg-primary-subtle text-primary-emphasis px-3 py-1">01 - Cônjuge</span>
+                            {% elif dep.depe_tipo_dependente == 2 %}
+                            <span class="badge rounded-pill bg-primary-subtle text-primary-emphasis px-3 py-1">02 - Companheiro(a)</span>
+                            {% elif dep.depe_tipo_dependente == 3 %}
+                            <span class="badge rounded-pill bg-info-subtle text-info-emphasis px-3 py-1">03 - Filho(a)/Enteado(a)</span>
+                            {% elif dep.depe_tipo_dependente == 4 %}
+                            <span class="badge rounded-pill bg-info-subtle text-info-emphasis px-3 py-1">04 - Filho(a) Universitário</span>
+                            {% elif dep.depe_tipo_dependente == 6 %}
+                            <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis px-3 py-1">06 - Irmão(ã)/Neto(a) Guarda</span>
+                            {% elif dep.depe_tipo_dependente == 7 %}
+                            <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis px-3 py-1">07 - Irmão(ã) Univ. Guarda</span>
+                            {% elif dep.depe_tipo_dependente == 9 %}
+                            <span class="badge rounded-pill bg-body-secondary text-body-secondary px-3 py-1">09 - Pais/Avós/Bisavós</span>
+                            {% elif dep.depe_tipo_dependente == 10 %}
+                            <span class="badge rounded-pill bg-danger-subtle text-danger-emphasis px-3 py-1">10 - Menor pobre Guarda</span>
+                            {% elif dep.depe_tipo_dependente == 11 %}
+                            <span class="badge rounded-pill bg-danger-subtle text-danger-emphasis px-3 py-1">11 - Incapaz/Tutor/Curador</span>
+                            {% elif dep.depe_tipo_dependente == 12 %}
+                            <span class="badge rounded-pill bg-body-secondary text-body-secondary px-3 py-1">12 - Ex-cônjuge</span>
+                            {% elif dep.depe_tipo_dependente == 99 %}
+                            <span class="badge rounded-pill bg-light text-dark border px-3 py-1">99 - Agregado/Outros</span>
+                            {% else %}
+                            <span class="badge bg-body-secondary text-body-secondary rounded-pill">{{ dep.tipo_dependente_label|default:"—" }}</span>
+                            {% endif %}
+                          </td>
+                          <td class="px-2 py-2">
+                            {% if dep.depe_invalido %}
+                            <span class="badge rounded-pill bg-danger px-3 py-1">
+                              <i class="bi bi-exclamation-triangle-fill me-1"></i> Sim
+                            </span>
+                            {% else %}
+                            <span class="badge rounded-pill bg-success px-3 py-1">
+                              <i class="bi bi-check-circle-fill me-1"></i> Não
+                            </span>
+                            {% endif %}
+                          </td>
+                          <td class="px-2 py-2">
+                            <div class="d-flex justify-content-center gap-2">
+                              {% if object %}
+                              <a href="{% url 'dependentesterc:atualizar' empr=dep.depe_empr fili=dep.depe_fili terc=dep.depe_terc codi=dep.depe_codi %}?banco={{ banco_limpo }}"
+                                 class="text-decoration-none" title="Editar">
+                                <span class="badge bg-warning text-dark px-3 py-2 shadow-sm">
+                                  <i class="bi bi-pencil-square me-1"></i> Editar
+                                </span>
+                              </a>
+                              <a href="{% url 'dependentesterc:deletar' empr=dep.depe_empr fili=dep.depe_fili terc=dep.depe_terc codi=dep.depe_codi %}?banco={{ banco_limpo }}"
+                                 class="text-decoration-none" title="Excluir">
+                                <span class="badge bg-danger px-3 py-2 shadow-sm">
+                                  <i class="bi bi-trash3 me-1"></i> Excluir
+                                </span>
+                              </a>
+                              {% endif %}
+                            </div>
+                          </td>
+                        </tr>
+                        {% endfor %}
+                        {% else %}
+                        <tr>
+                          <td colspan="7" class="py-5 px-4">
+                            <div class="d-flex flex-wrap justify-content-center align-items-center gap-3 text-center">
+                              <div class="rounded-circle bg-secondary-subtle p-4">
+                                <i class="bi bi-people fs-2 text-secondary"></i>
+                              </div>
+                              <div>
+                                <p class="mb-1 fw-semibold text-secondary">Nenhum dependente cadastrado</p>
+                                <p class="mb-2 text-muted small">
+                                  {% if modo_edicao %}
+                                  Este terceiro ainda não possui dependentes registrados.
+                                  {% else %}
+                                  Salve o terceiro primeiro para poder cadastrar dependentes.
+                                  {% endif %}
+                                </p>
+                                {% if object %}
+                                <a href="{% url 'dependentesterc:criar' %}?empr={{ object.terc_empr }}&fili={{ object.terc_fili }}&terc={{ object.terc_codi }}&banco={{ banco_limpo }}" class="btn btn-primary btn-sm rounded-pill px-4">
+                                  <i class="bi bi-plus-lg me-1"></i> Cadastrar primeiro dependente
+                                </a>
+                                {% else %}
+                                <button type="button" class="btn btn-primary btn-sm rounded-pill px-4 disabled" title="Salve o terceiro primeiro para cadastrar dependentes" data-bs-toggle="tooltip" data-bs-placement="top">
+                                  <i class="bi bi-plus-lg me-1"></i> Cadastrar primeiro dependente
+                                </button>
+                                {% endif %}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                        {% endif %}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- =========================================================== -->
+        <!-- ABA 6: COMPLEMENTARES (igual tela legada)                  -->
+        <!-- =========================================================== -->
+        <div class="tab-pane fade pt-3" id="tab-complementares" role="tabpanel">
+          <div class="terceiro-tab-shell">
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="terceiro-section-box">
+                  <div class="row g-3">
+
+                    <div class="row g-2 mb-2 align-items-end">
+                      {% include "terceiros/_field.html" with field=form.terc_tipo_sanguineo col="col-12 col-lg-6" %}
+                    </div>
+
+                    <div class="row g-2 mb-2 align-items-end">
+                      {% include "terceiros/_field.html" with field=form.terc_etnia_raca col="col-12 col-lg-6" %}
+                    </div>
+
+                    <div class="row g-2 mb-2 align-items-end">
+                      {% include "terceiros/_field.html" with field=form.terc_cor_cabelo col="col-12 col-lg-6" %}
+                    </div>
+
+                    <div class="row g-2 mb-2 align-items-end">
+                      {% include "terceiros/_field.html" with field=form.terc_cor_olhos col="col-12 col-lg-6" %}
+                    </div>
+
+                    <div class="row g-2 align-items-center">
+                      <div class="col-12 d-flex{% if form.terc_pessoa_com_deficiencia.errors %} field-error{% endif %} justify-content-lg-start">
+                        <div class="funcionario-check-item">
+                          {{ form.terc_pessoa_com_deficiencia }}
+                          <label for="id_{{ form.terc_pessoa_com_deficiencia.html_name }}">{{ form.terc_pessoa_com_deficiencia.label|default:"Pessoa com deficiência" }}</label>
+                        </div>
+                      </div>
+                      <div class="col-12">
+                        {% if form.terc_pessoa_com_deficiencia.errors %}<div class="invalid-feedback d-block">{{ form.terc_pessoa_com_deficiencia.errors|join:', ' }}</div>{% endif %}
+                      </div>
+                    </div>
+
+                    <div class="row g-2 mb-2 align-items-end">
+                      {% include "terceiros/_field.html" with field=form.terc_observacoes_deficiencias col="col-12 col-lg-12" %}
+                    </div>
+
+                    <div class="row g-2 mb-2 align-items-end">
+                      {% include "terceiros/_field.html" with field=form.terc_altura_metros col="col-12 col-lg-3" %}
+                      {% include "terceiros/_field.html" with field=form.terc_peso_kg col="col-12 col-lg-3" %}
+                    </div>
+
+                    <div class="row g-2 align-items-center">
+                      <div class="col-12 col-lg-12{% if form.terc_sinais_no_corpo.errors %} field-error{% endif %}">
+                        <div class="funcionario-check-item">
+                          {{ form.terc_sinais_no_corpo }}
+                          <label for="id_{{ form.terc_sinais_no_corpo.html_name }}">{{ form.terc_sinais_no_corpo.label|default:"Sinais no corpo" }}</label>
+                        </div>
+                        {% if form.terc_sinais_no_corpo.errors %}<div class="invalid-feedback d-block">{{ form.terc_sinais_no_corpo.errors|join:', ' }}</div>{% endif %}
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+
+      </div>
+
+      {% url 'terceiros:listar' as url_voltar_terceiro %}
+      {% include "partials/ui/form_actions.html" with form_actions_url_voltar=url_voltar_terceiro|add:"?banco="|add:request.banco %}
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const firstError = document.querySelector('.is-invalid, .field-error');
+    if (firstError) {
+      const pane = firstError.closest('.tab-pane');
+      if (pane) {
+        const trigger = document.querySelector(`[data-bs-target="#${pane.id}"]`);
+        if (trigger) {
+          const tab = new bootstrap.Tab(trigger);
+          tab.show();
+        }
+      }
+    }
+
+    (function bindTabsHash() {
+      const abas = document.querySelectorAll('button.nav-link[data-bs-toggle="tab"], a.nav-link[data-bs-toggle="tab"]');
+      if (!abas.length || typeof bootstrap === 'undefined' || !bootstrap.Tab) return;
+
+      const triggerDaAba = (idAba) => {
+        if (!idAba) return null;
+        return document.querySelector(`[data-bs-target="${idAba}"]`);
+      };
+
+      const ativarAbaPeloHash = (hash) => {
+        const h = (hash || window.location.hash || '').trim();
+        if (!h || !h.startsWith('#tab-')) return false;
+        const trigger = triggerDaAba(h);
+        if (!trigger) return false;
+        if (trigger.classList && trigger.classList.contains('active')) return true;
+        try {
+          const tab = new bootstrap.Tab(trigger);
+          tab.show();
+          return true;
+        } catch (_) {
+          trigger.click();
+          return true;
+        }
+      };
+
+      ativarAbaPeloHash();
+
+      abas.forEach((trigger) => {
+        trigger.addEventListener('shown.bs.tab', () => {
+          const target = trigger.getAttribute('data-bs-target') || '';
+          if (target.startsWith('#tab-')) {
+            const novaUrl = window.location.pathname + window.location.search + target;
+            try {
+              window.history.replaceState(null, '', novaUrl);
+            } catch (_) {}
+          }
+        });
+      });
+
+      window.addEventListener('hashchange', () => {
+        ativarAbaPeloHash();
+      });
+    })();
+
+    function applyMask(value, type) {
+      const digits = String(value || '').replace(/\D/g, '');
+
+      if (type === 'cpf') {
+        return digits
+          .slice(0, 11)
+          .replace(/^(\d{3})(\d)/, '$1.$2')
+          .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+          .replace(/\.(\d{3})(\d)/, '.$1-$2');
+      }
+
+      if (type === 'nis') {
+        return digits
+          .slice(0, 11)
+          .replace(/^(\d{3})(\d)/, '$1.$2')
+          .replace(/^(\d{3})\.(\d{5})(\d)/, '$1.$2.$3')
+          .replace(/\.(\d{2})(\d)/, '.$1-$2');
+      }
+
+      if (type === 'rg') {
+        return digits
+          .slice(0, 9)
+          .replace(/^(\d{2})(\d)/, '$1.$2')
+          .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+          .replace(/\.(\d{3})(\d)/, '.$1-$2');
+      }
+
+      if (type === 'cep') {
+        return digits
+          .slice(0, 8)
+          .replace(/^(\d{5})(\d)/, '$1-$2');
+      }
+
+      if (type === 'ddd') {
+        if (!digits) return '';
+        const ddd = digits.slice(0, 2);
+        return ddd.length === 2 ? `(${ddd})` : `(${ddd}`;
+      }
+
+      if (type === 'telefone') {
+        return digits
+          .slice(0, 8)
+          .replace(/^(\d{4})(\d)/, '$1-$2');
+      }
+
+      if (type === 'celular') {
+        return digits
+          .slice(0, 9)
+          .replace(/^(\d{5})(\d)/, '$1-$2');
+      }
+
+      if (type === 'cnpj_cpf') {
+        if (digits.length <= 11) {
+          return digits
+            .slice(0, 11)
+            .replace(/^(\d{3})(\d)/, '$1.$2')
+            .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+            .replace(/\.(\d{3})(\d)/, '.$1-$2');
+        }
+        return digits
+          .slice(0, 14)
+          .replace(/^(\d{2})(\d)/, '$1.$2')
+          .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+          .replace(/\.(\d{3})\.(\d{3})(\d)/, '.$1.$2/$3')
+          .replace(/\/(\d{4})(\d)/, '/$1-$2');
+      }
+
+      return value;
+    }
+
+    document.querySelectorAll('[data-digits-only="true"]').forEach((input) => {
+      input.value = input.value.replace(/\D/g, '');
+      input.addEventListener('input', () => {
+        input.value = input.value.replace(/\D/g, '');
+      });
+    });
+
+    document.querySelectorAll('[data-mask]').forEach((input) => {
+      const maskType = input.getAttribute('data-mask');
+      input.value = applyMask(input.value, maskType);
+      input.addEventListener('input', () => {
+        input.value = applyMask(input.value, maskType);
+      });
+      input.addEventListener('change', () => {
+        input.value = applyMask(input.value, maskType);
+      });
+      input.addEventListener('blur', () => {
+        input.value = applyMask(input.value, maskType);
+      });
+    });
+
+    document.querySelectorAll('[data-decimal-2="true"]').forEach((input) => {
+      const applyDecimal2 = (el) => {
+        let v = (el.value || '').toString();
+        if (!v) return;
+        v = v.replace(/[^\d,.-]/g, '');
+        const neg = v.startsWith('-');
+        if (neg) v = v.slice(1);
+        v = v.replace(/,/g, '.');
+        const parts = v.split('.');
+        if (parts.length > 2) {
+          v = parts.shift() + '.' + parts.join('');
+        } else if (parts.length === 2) {
+          parts[1] = parts[1].slice(0, 2);
+          v = parts[0] + '.' + parts[1];
+        }
+        if (neg) v = '-' + v;
+        el.value = v;
+      };
+      applyDecimal2(input);
+      input.addEventListener('input', () => applyDecimal2(input));
+    });
+
+    function mascaraCPF(apenasDigitos) {
+      const d = (apenasDigitos || '').replace(/\D/g, '').slice(0, 11);
+      if (d.length <= 3) return d;
+      if (d.length <= 6) return d.slice(0, 3) + '.' + d.slice(3);
+      if (d.length <= 9) return d.slice(0, 3) + '.' + d.slice(3, 6) + '.' + d.slice(6);
+      return d.slice(0, 3) + '.' + d.slice(3, 6) + '.' + d.slice(6, 9) + '-' + d.slice(9);
+    }
+    document.querySelectorAll('.cpf-mask').forEach((el) => {
+      const raw = (el.textContent || '').trim();
+      if (raw && /^\d{11}$/.test(raw.replace(/\D/g, ''))) {
+        el.textContent = mascaraCPF(raw);
+      }
+    });
+
+    const cepInput = document.querySelector('[name="terc_cep"]');
+    const cidadeCodiInput = document.querySelector('[name="terc_ende_cida_codi"]');
+    const cidadeDescInput = document.querySelector('[name="terc_ende_cida_desc"]');
+    const ufInput = document.querySelector('[name="terc_ende_uf"]');
+
+    var CIDADES_POR_CODIGO = {{ cidades_por_codigo_json|safe }};
+
+    function getField(fieldName) {
+      return document.querySelector(`[name="${fieldName}"]`);
+    }
+
+    function fillCepFields(data, options) {
+      const overwrite = options && options.overwrite === true;
+      const mapping = [
+        ['terc_ende', data.logradouro || ''],
+        ['terc_ende_comp', data.complemento || ''],
+        ['terc_ende_bair', data.bairro || ''],
+        ['terc_ende_cida_desc', data.localidade || ''],
+        ['terc_ende_uf', data.uf || ''],
+      ];
+
+      mapping.forEach(([name, value]) => {
+        const field = getField(name);
+        if (!field || !value) {
+          return;
+        }
+
+        if (!overwrite && (field.value || '').trim()) {
+          return;
+        }
+
+        field.value = value;
+        field.dispatchEvent(new Event('input', { bubbles: true }));
+        field.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+    }
+
+    function bindCepLookup() {
+      if (!cepInput) {
+        return;
+      }
+
+      let lastFetchedCep = '';
+
+      function clearCepError() {
+        cepInput.setCustomValidity('');
+      }
+
+      function handleCepLookup(overwrite) {
+        const cep = cepInput.value.replace(/\D/g, '');
+        clearCepError();
+
+        if (cep.length !== 8 || cep === lastFetchedCep) {
+          return;
+        }
+
+        fetch('https://viacep.com.br/ws/' + cep + '/json/')
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error('Falha ao consultar o CEP.');
+            }
+            return response.json();
+          })
+          .then((data) => {
+            if (data.erro) {
+              lastFetchedCep = '';
+              cepInput.setCustomValidity('CEP nao encontrado.');
+              cepInput.reportValidity();
+              return;
+            }
+
+            lastFetchedCep = cep;
+            clearCepError();
+            fillCepFields(data, { overwrite: overwrite === true });
+          })
+          .catch(() => {
+            lastFetchedCep = '';
+            cepInput.setCustomValidity('Nao foi possivel consultar o CEP agora.');
+            cepInput.reportValidity();
+          });
+      }
+
+      cepInput.addEventListener('input', () => {
+        clearCepError();
+        if (cepInput.value.replace(/\D/g, '').length < 8) {
+          lastFetchedCep = '';
+        }
+      });
+
+      cepInput.addEventListener('blur', () => {
+        handleCepLookup(true);
+      });
+
+      cepInput.addEventListener('change', () => {
+        handleCepLookup(true);
+      });
+
+      if (cepInput.value.replace(/\D/g, '').length === 8) {
+        handleCepLookup(false);
+      }
+    }
+
+    bindCepLookup();
+
+    function bindCidadeIbGELookup() {
+      if (!cidadeCodiInput) {
+        return;
+      }
+
+      async function handleLookup() {
+        const raw = (cidadeCodiInput.value || '').trim();
+        if (!raw) {
+          return;
+        }
+        const digitos = raw.replace(/\D/g, '');
+        if (!digitos) {
+          return;
+        }
+        const chave = String(parseInt(digitos, 10));
+        const info = CIDADES_POR_CODIGO[chave];
+        let nomeCidade = '';
+        let ufCidade = '';
+
+        if (info) {
+          [nomeCidade, ufCidade] = info;
+        } else {
+          const online = await lookupIbgeOnline(digitos);
+          if (online) {
+            nomeCidade = online.nome;
+            ufCidade = online.uf;
+          }
+        }
+
+        if (cidadeDescInput && nomeCidade) {
+          cidadeDescInput.value = nomeCidade;
+          cidadeDescInput.dispatchEvent(new Event('input', { bubbles: true }));
+          cidadeDescInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        if (ufInput && ufCidade) {
+          ufInput.value = ufCidade;
+          ufInput.dispatchEvent(new Event('input', { bubbles: true }));
+          ufInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      }
+
+      cidadeCodiInput.addEventListener('blur', () => { handleLookup(); });
+      cidadeCodiInput.addEventListener('change', () => { handleLookup(); });
+      cidadeCodiInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === 'Tab') {
+          handleLookup();
+        }
+      });
+    }
+
+    bindCidadeIbGELookup();
+
+    // --- Fallback: consulta IBGE online quando código NÃO estiver no dicionário local ---
+    // https://servicodados.ibge.gov.br/api/v1/localidades/municipios/{codigoIBGE7digitos}
+    async function lookupIbgeOnline(codigo) {
+      try {
+        const url = `https://servicodados.ibge.gov.br/api/v1/localidades/municipios/${codigo}`;
+        const response = await fetch(url, { method: "GET", cache: "no-store" });
+        if (!response.ok) return null;
+        const data = await response.json();
+        if (!data) return null;
+        const nome = data.nome || "";
+        const uf = (data.microrregiao && data.microrregiao.mesorregiao && data.microrregiao.mesorregiao.UF && data.microrregiao.mesorregiao.UF.sigla) || "";
+        if (!nome || !uf) return null;
+        return { nome, uf };
+      } catch (err) {
+        return null;
+      }
+    }
+
+    // --- Data de Nascimento -> calcular idade em tempo real ---
+    function calcularIdade(dataStr) {
+      if (!dataStr) return "";
+      const s = String(dataStr).trim();
+      if (!s) return "";
+
+      let ano, mes, dia;
+
+      if (s.includes("-")) {
+        const parts = s.split("-");
+        if (parts.length < 3) return "";
+        ano = parseInt(parts[0], 10);
+        mes = parseInt(parts[1], 10);
+        dia = parseInt(parts[2], 10);
+      } else {
+        const digitos = s.replace(/\D/g, "").match(/^(\d{2})(\d{2})(\d{4})$/);
+        if (!digitos) return "";
+        dia = parseInt(digitos[1], 10);
+        mes = parseInt(digitos[2], 10);
+        ano = parseInt(digitos[3], 10);
+      }
+
+      if (
+        !ano || !mes || !dia ||
+        mes < 1 || mes > 12 ||
+        dia < 1 || dia > 31 ||
+        ano < 1900 || ano > new Date().getFullYear()
+      ) {
+        return "";
+      }
+
+      const nascimento = new Date(ano, mes - 1, dia);
+      if (isNaN(nascimento.getTime())) return "";
+
+      const hoje = new Date();
+      let idade = hoje.getFullYear() - nascimento.getFullYear();
+      const mesDif = hoje.getMonth() - nascimento.getMonth();
+      if (mesDif < 0 || (mesDif === 0 && hoje.getDate() < nascimento.getDate())) {
+        idade -= 1;
+      }
+      if (idade < 0) return "";
+      return idade + " ano" + (idade === 1 ? "" : "s");
+    }
+
+    const nascimentoInput = getField("terc_nascimento");
+    const idadeDisplay = document.getElementById("idade_calculada_texto");
+    if (nascimentoInput && idadeDisplay) {
+      function atualizarIdade() {
+        const txt = calcularIdade(nascimentoInput.value || "") || "&nbsp;";
+        if (txt === "&nbsp;") {
+          idadeDisplay.innerHTML = "&nbsp;";
+        } else {
+          idadeDisplay.textContent = txt;
+        }
+      }
+      ["input", "blur", "change"].forEach((ev) => nascimentoInput.addEventListener(ev, atualizarIdade));
+      atualizarIdade();
+    }
+
+    // --- Cidade de nascimento (cod IBGE) -> preencher cidade desc + Naturalidade (UF) ---
+    const cidadeNascCodiInput = getField("terc_cidade_nascimento_codi");
+    const cidadeNascDescInput = getField("terc_cidade_nascimento_desc");
+    const naturalidadeUfSelect = getField("terc_naturalidade");
+
+    if (cidadeNascCodiInput) {
+      async function handleCidadeNascLookup() {
+        const raw = (cidadeNascCodiInput.value || "").trim();
+        if (!raw) return;
+        const digitos = raw.replace(/\D/g, "");
+        if (!digitos) return;
+        const chave = String(parseInt(digitos, 10));
+        const info = CIDADES_POR_CODIGO[chave];
+        let nomeCidade = "";
+        let ufCidade = "";
+
+        if (info) {
+          [nomeCidade, ufCidade] = info;
+        } else {
+          const online = await lookupIbgeOnline(digitos);
+          if (online) {
+            nomeCidade = online.nome;
+            ufCidade = online.uf;
+          }
+        }
+
+        if (cidadeNascDescInput && nomeCidade) {
+          cidadeNascDescInput.value = nomeCidade;
+          cidadeNascDescInput.dispatchEvent(new Event("input", { bubbles: true }));
+          cidadeNascDescInput.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+        if (naturalidadeUfSelect && ufCidade) {
+          naturalidadeUfSelect.value = ufCidade;
+          naturalidadeUfSelect.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+      }
+      ["blur", "change"].forEach((ev) => cidadeNascCodiInput.addEventListener(ev, () => { handleCidadeNascLookup(); }));
+      cidadeNascCodiInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === "Tab") handleCidadeNascLookup();
+      });
+    }
+
+    // ================================================================
+    // VALIDAÇÃO CPF FRONTEND EM TEMPO REAL (mesma fórmula _cpf_valido Python)
+    // ================================================================
+    (function bindCpfValidation() {
+      const cpfInput = document.getElementById("id_terc_cpf");
+      if (!cpfInput) return;
+
+      function _digitsOnly(s) {
+        return String(s || "").replace(/\D/g, "").slice(0, 11);
+      }
+      function _validarCpfBackend(cpf11) {
+        if (cpf11.length !== 11) return false;
+        if (/^(\d)\1+$/.test(cpf11)) return false; // sequencia igual (111.111...)
+        // dígito 1
+        let soma = 0;
+        for (let i = 0; i < 9; i++) soma += parseInt(cpf11[i], 10) * (10 - i);
+        let resto = (soma * 10) % 11;
+        if (resto === 10) resto = 0;
+        if (parseInt(cpf11[9], 10) !== resto) return false;
+        // dígito 2
+        soma = 0;
+        for (let i = 0; i < 10; i++) soma += parseInt(cpf11[i], 10) * (11 - i);
+        resto = (soma * 10) % 11;
+        if (resto === 10) resto = 0;
+        return parseInt(cpf11[10], 10) === resto;
+      }
+      function limparErro() {
+        cpfInput.classList.remove("is-invalid");
+        cpfInput.setCustomValidity("");
+        // limpa feedback se existir
+        let fb = cpfInput.parentElement.querySelector(".invalid-feedback.d-block");
+        if (fb) fb.remove();
+        fb = document.getElementById("cpf-invalid-feedback");
+        if (fb) fb.remove();
+      }
+      function exibirErro(msg) {
+        limparErro();
+        cpfInput.classList.add("is-invalid");
+        cpfInput.setCustomValidity(msg);
+        // cria div invalid-feedback apos o input se nao existir
+        let fb = document.createElement("div");
+        fb.className = "invalid-feedback d-block";
+        fb.id = "cpf-invalid-feedback";
+        fb.textContent = msg;
+        cpfInput.parentElement.appendChild(fb);
+      }
+      function validarCpf() {
+        const digits = _digitsOnly(cpfInput.value);
+        if (!digits) {
+          limparErro();
+          return;
+        }
+        if (digits.length !== 11) {
+          // nao exibe erro ainda se for incompleto (usuario digitando)
+          limparErro();
+          return;
+        }
+        if (!_validarCpfBackend(digits)) {
+          exibirErro("Informe um CPF válido.");
+        } else {
+          limparErro();
+        }
+      }
+      ["blur", "change", "input"].forEach((ev) => cpfInput.addEventListener(ev, validarCpf));
+      cpfInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === "Tab") setTimeout(validarCpf, 50);
+      });
+    })();
+  });
+</script>
+{% endblock %}

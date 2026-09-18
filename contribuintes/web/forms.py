@@ -386,6 +386,7 @@ class ContribuinteForm(forms.ModelForm):
             field.widget.attrs["inputmode"] = "numeric"
             field.validators = [v for v in field.validators if not isinstance(v, MaxLengthValidator)]
             field.required = False
+            field.widget.attrs["placeholder"] = "000.000.000-00"
 
         if "contr_cep" in self.fields:
             field = self.fields["contr_cep"]
@@ -395,6 +396,7 @@ class ContribuinteForm(forms.ModelForm):
             field.widget.attrs["inputmode"] = "numeric"
             field.validators = [v for v in field.validators if not isinstance(v, MaxLengthValidator)]
             field.required = False
+            field.widget.attrs["placeholder"] = "00000-000"
 
         if "contr_nis" in self.fields:
             field = self.fields["contr_nis"]
@@ -521,6 +523,7 @@ class ContribuinteForm(forms.ModelForm):
             field.widget.attrs["inputmode"] = "numeric"
             field.validators = [v for v in field.validators if not isinstance(v, MaxLengthValidator)]
             field.required = False
+            field.widget.attrs["placeholder"] = "(00)"
 
         if "contr_ddd_celular" in self.fields:
             field = self.fields["contr_ddd_celular"]
@@ -530,6 +533,7 @@ class ContribuinteForm(forms.ModelForm):
             field.widget.attrs["inputmode"] = "numeric"
             field.validators = [v for v in field.validators if not isinstance(v, MaxLengthValidator)]
             field.required = False
+            field.widget.attrs["placeholder"] = "(00)"
 
         if "contr_telefone" in self.fields:
             field = self.fields["contr_telefone"]
@@ -539,6 +543,7 @@ class ContribuinteForm(forms.ModelForm):
             field.widget.attrs["inputmode"] = "numeric"
             field.validators = [v for v in field.validators if not isinstance(v, MaxLengthValidator)]
             field.required = False
+            field.widget.attrs["placeholder"] = "0000-0000"
 
         if "contr_celular" in self.fields:
             field = self.fields["contr_celular"]
@@ -548,6 +553,7 @@ class ContribuinteForm(forms.ModelForm):
             field.widget.attrs["inputmode"] = "numeric"
             field.validators = [v for v in field.validators if not isinstance(v, MaxLengthValidator)]
             field.required = False
+            field.widget.attrs["placeholder"] = "0000-0000"
 
         if "contr_cnpj_cpf_origem" in self.fields:
             field = self.fields["contr_cnpj_cpf_origem"]

@@ -1,0 +1,745 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if operacao == 'editar' %}Editar{% else %}Novo{% endif %} Quadro de Horários{% endblock %}
+
+{% block content %}
+<style>
+    .horarios-form {
+        max-width: 1800px;
+        margin: 0 auto;
+    }
+    .horarios-form .card-header {
+        background: linear-gradient(90deg, #1e293b 0%, #0f172a 100%);
+        color: #fff;
+    }
+    .horarios-form .card-header h3 {
+        font-size: 1.55rem;
+        font-weight: 700;
+        margin: 0;
+    }
+    .card-label-row {
+        font-size: 0.8rem;
+        color: #94a3b8;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+    .total-semana-box {
+        background: linear-gradient(135deg, #0ea5e9, #0369a1);
+        color: white;
+        border-radius: 12px;
+        padding: 14px 22px;
+        text-align: center;
+        box-shadow: 0 6px 16px rgba(14, 165, 233, 0.3);
+    }
+    .total-semana-box .label {
+        font-size: 0.8rem;
+        opacity: 0.85;
+        letter-spacing: 0.5px;
+    }
+    .total-semana-box .valor {
+        font-size: 2.1rem;
+        font-weight: 800;
+        font-variant-numeric: tabular-nums;
+    }
+    table.tabela-dias {
+        width: 100%;
+        border-collapse: collapse;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+        background: #1e293b;
+    }
+    table.tabela-dias thead th {
+        background: #0f172a;
+        color: #e2e8f0;
+        text-align: center;
+        padding: 10px 6px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        border-right: 1px solid #334155;
+    }
+    table.tabela-dias thead th:last-child {
+        border-right: none;
+    }
+    table.tabela-dias tbody td {
+        padding: 5px 4px;
+        border-right: 1px solid #334155;
+        border-bottom: 1px solid #334155;
+        text-align: center;
+        vertical-align: middle;
+    }
+    table.tabela-dias tbody td:last-child {
+        border-right: none;
+    }
+    table.tabela-dias tbody tr:last-child td {
+        border-bottom: none;
+    }
+    table.tabela-dias .col-dia-nome {
+        background: #0f172a;
+        color: #f8fafc;
+        font-weight: 700;
+        font-size: 0.88rem;
+        text-align: left;
+        padding-left: 12px;
+        width: 70px;
+        min-width: 70px;
+        border-bottom: 1px solid #334155 !important;
+        border-right: 1px solid #334155 !important;
+    }
+    table.tabela-dias .col-dia-nome.dom {
+        color: #f87171;
+    }
+    table.tabela-dias .col-dia-nome.sab {
+        color: #fbbf24;
+    }
+    table.tabela-dias input[type=text],
+    table.tabela-dias input[type=number] {
+        padding: 4px 6px;
+        text-align: center;
+        font-size: 0.85rem;
+        width: 100%;
+        background: #0f172a;
+        border: 1px solid #334155;
+        color: #f8fafc;
+        border-radius: 6px;
+    }
+    table.tabela-dias input:focus {
+        border-color: #38bdf8;
+        box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+        outline: none;
+    }
+    table.tabela-dias .readonly-field {
+        background: #1e293b !important;
+        border-color: #475569 !important;
+        color: #4ade80 !important;
+        font-weight: 700;
+    }
+    .grupo-dia-header {
+        background: linear-gradient(90deg, #1d4ed8, #1e40af) !important;
+        color: #fff !important;
+        padding: 8px 6px !important;
+    }
+    .folga-row td {
+        background: rgba(234, 179, 8, 0.07) !important;
+    }
+    .checkbox-folga {
+        width: 18px;
+        height: 18px;
+        margin: 0;
+        cursor: pointer;
+    }
+    .sub-label {
+        font-size: 0.7rem;
+        color: #64748b;
+        font-weight: 600;
+        letter-spacing: 0.4px;
+        text-transform: uppercase;
+    }
+
+    /* ========== Marcação ERRO VERMELHA GARANTIDA ========== */
+    .campo-erro input,
+    .campo-erro select,
+    input.is-invalid,
+    .form-control.is-invalid {
+        border-color: #dc3545 !important;
+        box-shadow: 0 0 0 .2rem rgba(220, 53, 69, .25) !important;
+    }
+    .campo-erro small.erro-msg {
+        color: #dc3545;
+        font-size: 0.72rem;
+        line-height: 1.15;
+        display: block;
+        text-align: left;
+        margin-top: 2px;
+    }
+</style>
+
+<div class="horarios-form">
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger" role="alert">
+        <strong>Atenção:</strong>
+        <ul class="mb-0">
+            {% for err in form.non_field_errors %}
+                <li>{{ err }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    {% if form.errors %}
+    <div class="alert alert-warning mt-3" role="alert">
+        Revise os campos destacados em vermelho antes de salvar.
+        <ul class="mb-0 mt-2">
+            {% for field in form.visible_fields %}
+                {% for error in field.errors %}
+                <li>{{ field.label }}: {{ error }}</li>
+                {% endfor %}
+            {% endfor %}
+            {% for field in form.hidden_fields %}
+                {% for error in field.errors %}
+                <li>Campo interno ({{ field.name }}): {{ error }}</li>
+                {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form.hidden_fields %}{{ field }}{% endfor %}
+
+        <div class="card mb-4 shadow">
+            <div class="card-header d-flex align-items-center justify-content-between py-3 px-4">
+                <h3 class="m-0">
+                    {% if operacao == 'editar' %}✏️ Editar{% else %}➕ Novo{% endif %} Quadro de Horários
+                </h3>
+            </div>
+            <div class="card-body p-4">
+                <div class="row align-items-center mb-0">
+                    <div class="col-lg-10">
+                        <div class="row g-3 mb-4">
+                            <div class="col-lg-2">
+                                <label class="card-label-row">Código</label>
+                                <div class="form-control text-center font-weight-bold bg-secondary text-white">
+                                    {% if operacao == 'editar' %}
+                                        {{ object.hora_codi }}
+                                    {% else %}
+                                        {{ proximo_codigo }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-lg-7">
+                                <label class="card-label-row">Nome (auto-preenchido ou customizado)</label>
+                                {{ form.hora_nome }}
+                                {% if form.hora_nome.errors %}
+                                <small class="text-danger">{{ form.hora_nome.errors.0 }}</small>
+                                {% endif %}
+                            </div>
+                            <div class="col-lg-3 text-center d-flex align-items-end justify-content-end flex-column"
+                                 style="height: 100%;">
+                                <div class="w-100">
+                                    <label class="card-label-row">&nbsp;</label>
+                                    <div class="form-check d-flex align-items-center gap-2 justify-content-end">
+                                        {{ form.hora_flexivel }}
+                                        <label class="form-check-label font-weight-semibold mb-0"
+                                               for="id_hora_flexivel">
+                                            Horário flexível
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4 align-items-center">
+                            <div class="col-lg-2">
+                                <label class="card-label-row">Empresa</label>
+                                <div class="form-control text-center bg-secondary text-white">
+                                    {{ empr_codigo }}
+                                </div>
+                            </div>
+                            <div class="col-lg-8">
+                                <label class="card-label-row">Empresa (Nome)</label>
+                                <div class="form-control bg-secondary text-white">
+                                    {{ empr_nome }}
+                                </div>
+                            </div>
+                            <div class="col-lg-2">
+                                <label class="card-label-row">Filial</label>
+                                <div class="form-control text-center bg-secondary text-white">
+                                    {{ fili_codigo }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-2">
+                        <label class="card-label-row">&nbsp;</label>
+                        <div class="total-semana-box">
+                            <div class="label">TOTAL DA SEMANA</div>
+                            {{ form.hora_total_semana }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4 shadow">
+            <div class="card-header py-3 px-4">
+                <h3 class="m-0" style="font-size:1.25rem;">📅 Horários da Semana</h3>
+            </div>
+            <div class="card-body p-4">
+                <table class="tabela-dias mb-4">
+                    <thead>
+                        <tr>
+                            <th rowspan="2" style="width:70px;vertical-align:middle;" class="col-dia-nome grupo-dia-header">Dia</th>
+                            <th rowspan="2" style="width:64px;vertical-align:middle;">eSocial</th>
+                            <th class="grupo-dia-header" colspan="4">Período 1</th>
+                            <th class="grupo-dia-header" colspan="4">Período 2</th>
+                            <th rowspan="2" style="width:74px;vertical-align:middle;">Intervalo</th>
+                            <th rowspan="2" style="width:74px;vertical-align:middle;">Jornada</th>
+                            <th rowspan="2" style="width:60px;vertical-align:middle;">Folga</th>
+                        </tr>
+                        <tr>
+                            <th style="width:78px;">Início</th>
+                            <th style="width:78px;">Fim</th>
+                            <th style="width:78px;">Lanche Início</th>
+                            <th style="width:78px;">Lanche Fim</th>
+                            <th style="width:78px;">Início</th>
+                            <th style="width:78px;">Fim</th>
+                            <th style="width:78px;">Lanche Início</th>
+                            <th style="width:78px;">Lanche Fim</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr data-dia="dom">
+                            <td class="col-dia-nome dom">Dom</td>
+                            <td>{% with f=form.hora_dom_esoc %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_dom_inic_1 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_dom_fina_1 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_dom_lanc_inic_1 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_dom_lanc_fina_1 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_dom_inic_2 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_dom_fina_2 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_dom_lanc_inic_2 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_dom_lanc_fina_2 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td class="p-1">{% with f=form.hora_dom_intervalo %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td class="p-1">{% with f=form.hora_dom_jornada %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td class="p-1 text-center">
+                                <div class="form-check d-flex align-items-center justify-content-center h-100">
+                                    {% with f=form.hora_folga_dom %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}
+                                </div>
+                            </td>
+                        </tr>
+                        <tr data-dia="seg">
+                            <td class="col-dia-nome">Seg</td>
+                            <td>{% with f=form.hora_seg_esoc %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_seg_inic_1 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_seg_fina_1 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_seg_lanc_inic_1 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_seg_lanc_fina_1 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_seg_inic_2 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_seg_fina_2 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_seg_lanc_inic_2 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_seg_lanc_fina_2 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td class="p-1">{% with f=form.hora_seg_intervalo %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td class="p-1">{% with f=form.hora_seg_jornada %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td class="p-1 text-center">
+                                <div class="form-check d-flex align-items-center justify-content-center h-100">
+                                    {% with f=form.hora_folga_seg %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}
+                                </div>
+                            </td>
+                        </tr>
+                        <tr data-dia="ter">
+                            <td class="col-dia-nome">Ter</td>
+                            <td>{% with f=form.hora_ter_esoc %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_ter_inic_1 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_ter_fina_1 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_ter_lanc_inic_1 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_ter_lanc_fina_1 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_ter_inic_2 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_ter_fina_2 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_ter_lanc_inic_2 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_ter_lanc_fina_2 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td class="p-1">{% with f=form.hora_ter_intervalo %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td class="p-1">{% with f=form.hora_ter_jornada %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td class="p-1 text-center">
+                                <div class="form-check d-flex align-items-center justify-content-center h-100">
+                                    {% with f=form.hora_folga_ter %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}
+                                </div>
+                            </td>
+                        </tr>
+                        <tr data-dia="qua">
+                            <td class="col-dia-nome">Qua</td>
+                            <td>{% with f=form.hora_qua_esoc %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_qua_inic_1 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_qua_fina_1 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_qua_lanc_inic_1 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_qua_lanc_fina_1 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_qua_inic_2 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_qua_fina_2 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_qua_lanc_inic_2 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_qua_lanc_fina_2 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td class="p-1">{% with f=form.hora_qua_intervalo %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td class="p-1">{% with f=form.hora_qua_jornada %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td class="p-1 text-center">
+                                <div class="form-check d-flex align-items-center justify-content-center h-100">
+                                    {% with f=form.hora_folga_qua %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}
+                                </div>
+                            </td>
+                        </tr>
+                        <tr data-dia="qui">
+                            <td class="col-dia-nome">Qui</td>
+                            <td>{% with f=form.hora_qui_esoc %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_qui_inic_1 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_qui_fina_1 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_qui_lanc_inic_1 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_qui_lanc_fina_1 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_qui_inic_2 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_qui_fina_2 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_qui_lanc_inic_2 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_qui_lanc_fina_2 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td class="p-1">{% with f=form.hora_qui_intervalo %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td class="p-1">{% with f=form.hora_qui_jornada %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td class="p-1 text-center">
+                                <div class="form-check d-flex align-items-center justify-content-center h-100">
+                                    {% with f=form.hora_folga_qui %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}
+                                </div>
+                            </td>
+                        </tr>
+                        <tr data-dia="sex">
+                            <td class="col-dia-nome">Sex</td>
+                            <td>{% with f=form.hora_sex_esoc %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_sex_inic_1 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_sex_fina_1 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_sex_lanc_inic_1 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_sex_lanc_fina_1 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_sex_inic_2 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_sex_fina_2 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_sex_lanc_inic_2 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_sex_lanc_fina_2 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td class="p-1">{% with f=form.hora_sex_intervalo %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td class="p-1">{% with f=form.hora_sex_jornada %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td class="p-1 text-center">
+                                <div class="form-check d-flex align-items-center justify-content-center h-100">
+                                    {% with f=form.hora_folga_sex %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}
+                                </div>
+                            </td>
+                        </tr>
+                        <tr data-dia="sab">
+                            <td class="col-dia-nome sab">Sab</td>
+                            <td>{% with f=form.hora_sab_esoc %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_sab_inic_1 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_sab_fina_1 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_sab_lanc_inic_1 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_sab_lanc_fina_1 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_sab_inic_2 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_sab_fina_2 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_sab_lanc_inic_2 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td>{% with f=form.hora_sab_lanc_fina_2 %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td class="p-1">{% with f=form.hora_sab_intervalo %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td class="p-1">{% with f=form.hora_sab_jornada %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}</td>
+                            <td class="p-1 text-center">
+                                <div class="form-check d-flex align-items-center justify-content-center h-100">
+                                    {% with f=form.hora_folga_sab %}<div class="{% if f.errors %}campo-erro{% endif %}">{{ f }}{% if f.errors %}<small class="erro-msg">{{ f.errors.0 }}</small>{% endif %}</div>{% endwith %}
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="row g-3 mt-4 mb-2">
+                    <div class="col-lg-12">
+                        <div class="form-check d-flex align-items-center gap-2 mb-3">
+                            {{ form.hora_folga_alt }}
+                            <label class="form-check-label font-weight-semibold mb-0"
+                                   for="id_hora_folga_alt">
+                                🔁 Folga alternada (sistema de folgas semanais rotativas)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-lg-12">
+                        <label class="card-label-row">Descrição da jornada para o eSocial</label>
+                        {{ form.hora_desc_esocial }}
+                        {% if form.hora_desc_esocial.errors %}
+                        <small class="text-danger">{{ form.hora_desc_esocial.errors.0 }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% url 'horarios:listar' as url_voltar %}
+        {% include "partials/ui/form_actions.html" with form_actions_url_voltar=url_voltar|add:"?banco="|add:request.banco form_actions_object=object %}
+    </form>
+</div>
+
+<script>
+(function () {
+    "use strict";
+
+    function _apenasDigitos(valor) {
+        return (valor || "").toString().replace(/\D/g, "");
+    }
+
+    function aplicarMascaraHora(input) {
+        var digitado = input.value || "";
+        var apenasD = _apenasDigitos(digitado);
+        if (apenasD.length === 0) { input.value = ""; return; }
+        if (apenasD.length === 1) {
+            input.value = apenasD;
+            return;
+        }
+        if (apenasD.length === 2) {
+            input.value = apenasD;
+            return;
+        }
+        if (apenasD.length === 3) {
+            input.value = apenasD.substring(0, 2) + ":" + apenasD.substring(2, 3);
+            return;
+        }
+        if (apenasD.length >= 4) {
+            input.value = apenasD.substring(0, 2) + ":" + apenasD.substring(2, 4);
+            return;
+        }
+    }
+
+    document.querySelectorAll('[data-hora-mask="true"]').forEach(function (input) {
+        input.setAttribute("inputmode", "numeric");
+        input.setAttribute("maxlength", "5");
+        input.setAttribute("placeholder", "HHMM");
+        ["input", "blur"].forEach(function (evt) {
+            input.addEventListener(evt, function () { aplicarMascaraHora(input); recalcular(); });
+        });
+        input.addEventListener("keydown", function (e) {
+            if (e.key === "Enter" || e.key === "Tab") {
+                setTimeout(function () { aplicarMascaraHora(input); recalcular(); }, 10);
+            }
+        });
+    });
+
+    document.querySelectorAll('[data-digits-only="true"]').forEach(function (input) {
+        ["input", "blur"].forEach(function (evt) {
+            input.addEventListener(evt, function () {
+                var digits = _apenasDigitos(input.value);
+                if (input.value !== digits) input.value = digits;
+            });
+        });
+        input.addEventListener("keydown", function (e) {
+            if (e.key === "Enter" || e.key === "Tab") {
+                var digits = _apenasDigitos(input.value);
+                if (input.value !== digits) input.value = digits;
+            }
+        });
+    });
+
+    function horarioParaMinutos(val) {
+        if (!val) return 0;
+        var parts = String(val).split(":");
+        if (parts.length < 2) return 0;
+        try {
+            var h = parseInt(parts[0], 10);
+            var m = parseInt(parts[1], 10);
+            if (isNaN(h) || isNaN(m)) return 0;
+            return h * 60 + m;
+        } catch (e) { return 0; }
+    }
+
+    function minutosParaHora(totalMin) {
+        totalMin = Math.max(0, Math.round(totalMin));
+        var h = Math.floor(totalMin / 60);
+        var m = totalMin % 60;
+        return String(h).padStart(2, "0") + ":" + String(m).padStart(2, "0");
+    }
+
+    var DIAS = ["dom", "seg", "ter", "qua", "qui", "sex", "sab"];
+    var TURNOS = [
+        { inic: "inic_1", fin: "fina_1" },
+        { inic: "inic_2", fin: "fina_2" },
+    ];
+    var LANCHES = [
+        { inic: "lanc_inic_1", fin: "lanc_fina_1" },
+        { inic: "lanc_inic_2", fin: "lanc_fina_2" },
+    ];
+
+    function obterInput(dia, sufixo) {
+        return document.getElementById("id_hora_" + dia + "_" + sufixo);
+    }
+
+    function setarValor(input, valor) {
+        if (!input) return;
+        input.value = valor;
+    }
+
+    function recalcular() {
+        var minutosSemanaTotal = 0;
+        var horariosNomeConcat = [];
+
+        DIAS.forEach(function (dia) {
+            var chkFolga = document.getElementById("id_hora_folga_" + dia);
+            var ehFolga = chkFolga && chkFolga.checked;
+
+            var row = document.querySelector('tr[data-dia="' + dia + '"]');
+            if (row) {
+                if (ehFolga) row.classList.add("folga-row"); else row.classList.remove("folga-row");
+            }
+
+            var intervaloMin = 0;
+            var jornadaMin = 0;
+
+            TURNOS.forEach(function (t) {
+                var inputI = obterInput(dia, t.inic);
+                var inputF = obterInput(dia, t.fin);
+                if (inputI) aplicarMascaraHora(inputI);
+                if (inputF) aplicarMascaraHora(inputF);
+                if (!ehFolga) {
+                    var i = horarioParaMinutos(inputI ? inputI.value : "");
+                    var f = horarioParaMinutos(inputF ? inputF.value : "");
+                    if (f > i) jornadaMin += (f - i);
+                }
+            });
+
+            LANCHES.forEach(function (l) {
+                var inputI = obterInput(dia, l.inic);
+                var inputF = obterInput(dia, l.fin);
+                if (inputI) aplicarMascaraHora(inputI);
+                if (inputF) aplicarMascaraHora(inputF);
+                if (!ehFolga) {
+                    var i = horarioParaMinutos(inputI ? inputI.value : "");
+                    var f = horarioParaMinutos(inputF ? inputF.value : "");
+                    if (f > i) intervaloMin += (f - i);
+                }
+            });
+
+            var intvInput = obterInput(dia, "intervalo");
+            if (intvInput) intvInput.value = minutosParaHora(intervaloMin);
+            var jorInput = obterInput(dia, "jornada");
+            if (jorInput) jorInput.value = minutosParaHora(jornadaMin);
+
+            minutosSemanaTotal += jornadaMin;
+
+            if (!ehFolga && jornadaMin > 0) {
+                TURNOS.forEach(function (t) {
+                    var inputI = obterInput(dia, t.inic);
+                    var inputF = obterInput(dia, t.fin);
+                    var i = inputI ? inputI.value : "";
+                    var f = inputF ? inputF.value : "";
+                    if (i) horariosNomeConcat.push(i);
+                    if (f) horariosNomeConcat.push(f);
+                });
+            }
+        });
+
+        var totalInput = document.getElementById("id_hora_total_semana");
+        if (totalInput) totalInput.value = minutosParaHora(minutosSemanaTotal);
+
+        var nomeInput = document.getElementById("id_hora_nome");
+        if (nomeInput && horariosNomeConcat.length > 0) {
+            var sugestao = horariosNomeConcat.join(" ");
+            if (!nomeInput.value || (
+                nomeInput.dataset && nomeInput.dataset.autopreenchido === "true"
+            )) {
+                nomeInput.value = sugestao;
+                if (nomeInput.dataset) nomeInput.dataset.autopreenchido = "true";
+            }
+        }
+
+        var descInput = document.getElementById("id_hora_desc_esocial");
+        if (descInput) {
+            var descSugestao = gerarDescricaoEsocial();
+            var usuarioAlterou = descInput.dataset && descInput.dataset.usuario_alterou === "true";
+            if (descSugestao) {
+                var vazioAtual = !descInput.value || String(descInput.value).trim() === "";
+                var autoAtual = descInput.dataset && descInput.dataset.autopreenchido === "true";
+                if (vazioAtual || autoAtual || !usuarioAlterou) {
+                    descInput.value = descSugestao;
+                    if (descInput.dataset) descInput.dataset.autopreenchido = "true";
+                }
+            }
+        }
+    }
+
+    var NOME_DIAS = {
+        dom: "Domingo",
+        seg: "Segunda-feira",
+        ter: "Terça-feira",
+        qua: "Quarta-Feira",
+        qui: "Quinta-feira",
+        sex: "Sexta-feira",
+        sab: "Sábado"
+    };
+
+    function _jornadaDia(dia) {
+        var turnos = [];
+        TURNOS.forEach(function (t) {
+            var i = obterInput(dia, t.inic);
+            var f = obterInput(dia, t.fin);
+            var vi = i ? String(i.value || "").trim() : "";
+            var vf = f ? String(f.value || "").trim() : "";
+            if (vi && vf) turnos.push({ ini: vi, fin: vf });
+        });
+        if (turnos.length === 0) return null;
+        var horas = [];
+        turnos.forEach(function (t) {
+            horas.push(t.ini + " às " + t.fin);
+        });
+        if (horas.length === 1) return horas[0];
+        if (horas.length === 2) return horas[0] + " e das " + horas[1];
+        var ultima = horas.pop();
+        return horas.join(", ") + " e das " + ultima;
+    }
+
+    function gerarDescricaoEsocial() {
+        var trabalhados = [];
+        DIAS.forEach(function (d) {
+            var chk = document.getElementById("id_hora_folga_" + d);
+            if (chk && chk.checked) return;
+            var j = _jornadaDia(d);
+            if (!j) return;
+            trabalhados.push({ dia: d, label: NOME_DIAS[d], jornada: j });
+        });
+        if (trabalhados.length === 0) return "";
+        var grupos = [];
+        var atual = null;
+        for (var i = 0; i < trabalhados.length; i++) {
+            var t = trabalhados[i];
+            if (!atual) {
+                atual = { jornada: t.jornada, dias: [t] };
+                continue;
+            }
+            if (atual.jornada === t.jornada) {
+                atual.dias.push(t);
+            } else {
+                grupos.push(atual);
+                atual = { jornada: t.jornada, dias: [t] };
+            }
+        }
+        if (atual) grupos.push(atual);
+        var frases = [];
+        grupos.forEach(function (g) {
+            var nomes = g.dias.map(function (x) { return x.label; });
+            var prefixo;
+            if (nomes.length === 1) {
+                prefixo = nomes[0] + ": ";
+            } else if (nomes.length === 2) {
+                prefixo = nomes[0] + " e " + nomes[1] + ": ";
+            } else {
+                var ult = nomes.pop();
+                prefixo = nomes.join(", ") + ", " + ult + ": ";
+            }
+            frases.push(prefixo + g.jornada);
+        });
+        return frases.join("\n");
+    }
+
+    DIAS.forEach(function (d) {
+        var chk = document.getElementById("id_hora_folga_" + d);
+        if (chk) chk.addEventListener("change", recalcular);
+    });
+
+    var descInput = document.getElementById("id_hora_desc_esocial");
+    if (descInput) {
+        descInput.addEventListener("input", function () {
+            if (descInput.dataset) descInput.dataset.usuario_alterou = "true";
+        });
+    }
+
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") {
+            var linkVoltar = document.querySelector("a[href*='horarios/listar']");
+            if (linkVoltar) { e.preventDefault(); linkVoltar.click(); return; }
+            var btnVoltar = document.querySelector('form a.btn[href*="horarios:listar"]');
+            if (btnVoltar) { e.preventDefault(); btnVoltar.click(); }
+        }
+    });
+
+    recalcular();
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Excluir Sindicato Trabalhador — RtaWeb{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm" style="background: var(--surface-card, var(--bs-card-bg)); border-color: var(--border-default, var(--bs-border-color));">
+    <div class="card-header fw-semibold" style="background: var(--surface-th, var(--bs-secondary-bg)); color: var(--text-primary, var(--bs-emphasis-color)); border-color: var(--border-default, var(--bs-border-color));">
+        Confirmação
+    </div>
+    <div class="card-body" style="color: var(--text-primary, var(--bs-body-color));">
+        <p>Tem certeza que deseja excluir o sindicato trabalhador "<strong>{{ object.sind_nome|default:'—' }}</strong>"?</p>
+        <p class="text-muted small mb-3">
+        </p>
+        <form method="post" action="{% url 'sindicatos:deletar' empr=object.sind_empr fili=object.sind_fili codi=object.sind_codi %}?banco={{ request.banco }}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Excluir</button>
+            <a href="{% url 'sindicatos:listar' %}?banco={{ request.banco }}" class="btn btn-outline-secondary js-esc-exit">Cancelar</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -15,12 +15,15 @@
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container mt-4 sindicatostrab-listar">
     <div class="d-flex justify-content-center align-items-center mb-3">
-        <h3><i class="bi bi-people-fill"></i> Sindicatos</h3>
+        <h3><i class="bi bi-buildings-fill"></i> Sindicatos Trabalhadores</h3>
     </div>
 
     <div class="filtros-acoes mb-3">
+        <a href="{% url 'sindicatos:criar' %}?banco={{ request.banco }}" class="botao botao-adicionar">
+            <i class="bi bi-plus"></i> Novo Sindicato
+        </a>
         <button class="botao botao-detalhar botao-filtro-toggle" type="button" data-bs-toggle="collapse"
             data-bs-target="#filtrosCollapse" id="btn-filtros" aria-expanded="false" aria-controls="filtrosCollapse">
             <i class="bi bi-funnel"></i> Filtros
@@ -32,41 +35,28 @@
             <input type="hidden" name="banco" value="{{ request.banco }}">
 
             <div class="form-group">
-                <label class="form-label">Código</label>
-                <input class="form-control" type="text" name="sind_codi" value="{{ sind_codi }}">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Descrição</label>
-                <input class="form-control" type="text" name="sind_nome" value="{{ sind_nome }}">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">CNPJ</label>
-                <input class="form-control" type="text" name="sind_cnpj" value="{{ sind_cnpj }}">
+                <label class="form-label">Buscar</label>
+                <input class="form-control" type="text" name="referencia" value="{{ referencia }}"
+                    placeholder="Código ou nome do sindicato trabalhador">
             </div>
 
             <div class="form-group">
                 <label class="form-label">Ordenar</label>
                 <select name="ordenar" class="form-control">
-                    <option value="">Padrão</option>
-                    <option value="referencia" {% if ordenar == "referencia" %}selected{% endif %}>Código</option>
-                    <option value="referencia_desc" {% if ordenar == "referencia_desc" %}selected{% endif %}>Descrição</option>
-                    <option value="valor" {% if ordenar == "valor" %}selected{% endif %}>Menor valor</option>
-                    <option value="valor_desc" {% if ordenar == "valor_desc" %}selected{% endif %}>Maior valor</option>
+                    <option value="asc" {% if ordenar == "" or ordenar == "asc" %}selected{% endif %}>Ordem crescente</option>
+                    <option value="desc" {% if ordenar == "desc" %}selected{% endif %}>Ordem decrescente</option>
                 </select>
             </div>
 
             <div class="form-group d-flex align-items-end">
-                <a href="?banco={{ request.banco }}" class="botao botao-limpar">
-                    <i class="bi bi-eraser"></i> Limpar
-                </a>
-            </div>
-
-            <div class="form-group">
-                <button type="submit" class="botao botao-buscar">
-                    <i class="bi bi-search"></i> Buscar
-                </button>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="?banco={{ request.banco }}" class="botao botao-limpar">
+                        <i class="bi bi-eraser"></i> Limpar
+                    </a>
+                    <button type="submit" class="botao botao-buscar">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </div>
             </div>
         </form>
     </div>
@@ -76,11 +66,9 @@
         <table class="tabela-moderna">
             <thead>
                 <tr>
-                    <th><i class="bi bi-hash"></i> Código</th>
-                    <th><i class="bi bi-card-text"></i> Descrição</th>
-                    <th><i class="bi bi-file-earmark-text"></i> CNPJ</th>
-                    <th><i class="bi bi-geo-alt"></i> Cidade</th>
-                    <th><i class="bi bi-map"></i> UF</th>
+                    <th><i class="bi bi-key"></i> Código</th>
+                    <th><i class="bi bi-building"></i> Sindicato</th>
+                    <th><i class="bi bi-credit-card"></i> CNPJ</th>
                     <th><i class="bi bi-gear"></i> Ações</th>
                 </tr>
             </thead>
@@ -88,16 +76,14 @@
                 {% for item in sindicatos %}
                 <tr>
                     <td data-label="Código">{{ item.sind_codi }}</td>
-                    <td data-label="Descrição">{{ item.sind_nome|default:'-' }}</td>
+                    <td data-label="Sindicato">{{ item.sind_nome|default:'-' }}</td>
                     <td data-label="CNPJ">{{ item.sind_cnpj|default:'-' }}</td>
-                    <td data-label="Cidade">{{ item.sind_cida|default:'-' }}</td>
-                    <td data-label="UF">{{ item.sind_esta|default:'-' }}</td>
                     <td data-label="Ações" class="tabela-acoes">
-                        <a class="botao botao-editar" href="{% url 'sindicatos:atualizar' item.sind_codi %}?banco={{ request.banco }}">
-                            <i class="bi bi-pencil"></i> Editar
+                        <a class="botao botao-editar" href="{% url 'sindicatos:atualizar' empr=item.sind_empr|default:1 fili=item.sind_fili|default:1 codi=item.sind_codi %}?banco={{ request.banco }}">
+                            <i class="bi bi-pencil-fill"></i> Editar
                         </a>
-                        <a class="botao botao-remover" href="{% url 'sindicatos:deletar' item.sind_codi %}?banco={{ request.banco }}">
-                            <i class="bi bi-trash"></i> Excluir
+                        <a class="botao botao-remover" href="{% url 'sindicatos:deletar' empr=item.sind_empr|default:1 fili=item.sind_fili|default:1 codi=item.sind_codi %}?banco={{ request.banco }}">
+                            <i class="bi bi-trash-fill"></i> Excluir
                         </a>
                     </td>
                 </tr>
@@ -109,7 +95,7 @@
     {% include "partials/componentes/infinite_scroll.html" %}
     {% else %}
     <div class="alert alert-warning">
-        Nenhum registro encontrado.
+        Nenhum sindicato trabalhador encontrado.
     </div>
     {% endif %}
 </div>

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Excluir Cargo — RtaWeb{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm" style="background: var(--surface-card, var(--bs-card-bg)); border-color: var(--border-default, var(--bs-border-color));">
+    <div class="card-header fw-semibold" style="background: var(--surface-th, var(--bs-secondary-bg)); color: var(--text-primary, var(--bs-emphasis-color)); border-color: var(--border-default, var(--bs-border-color));">
+        Confirmação
+    </div>
+    <div class="card-body" style="color: var(--text-primary, var(--bs-body-color));">
+        <p>Tem certeza que deseja excluir o cargo "<strong>{{ item_descricao|default:object.carg_descricao|default:'—' }}</strong>"?</p>
+        <p class="text-muted small mb-3">
+        </p>
+        <form method="post" action="{% url 'cargos:excluir' empr=object.carg_empr fili=object.carg_fili codi=object.carg_codi %}?banco={{ request.banco }}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Excluir</button>
+            <a href="{% url 'cargos:listar' %}?banco={{ request.banco }}" class="btn btn-outline-secondary js-esc-exit">Voltar</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

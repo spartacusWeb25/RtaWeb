@@ -1,8 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-
-{% block title %}Cargos — RtaWeb{% endblock %}
+{% block title %}Plano de Cargos — RtaWeb{% endblock %}
 
 {% block extra_css %}
 <link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
@@ -11,16 +10,61 @@
 <link rel="stylesheet" href="{% static 'css/botoes.css' %}">
 <link rel="stylesheet" href="{% static 'css/buscas.css' %}">
 <link rel="stylesheet" href="{% static 'css/tabelas.css' %}">
+<style>
+    @media (min-width: 992px) {
+        .cargos-listar .form-grid {
+            grid-template-columns: minmax(280px, 1.3fr) minmax(220px, 1fr) auto;
+        }
 
+        .cargos-listar .form-group:last-child .d-flex {
+            white-space: nowrap;
+        }
+    }
+
+    .cargos-listar .col-codigo { width: 80px; }
+    .cargos-listar .col-descricao { width: 38%; }
+    .cargos-listar .col-cbo { width: 220px; }
+    .cargos-listar .col-status { width: 100px; }
+    .cargos-listar .col-acoes { width: 260px; }
+
+    .cargos-listar td.tabela-acoes {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        align-items: center;
+    }
+
+    .cargos-listar thead th.col-acoes {
+        text-align: center;
+    }
+
+    .cargos-listar tbody td.col-acoes {
+        text-align: center;
+    }
+
+    .cargos-listar td.col-status {
+        text-align: center !important;
+    }
+
+    .cargos-listar thead th.col-status {
+        text-align: center !important;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container mt-4 cargos-listar">
     <div class="d-flex justify-content-center align-items-center mb-3">
-        <h3><i class="bi bi-people-fill"></i> Cargos</h3>
+        <h3><i class="bi bi-person-badge-fill"></i> Plano de Cargos</h3>
     </div>
 
     <div class="filtros-acoes mb-3">
+        <a href="{% url 'cargos:criar' %}?banco={{ request.banco }}" class="botao botao-adicionar">
+            <i class="bi bi-plus"></i> Novo Cargo
+        </a>
         <button class="botao botao-detalhar botao-filtro-toggle" type="button" data-bs-toggle="collapse"
             data-bs-target="#filtrosCollapse" id="btn-filtros" aria-expanded="false" aria-controls="filtrosCollapse">
             <i class="bi bi-funnel"></i> Filtros
@@ -32,37 +76,28 @@
             <input type="hidden" name="banco" value="{{ request.banco }}">
 
             <div class="form-group">
-                <label class="form-label">Código</label>
-                <input class="form-control" type="text" name="referencia" value="{{ carg_codi }}">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Descrição</label>
-                <input class="form-control" type="text" name="funcionario" value="{{ carg_nome }}">
+                <label class="form-label">Buscar</label>
+                <input class="form-control" type="text" name="referencia" value="{{ request.GET.referencia|default:'' }}"
+                    placeholder="Código ou descrição do cargo">
             </div>
 
             <div class="form-group">
                 <label class="form-label">Ordenar</label>
                 <select name="ordenar" class="form-control">
-                    <option value="">Padrão</option>
-                    <option value="referencia" {% if ordenar == "referencia" %}selected{% endif %}>Código</option>
-                    <option value="referencia_desc" {% if ordenar == "referencia_desc" %}selected{% endif %}>Referência desc</option>
-                    <option value="funcionario" {% if ordenar == "funcionario" %}selected{% endif %}>Descrição</option>
-                    <option value="valor" {% if ordenar == "valor" %}selected{% endif %}>Menor valor</option>
-                    <option value="valor_desc" {% if ordenar == "valor_desc" %}selected{% endif %}>Maior valor</option>
+                    <option value="asc" {% if ordenar == "" or ordenar == "asc" %}selected{% endif %}>Ordem crescente</option>
+                    <option value="desc" {% if ordenar == "desc" %}selected{% endif %}>Ordem decrescente</option>
                 </select>
             </div>
 
             <div class="form-group d-flex align-items-end">
-                <a href="?banco={{ request.banco }}" class="botao botao-limpar">
-                    <i class="bi bi-eraser"></i> Limpar
-                </a>
-            </div>
-
-            <div class="form-group">
-                <button type="submit" class="botao botao-buscar">
-                    <i class="bi bi-search"></i> Buscar
-                </button>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="?banco={{ request.banco }}" class="botao botao-limpar">
+                        <i class="bi bi-eraser"></i> Limpar
+                    </a>
+                    <button type="submit" class="botao botao-buscar">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </div>
             </div>
         </form>
     </div>
@@ -72,17 +107,45 @@
         <table class="tabela-moderna">
             <thead>
                 <tr>
-                    <th><i class="bi bi-hash"></i> Código</th>
-                    <th><i class="bi bi-card-text"></i> Descrição</th>
-                    <th><i class="bi bi-gear"></i> Ações</th>
+                    <th class="col-codigo"><i class="bi bi-key"></i> Código</th>
+                    <th class="col-descricao"><i class="bi bi-person-badge"></i> Descrição</th>
+                    <th class="col-cbo"><i class="bi bi-person-check"></i> CBO</th>
+                    <th class="col-status"><i class="bi bi-toggle-off"></i> Status</th>
+                    <th class="col-acoes"><i class="bi bi-gear"></i> Ações</th>
                 </tr>
             </thead>
             <tbody data-infinite-scroll-items>
                 {% for item in cargos %}
                 <tr>
-                    <td data-label="Código">{{ item.carg_codi }}</td>
-                    <td data-label="Descrição">{{ item.carg_nome|default:'-' }}</td>
-                    <td data-label="Ações"><span class="text-muted">Indisponível</span></td>
+                    <td data-label="Código" class="col-codigo text-center font-weight-bold">{{ item.carg_codi }}</td>
+                    <td data-label="Descrição" class="col-descricao">{{ item.carg_descricao|default:'-' }}</td>
+                    <td data-label="CBO" class="col-cbo">
+                        {% if item.carg_cbo_codi %}
+                            {{ item.carg_cbo_codi }}
+                            {% if item.carg_cbo_desc %}
+                                <small class="text-muted d-block">{{ item.carg_cbo_desc }}</small>
+                            {% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td data-label="Status" class="text-center">
+                        {% if item.carg_inativo %}
+                            <span class="badge badge-inativo bg-secondary text-white px-2 py-1 rounded-pill">Inativo</span>
+                        {% else %}
+                            <span class="badge badge-ativo bg-success text-white px-2 py-1 rounded-pill">Ativo</span>
+                        {% endif %}
+                    </td>
+                    <td data-label="Ações" class="col-acoes tabela-acoes">
+                        <div class="d-flex flex-row flex-nowrap justify-content-center gap-2 w-100">
+                            <a class="botao botao-editar" href="{% url 'cargos:editar' empr=item.carg_empr|default:1 fili=item.carg_fili|default:1 codi=item.carg_codi %}?banco={{ request.banco }}">
+                                <i class="bi bi-pencil-fill"></i> Editar
+                            </a>
+                            <a class="botao botao-remover" href="{% url 'cargos:excluir' empr=item.carg_empr|default:1 fili=item.carg_fili|default:1 codi=item.carg_codi %}?banco={{ request.banco }}">
+                                <i class="bi bi-trash-fill"></i> Excluir
+                            </a>
+                        </div>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -92,7 +155,7 @@
     {% include "partials/componentes/infinite_scroll.html" %}
     {% else %}
     <div class="alert alert-warning">
-        Nenhum registro encontrado.
+        Nenhum cargo encontrado.
     </div>
     {% endif %}
 </div>

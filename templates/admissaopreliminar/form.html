@@ -178,7 +178,7 @@
     <div class="app-form-card p-4">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
             <h3 class="mb-0"><i class="bi bi-person-vcard"></i> {{ titulo }}</h3>
-            <a href="{% url 'funcionarios:listar' %}?banco={{ request.banco }}" class="btn btn-outline-secondary btn-sm">
+            <a href="{% url 'funcionarios:listar' %}?banco={{ request.banco }}" class="btn btn-outline-secondary btn-sm js-esc-exit">
                 <i class="bi bi-arrow-left"></i> Voltar para funcionários
             </a>
         </div>

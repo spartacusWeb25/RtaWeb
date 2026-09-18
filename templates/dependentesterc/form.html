@@ -1,0 +1,756 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if modo_edicao %}Editar Dependente de Terceiro{% else %}Novo Dependente de Terceiro{% endif %} — RtaWeb{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+<style>
+  .nav-tabs-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-wrap: nowrap;
+    scrollbar-width: thin;
+  }
+  .nav-tabs-scroll .nav-link {
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+  }
+  .tab-badge {
+    margin-left: .2rem;
+    font-size: .7rem;
+    line-height: 1;
+  }
+  .dep-terc-form-card {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+  .terceiro-readonly {
+    background: var(--bs-secondary-bg);
+  }
+  .field-error .form-control,
+  .field-error .form-select,
+  .field-error .form-check-input {
+    border-color: var(--bs-danger);
+    box-shadow: 0 0 0 0.12rem rgba(220, 53, 69, .12);
+  }
+  .invalid-feedback.d-block {
+    font-weight: 500;
+  }
+  .field-error {
+    scroll-margin-top: 6rem;
+  }
+  .funcionario-check-item {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    min-height: 38px;
+  }
+  .funcionario-check-item .form-check-input {
+    margin-top: 0;
+  }
+  .funcionario-check-item label {
+    margin-bottom: 0;
+    cursor: pointer;
+  }
+  .idade-texto {
+    display: inline-flex;
+    align-items: center;
+    height: calc(1.5em + 0.75rem + 2px);
+    padding: 0.375rem 0;
+    font-weight: 500;
+    color: var(--bs-body-color);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h4>{% if modo_edicao %}Editar Dependente de Terceiro{% else %}Novo Dependente de Terceiro{% endif %}</h4>
+
+  {% if terceiro_contexto %}
+  <div class="card mb-4 border-primary mt-3">
+    <div class="card-header bg-primary-subtle py-2">
+      <div class="d-flex flex-wrap align-items-center gap-3">
+        <i class="bi bi-person-badge fs-4 text-primary"></i>
+        <div class="flex-grow-1">
+          <div class="d-flex flex-wrap gap-3 align-items-baseline">
+            <span class="fw-bold fs-6">{{ terceiro_contexto.terceiro.terc_nome|default:"-" }}</span>
+            <small class="text-muted">
+              Cód. Terceiro: #{{ terceiro_contexto.terceiro.terc_codi|default:"-" }}
+            </small>
+            {% if terceiro_contexto.empresa_nome %}
+              <small class="text-muted ms-2">
+                <i class="bi bi-building ms-2"></i>{{ terceiro_contexto.empresa_nome }}
+              </small>
+            {% endif %}
+          </div>
+        </div>
+        <a href="{{ url_voltar|default:'#' }}"
+           class="btn btn-sm btn-outline-primary js-esc-exit">
+          <i class="bi bi-arrow-left"></i> Voltar
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    {% comment %}
+        Campos HIDDEN de PK composta (nao aparecem na tela, garantem envio no POST)
+        Usamos input:hidden HTML puro com value explicitamente pq form.xxx renderiza sem value
+        quando initial nao tem valor - depe_* sao campos HiddenInput Django e Django 2.2
+        nao preenche initial no HTML do widget.
+    {% endcomment %}
+    <input type="hidden" name="registro"    value="{{ form.initial.registro|default:'' }}">
+    <input type="hidden" name="depe_empr"   value="{{ form.initial.depe_empr|default:'' }}">
+    <input type="hidden" name="depe_fili"   value="{{ form.initial.depe_fili|default:'' }}">
+    <input type="hidden" name="depe_terc"   value="{{ form.initial.depe_terc|default:'' }}">
+    <input type="hidden" name="depe_codi"   value="{{ form.initial.depe_codi|default:'' }}">
+
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger mt-3" role="alert">
+      {{ form.non_field_errors }}
+    </div>
+    {% endif %}
+
+    {% if form.errors %}
+    <div class="alert alert-warning mt-3" role="alert">
+      Revise os campos destacados em vermelho antes de salvar.
+      <ul class="mb-0 mt-2">
+        {% for field in form.visible_fields %}
+          {% for error in field.errors %}
+          <li>{{ field.label }}: {{ error }}</li>
+          {% endfor %}
+        {% endfor %}
+        {% for field in form.hidden_fields %}
+          {% for error in field.errors %}
+          <li>Campo interno ({{ field.name }}): {{ error }}</li>
+          {% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    <ul class="nav nav-tabs nav-tabs-scroll mb-0" id="depTercTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active {% if has_errors.cadastrais %}text-danger fw-bold border-bottom border-2 border-danger{% endif %}" data-bs-toggle="tab" data-bs-target="#tab-cadastrais" type="button">
+          <i class="bi bi-person-vcard"></i> Cadastrais
+          {% if has_errors.cadastrais %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link {% if has_errors.observacoes %}text-danger fw-bold border-bottom border-2 border-danger{% endif %}" data-bs-toggle="tab" data-bs-target="#tab-observacoes" type="button">
+          <i class="bi bi-sticky"></i> Observações
+          {% if has_errors.observacoes %}<span class="badge bg-danger tab-badge">!</span>{% endif %}
+        </button>
+      </li>
+    </ul>
+
+    <div class="card dep-terc-form-card mb-3">
+      <div class="tab-content p-3" id="depTercTabsContent">
+
+        {# =============== ABA 1: CADASTRIAIS =============== #}
+        <div class="tab-pane fade show active" id="tab-cadastrais" role="tabpanel">
+
+          {# Linha vinculo (oculta pois vem da URL, mas mantemos os hidden via forms.py) #}
+          {# Exibimos apenas Codigo Dependente + Nome #}
+          <div class="row g-3 mb-3 pb-3 border-bottom">
+            <div class="col-12 col-lg-2">
+              <label class="form-label">Código do dependente</label>
+              {% with codigo_exibir=proximo_codigo_dep|default_if_none:form.initial.depe_codi|default_if_none:form.depe_codi.value %}
+              <input
+                type="text"
+                class="form-control terceiro-readonly"
+                {% if codigo_exibir %}value="{{ codigo_exibir }}"{% endif %}
+                {% if not codigo_exibir %}placeholder="Automático"{% endif %}
+                readonly
+              >
+              {% endwith %}
+            </div>
+            <div class="col-12 col-lg-10{% if form.depe_nome.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depe_nome.id_for_label }}">
+                {{ form.depe_nome.label }}
+                {% if form.depe_nome.field.required %}<span class="text-danger">*</span>{% endif %}
+              </label>
+              {{ form.depe_nome }}
+              {% if form.depe_nome.help_text %}
+                <div class="form-text">{{ form.depe_nome.help_text }}</div>
+              {% endif %}
+              {% if form.depe_nome.errors %}
+                <div class="invalid-feedback d-block">{{ form.depe_nome.errors|join:', ' }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="row g-3">
+            {# Nascimento #}
+            <div class="col-12 col-lg-4{% if form.depe_nascimento.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depe_nascimento.id_for_label }}">
+                {{ form.depe_nascimento.label }}
+                {% if form.depe_nascimento.field.required %}<span class="text-danger">*</span>{% endif %}
+              </label>
+              <div class="d-flex gap-2 align-items-end">
+                <div class="flex-grow-1">
+                  <input type="date"
+                         name="{{ form.depe_nascimento.name }}"
+                         id="{{ form.depe_nascimento.id_for_label }}"
+                         class="form-control"
+                         value="{{ form.depe_nascimento.value|date:'Y-m-d' }}"
+                         {% if form.depe_nascimento.field.required %}required{% endif %}>
+                </div>
+                <span id="idade_calculada_texto" class="idade-texto">&nbsp;</span>
+              </div>
+              {% if form.depe_nascimento.help_text %}
+                <div class="form-text">{{ form.depe_nascimento.help_text }}</div>
+              {% endif %}
+              {% if form.depe_nascimento.errors %}
+                <div class="invalid-feedback d-block">{{ form.depe_nascimento.errors|join:', ' }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="row g-3 mt-1">
+            {# Matrícula #}
+            <div class="col-12 col-lg-6{% if form.depe_matricula.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depe_matricula.id_for_label }}">
+                {{ form.depe_matricula.label }}
+              </label>
+              {{ form.depe_matricula }}
+              {% if form.depe_matricula.help_text %}
+                <div class="form-text">{{ form.depe_matricula.help_text }}</div>
+              {% endif %}
+              {% if form.depe_matricula.errors %}
+                <div class="invalid-feedback d-block">{{ form.depe_matricula.errors|join:', ' }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="row g-3 mt-1">
+            {# Local de nascimento #}
+            <div class="col-12 col-lg-8{% if form.depe_local_nascimento.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depe_local_nascimento.id_for_label }}">
+                {{ form.depe_local_nascimento.label }}
+              </label>
+              {{ form.depe_local_nascimento }}
+              {% if form.depe_local_nascimento.help_text %}
+                <div class="form-text">{{ form.depe_local_nascimento.help_text }}</div>
+              {% endif %}
+              {% if form.depe_local_nascimento.errors %}
+                <div class="invalid-feedback d-block">{{ form.depe_local_nascimento.errors|join:', ' }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="row g-3 mt-1">
+            {# Cidade: Código IBGE + Descrição readonly #}
+            <div class="col-12 col-lg-3{% if form.depe_cidade_codigo.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depe_cidade_codigo.id_for_label }}">
+                {{ form.depe_cidade_codigo.label }}
+              </label>
+              {{ form.depe_cidade_codigo }}
+              {% if form.depe_cidade_codigo.help_text %}
+                <div class="form-text">{{ form.depe_cidade_codigo.help_text }}</div>
+              {% endif %}
+              {% if form.depe_cidade_codigo.errors %}
+                <div class="invalid-feedback d-block">{{ form.depe_cidade_codigo.errors|join:', ' }}</div>
+              {% endif %}
+            </div>
+            <div class="col-12 col-lg-9{% if form.depe_cidade.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depe_cidade.id_for_label }}">
+                {{ form.depe_cidade.label }}
+              </label>
+              {{ form.depe_cidade }}
+              {% if form.depe_cidade.help_text %}
+                <div class="form-text">{{ form.depe_cidade.help_text }}</div>
+              {% endif %}
+              {% if form.depe_cidade.errors %}
+                <div class="invalid-feedback d-block">{{ form.depe_cidade.errors|join:', ' }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="row g-3 mt-1">
+            {# Cartório #}
+            <div class="col-12 col-lg-6{% if form.depe_cartorio.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depe_cartorio.id_for_label }}">
+                {{ form.depe_cartorio.label }}
+              </label>
+              {{ form.depe_cartorio }}
+              {% if form.depe_cartorio.help_text %}
+                <div class="form-text">{{ form.depe_cartorio.help_text }}</div>
+              {% endif %}
+              {% if form.depe_cartorio.errors %}
+                <div class="invalid-feedback d-block">{{ form.depe_cartorio.errors|join:', ' }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="row g-3 mt-1">
+            {# Nº registro / Nº livro / Nº folha (3 cols, igual tela legada) #}
+            <div class="col-12 col-lg-4{% if form.depe_numero_registro.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depe_numero_registro.id_for_label }}">
+                {{ form.depe_numero_registro.label }}
+              </label>
+              {{ form.depe_numero_registro }}
+              {% if form.depe_numero_registro.help_text %}
+                <div class="form-text">{{ form.depe_numero_registro.help_text }}</div>
+              {% endif %}
+              {% if form.depe_numero_registro.errors %}
+                <div class="invalid-feedback d-block">{{ form.depe_numero_registro.errors|join:', ' }}</div>
+              {% endif %}
+            </div>
+            <div class="col-12 col-lg-4{% if form.depe_numero_livro.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depe_numero_livro.id_for_label }}">
+                {{ form.depe_numero_livro.label }}
+              </label>
+              {{ form.depe_numero_livro }}
+              {% if form.depe_numero_livro.help_text %}
+                <div class="form-text">{{ form.depe_numero_livro.help_text }}</div>
+              {% endif %}
+              {% if form.depe_numero_livro.errors %}
+                <div class="invalid-feedback d-block">{{ form.depe_numero_livro.errors|join:', ' }}</div>
+              {% endif %}
+            </div>
+            <div class="col-12 col-lg-4{% if form.depe_numero_folha.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depe_numero_folha.id_for_label }}">
+                {{ form.depe_numero_folha.label }}
+              </label>
+              {{ form.depe_numero_folha }}
+              {% if form.depe_numero_folha.help_text %}
+                <div class="form-text">{{ form.depe_numero_folha.help_text }}</div>
+              {% endif %}
+              {% if form.depe_numero_folha.errors %}
+                <div class="invalid-feedback d-block">{{ form.depe_numero_folha.errors|join:', ' }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="row g-3 mt-1">
+            {# Data da entrega #}
+            <div class="col-12 col-lg-4{% if form.depe_data_entrega.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depe_data_entrega.id_for_label }}">
+                {{ form.depe_data_entrega.label }}
+              </label>
+              <input type="date"
+                     name="{{ form.depe_data_entrega.name }}"
+                     id="{{ form.depe_data_entrega.id_for_label }}"
+                     class="form-control"
+                     value="{{ form.depe_data_entrega.value|date:'Y-m-d' }}">
+              {% if form.depe_data_entrega.help_text %}
+                <div class="form-text">{{ form.depe_data_entrega.help_text }}</div>
+              {% endif %}
+              {% if form.depe_data_entrega.errors %}
+                <div class="invalid-feedback d-block">{{ form.depe_data_entrega.errors|join:', ' }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="row g-3 mt-1">
+            {# CPF #}
+            <div class="col-12 col-lg-4{% if form.depe_cpf.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depe_cpf.id_for_label }}">
+                {{ form.depe_cpf.label }}
+              </label>
+              <input type="text"
+                     name="{{ form.depe_cpf.name }}"
+                     id="{{ form.depe_cpf.id_for_label }}"
+                     class="form-control"
+                     data-mask="cpf"
+                     maxlength="14"
+                     inputmode="numeric"
+                     placeholder="000.000.000-00"
+                     value="{{ form.depe_cpf.value|default:'' }}">
+              {% if form.depe_cpf.help_text %}
+                <div class="form-text">{{ form.depe_cpf.help_text }}</div>
+              {% endif %}
+              {% if form.depe_cpf.errors %}
+                <div class="invalid-feedback d-block">{{ form.depe_cpf.errors|join:', ' }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="row g-3 mt-1">
+            {# Data baixa + IR até (2 cols, igual tela legada) #}
+            <div class="col-12 col-lg-4{% if form.depe_data_baixa.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depe_data_baixa.id_for_label }}">
+                {{ form.depe_data_baixa.label }}
+              </label>
+              <input type="date"
+                     name="{{ form.depe_data_baixa.name }}"
+                     id="{{ form.depe_data_baixa.id_for_label }}"
+                     class="form-control"
+                     value="{{ form.depe_data_baixa.value|date:'Y-m-d' }}">
+              {% if form.depe_data_baixa.help_text %}
+                <div class="form-text">{{ form.depe_data_baixa.help_text }}</div>
+              {% endif %}
+              {% if form.depe_data_baixa.errors %}
+                <div class="invalid-feedback d-block">{{ form.depe_data_baixa.errors|join:', ' }}</div>
+              {% endif %}
+            </div>
+            <div class="col-12 col-lg-4{% if form.depe_ir_ate.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depe_ir_ate.id_for_label }}">
+                {{ form.depe_ir_ate.label }}
+              </label>
+              <input type="text"
+                     name="{{ form.depe_ir_ate.name }}"
+                     id="{{ form.depe_ir_ate.id_for_label }}"
+                     class="form-control"
+                     data-mask="00/0000"
+                     maxlength="7"
+                     placeholder="MM/AAAA"
+                     value="{{ form.depe_ir_ate.value|default:'' }}">
+              {% if form.depe_ir_ate.help_text %}
+                <div class="form-text">{{ form.depe_ir_ate.help_text }}</div>
+              {% endif %}
+              {% if form.depe_ir_ate.errors %}
+                <div class="invalid-feedback d-block">{{ form.depe_ir_ate.errors|join:', ' }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="row g-3 mt-1">
+            {# Tipo de dependente (combo full width) #}
+            <div class="col-12 col-lg-8{% if form.depe_tipo_dependente.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depe_tipo_dependente.id_for_label }}">
+                {{ form.depe_tipo_dependente.label }}
+              </label>
+              {{ form.depe_tipo_dependente }}
+              {% if form.depe_tipo_dependente.help_text %}
+                <div class="form-text">{{ form.depe_tipo_dependente.help_text }}</div>
+              {% endif %}
+              {% if form.depe_tipo_dependente.errors %}
+                <div class="invalid-feedback d-block">{{ form.depe_tipo_dependente.errors|join:', ' }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="row g-3 mt-1">
+            {# Descrição da dependência #}
+            <div class="col-12 col-lg-12{% if form.depe_descricao_dependencia.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depe_descricao_dependencia.id_for_label }}">
+                {{ form.depe_descricao_dependencia.label }}
+              </label>
+              {{ form.depe_descricao_dependencia }}
+              {% if form.depe_descricao_dependencia.help_text %}
+                <div class="form-text">{{ form.depe_descricao_dependencia.help_text }}</div>
+              {% endif %}
+              {% if form.depe_descricao_dependencia.errors %}
+                <div class="invalid-feedback d-block">{{ form.depe_descricao_dependencia.errors|join:', ' }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="row g-3 mt-1">
+            {# Inválido checkbox esquerda #}
+            <div class="col-12 col-lg-6{% if form.depe_invalido.errors %} field-error{% endif %}">
+              <div class="funcionario-check-item pb-1">
+                {{ form.depe_invalido }}
+                <label for="id_{{ form.depe_invalido.html_name }}">{{ form.depe_invalido.label|default:"Inválido" }}</label>
+              </div>
+              {% if form.depe_invalido.errors %}
+                <div class="invalid-feedback d-block">{{ form.depe_invalido.errors|join:', ' }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+        </div>
+
+        {# =============== ABA 2: OBSERVAÇÕES =============== #}
+        <div class="tab-pane fade" id="tab-observacoes" role="tabpanel">
+          <div class="row g-3">
+            <div class="col-12{% if form.depe_observacoes.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depe_observacoes.id_for_label }}">
+                {{ form.depe_observacoes.label }}
+              </label>
+              <textarea name="{{ form.depe_observacoes.name }}"
+                        id="{{ form.depe_observacoes.id_for_label }}"
+                        class="form-control"
+                        rows="12"
+                        placeholder="Observações gerais...">{{ form.depe_observacoes.value|default:'' }}</textarea>
+              {% if form.depe_observacoes.help_text %}
+                <div class="form-text">{{ form.depe_observacoes.help_text }}</div>
+              {% endif %}
+              {% if form.depe_observacoes.errors %}
+                <div class="invalid-feedback d-block">{{ form.depe_observacoes.errors|join:', ' }}</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    {% include "partials/ui/form_actions.html" with form_actions_url_voltar=url_voltar|default:"#" %}
+  </form>
+</div>
+
+<script>
+  const CIDADES_POR_CODIGO = {{ cidades_por_codigo_json|default:"{}"|safe }};
+
+  document.addEventListener('DOMContentLoaded', function () {
+
+    // ================================================================
+    // BIND: Sincroniza hash da URL com abas Bootstrap 5 (bindTabsHash)
+    // ================================================================
+    (function bindTabsHash() {
+      const abas = document.querySelectorAll('button.nav-link[data-bs-toggle="tab"], a.nav-link[data-bs-toggle="tab"]');
+      if (!abas.length || typeof bootstrap === 'undefined' || !bootstrap.Tab) return;
+
+      const triggerDaAba = (idAba) => {
+        if (!idAba) return null;
+        return document.querySelector(`[data-bs-target="${idAba}"]`);
+      };
+
+      const ativarAbaPeloHash = (hash) => {
+        const h = (hash || window.location.hash || '').trim();
+        if (!h || !h.startsWith('#tab-')) return false;
+        const trigger = triggerDaAba(h);
+        if (!trigger) return false;
+        if (trigger.classList && trigger.classList.contains('active')) return true;
+        try {
+          const tab = new bootstrap.Tab(trigger);
+          tab.show();
+          return true;
+        } catch (_) {
+          trigger.click();
+          return true;
+        }
+      };
+
+      ativarAbaPeloHash();
+
+      abas.forEach((trigger) => {
+        trigger.addEventListener('shown.bs.tab', () => {
+          const target = trigger.getAttribute('data-bs-target') || '';
+          if (target.startsWith('#tab-')) {
+            const novaUrl = window.location.pathname + window.location.search + target;
+            try { window.history.replaceState(null, '', novaUrl); } catch (_) {}
+          }
+        });
+      });
+
+      window.addEventListener('hashchange', () => { ativarAbaPeloHash(); });
+    })();
+
+    // ================================================================
+    // MASKS: aplica máscaras dinâmicas (cpf, 00/0000, etc) + digits_only
+    // ================================================================
+    (function applyAllMasks() {
+
+      function formatMask(raw, pattern) {
+        const digits = String(raw || '').replace(/\D/g, '');
+        if (!digits) return '';
+        if (pattern === 'cpf') {
+          return digits.slice(0, 11)
+            .replace(/(\d{3})(\d)/, '$1.$2')
+            .replace(/(\d{3})(\d)/, '$1.$2')
+            .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+        }
+        if (pattern === '00/0000') {
+          return digits.slice(0, 6).replace(/^(\d{2})(\d{0,4})$/, function (_, a, b) {
+            return b ? (a + '/' + b) : a;
+          });
+        }
+        return raw;
+      }
+
+      function formatarCampo(input) {
+        const pattern = input.getAttribute('data-mask');
+        if (!pattern) return;
+        const novoValor = formatMask(input.value, pattern);
+        if (input.value !== novoValor) input.value = novoValor;
+      }
+
+      function digitsOnlyFilter(input) {
+        if (input.getAttribute('data-digits-only') !== 'true') return;
+        const limpo = String(input.value || '').replace(/\D/g, '');
+        if (input.value !== limpo) input.value = limpo;
+      }
+
+      document.querySelectorAll('[data-mask]').forEach(function (input) {
+        formatarCampo(input);
+        ['input', 'blur', 'change'].forEach((ev) => {
+          input.addEventListener(ev, function () { formatarCampo(input); });
+        });
+      });
+
+      document.querySelectorAll('[data-digits-only="true"]').forEach(function (input) {
+        digitsOnlyFilter(input);
+        ['input', 'blur', 'change', 'paste'].forEach((ev) => {
+          input.addEventListener(ev, function () {
+            setTimeout(function () { digitsOnlyFilter(input); }, 0);
+          });
+        });
+      });
+    })();
+
+    // ================================================================
+    // FALLBACK: consulta IBGE online quando código NÃO estiver no dict local
+    // ================================================================
+    async function lookupIbgeOnline(codigo) {
+      try {
+        const url = `https://servicodados.ibge.gov.br/api/v1/localidades/municipios/${codigo}`;
+        const response = await fetch(url, { method: "GET", cache: "no-store" });
+        if (!response.ok) return null;
+        const data = await response.json();
+        if (!data) return null;
+        const nome = data.nome || "";
+        const uf = (data.microrregiao && data.microrregiao.mesorregiao && data.microrregiao.mesorregiao.UF && data.microrregiao.mesorregiao.UF.sigla) || "";
+        if (!nome || !uf) return null;
+        return { nome, uf };
+      } catch (err) {
+        return null;
+      }
+    }
+
+    // ================================================================
+    // BIND: Cidade cod IBGE -> preenche cidade desc (2 estagios local + online)
+    // ================================================================
+    (function bindCidadeIbGELookup() {
+      const cidadeCodiInput = document.getElementById('id_depe_cidade_codigo');
+      const cidadeDescInput = document.getElementById('id_depe_cidade');
+      if (!cidadeCodiInput) return;
+
+      async function handleLookup() {
+        const raw = (cidadeCodiInput.value || '').trim();
+        if (!raw) return;
+        const digitos = raw.replace(/\D/g, '');
+        if (!digitos) return;
+        const chave = String(parseInt(digitos, 10));
+        const info = CIDADES_POR_CODIGO[chave];
+        let nomeCidade = '';
+
+        if (info) {
+          if (Array.isArray(info)) nomeCidade = info[0] || '';
+          else if (typeof info === 'string') nomeCidade = info;
+        } else {
+          const online = await lookupIbgeOnline(digitos);
+          if (online) nomeCidade = online.nome;
+        }
+
+        if (cidadeDescInput && nomeCidade) {
+          cidadeDescInput.value = nomeCidade;
+          cidadeDescInput.dispatchEvent(new Event('input', { bubbles: true }));
+          cidadeDescInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      }
+
+      ['blur', 'change'].forEach((ev) => cidadeCodiInput.addEventListener(ev, handleLookup));
+      cidadeCodiInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === 'Tab') handleLookup();
+      });
+    })();
+
+    // ================================================================
+    // CALCULO IDADE: Nascimento -> label texto ao lado (igual terceiros form)
+    // ================================================================
+    (function bindIdadeCalculada() {
+      function calcularIdade(dataStr) {
+        if (!dataStr) return "";
+        const s = String(dataStr).trim();
+        if (!s) return "";
+        let ano, mes, dia;
+        if (s.includes("-")) {
+          const parts = s.split("-");
+          if (parts.length < 3) return "";
+          ano = parseInt(parts[0], 10);
+          mes = parseInt(parts[1], 10);
+          dia = parseInt(parts[2], 10);
+        } else {
+          const digitos = s.replace(/\D/g, "").match(/^(\d{2})(\d{2})(\d{4})$/);
+          if (!digitos) return "";
+          dia = parseInt(digitos[1], 10);
+          mes = parseInt(digitos[2], 10);
+          ano = parseInt(digitos[3], 10);
+        }
+        if (!ano || !mes || !dia || mes < 1 || mes > 12 || dia < 1 || dia > 31 || ano < 1900 || ano > new Date().getFullYear()) return "";
+        const nascimento = new Date(ano, mes - 1, dia);
+        if (isNaN(nascimento.getTime())) return "";
+        const hoje = new Date();
+        let idade = hoje.getFullYear() - nascimento.getFullYear();
+        const mesDif = hoje.getMonth() - nascimento.getMonth();
+        if (mesDif < 0 || (mesDif === 0 && hoje.getDate() < nascimento.getDate())) idade -= 1;
+        if (idade < 0) return "";
+        return idade + " ano" + (idade === 1 ? "" : "s");
+      }
+
+      const nascimentoInput = document.getElementById('id_depe_nascimento');
+      const idadeDisplay = document.getElementById('idade_calculada_texto');
+      if (!nascimentoInput || !idadeDisplay) return;
+
+      function atualizarIdade() {
+        const txt = calcularIdade(nascimentoInput.value || "") || "&nbsp;";
+        if (txt === "&nbsp;") idadeDisplay.innerHTML = "&nbsp;";
+        else idadeDisplay.textContent = txt;
+      }
+      ['input', 'blur', 'change'].forEach((ev) => nascimentoInput.addEventListener(ev, atualizarIdade));
+      atualizarIdade();
+    })();
+
+    // ================================================================
+    // VALIDAÇÃO CPF FRONTEND EM TEMPO REAL (mesma fórmula _cpf_valido Python)
+    // ================================================================
+    (function bindCpfValidation() {
+      const cpfInput = document.getElementById('id_depe_cpf');
+      if (!cpfInput) return;
+
+      function _digitsOnly(s) {
+        return String(s || "").replace(/\D/g, "").slice(0, 11);
+      }
+      function _validarCpfBackend(cpf11) {
+        if (cpf11.length !== 11) return false;
+        if (/^(\d)\1+$/.test(cpf11)) return false;
+        let soma = 0;
+        for (let i = 0; i < 9; i++) soma += parseInt(cpf11[i], 10) * (10 - i);
+        let resto = (soma * 10) % 11;
+        if (resto === 10) resto = 0;
+        if (parseInt(cpf11[9], 10) !== resto) return false;
+        soma = 0;
+        for (let i = 0; i < 10; i++) soma += parseInt(cpf11[i], 10) * (11 - i);
+        resto = (soma * 10) % 11;
+        if (resto === 10) resto = 0;
+        return parseInt(cpf11[10], 10) === resto;
+      }
+      function limparErro() {
+        cpfInput.classList.remove("is-invalid");
+        cpfInput.setCustomValidity("");
+        let fb = cpfInput.parentElement.querySelector(".invalid-feedback.d-block");
+        if (fb) fb.remove();
+        fb = document.getElementById("cpf-invalid-feedback");
+        if (fb) fb.remove();
+      }
+      function exibirErro(msg) {
+        limparErro();
+        cpfInput.classList.add("is-invalid");
+        cpfInput.setCustomValidity(msg);
+        let fb = document.createElement("div");
+        fb.className = "invalid-feedback d-block";
+        fb.id = "cpf-invalid-feedback";
+        fb.textContent = msg;
+        cpfInput.parentElement.appendChild(fb);
+      }
+      function validarCpf() {
+        const digits = _digitsOnly(cpfInput.value);
+        if (!digits) { limparErro(); return; }
+        if (digits.length !== 11) { limparErro(); return; }
+        if (!_validarCpfBackend(digits)) exibirErro("Informe um CPF válido.");
+        else limparErro();
+      }
+      ['blur', 'change', 'input'].forEach((ev) => cpfInput.addEventListener(ev, validarCpf));
+      cpfInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === 'Tab') setTimeout(validarCpf, 50);
+      });
+    })();
+
+  });
+</script>
+
+{% endblock %}

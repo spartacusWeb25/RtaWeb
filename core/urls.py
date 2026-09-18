@@ -25,6 +25,7 @@ urlpatterns = [
     path("dadosrescisao/", include("dadosrescisao.web.urls")),
     path("dependentesrh/", include("dependentesrh.web.urls")),
     path("dependentescontr/", include("dependentescontr.web.urls")),
+    path("dependentesterc/", include("dependentesterc.web.urls")),
     path("empresas/", include("empresas.web.urls")),
     path("eventos/", include("eventos.web.urls")),
     path("ferias/", include("ferias.web.urls")),
@@ -35,11 +36,13 @@ urlpatterns = [
     path("horarios/", include("horarios.web.urls")),
     path("lancamentosfolha/", include("lancamentosfolha.web.urls")),
     path("sindicatos/", include("sindicatos.web.urls")),
+    path("sindicatospatronais/", include("sindicatospatronais.web.urls")),
     path("tabelainss/", include("tabelainss.web.urls")),
     path("tabelairrf/", include("tabelairrf.web.urls")),
     path("tabelasalafami/", include("tabelasalafami.web.urls")),
     path("tabelasalarial/", include("tabelasalarial.web.urls")),
     path("tabelasalariominimo/", include("tabelasalariominimo.web.urls")),
+    path("terceiros/", include("terceiros.web.urls")),
     path("usuarios/", include("usuarios.web.urls")),
 ]
 

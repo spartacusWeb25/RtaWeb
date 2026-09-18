@@ -1,0 +1,1055 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if object %}Editar Sindicato Trabalhador{% else %}Novo Sindicato Trabalhador{% endif %} — RtaWeb{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+<style>
+  .field-error .form-control,
+  .field-error .form-select,
+  .field-error .form-check-input {
+    border-color: var(--bs-danger);
+    box-shadow: 0 0 0 0.12rem rgba(220, 53, 69, .12);
+  }
+  .invalid-feedback.d-block {
+    font-weight: 500;
+  }
+  .field-error {
+    scroll-margin-top: 6rem;
+  }
+  .sindicato-readonly {
+    background: var(--bs-secondary-bg);
+  }
+  .nav-tabs-sind a.nav-link {
+    border-radius: 6px 6px 0 0;
+  }
+  .tab-pane-sind {
+    padding-top: 1rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h4>{% if object %}Editar Sindicato Trabalhador{% else %}Novo Sindicato Trabalhador{% endif %}</h4>
+
+  <form method="post" action="" novalidate>
+    {% csrf_token %}
+
+    <input type="hidden" name="registro" value="{{ form.initial.registro|default:'' }}">
+    <input type="hidden" name="sind_empr" value="{{ form.initial.sind_empr|default:'' }}">
+    <input type="hidden" name="sind_fili" value="{{ form.initial.sind_fili|default:'' }}">
+    <input type="hidden" name="sind_codi" value="{{ form.initial.sind_codi|default:'' }}">
+    <input type="hidden" name="sind_logr_desc" value="{{ form.initial.sind_logr_desc|default:'' }}">
+
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger mt-3" role="alert">
+      {{ form.non_field_errors }}
+    </div>
+    {% endif %}
+
+    {% if form.errors %}
+    <div class="alert alert-warning mt-3" role="alert">
+      Revise os campos destacados em vermelho antes de salvar.
+      <ul class="mb-0 mt-2">
+        {% for field in form.visible_fields %}
+          {% for error in field.errors %}
+          <li>{{ field.label }}: {{ error }}</li>
+          {% endfor %}
+        {% endfor %}
+        {% for field in form.hidden_fields %}
+          {% for error in field.errors %}
+          <li>Campo interno ({{ field.name }}): {{ error }}</li>
+          {% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    <div class="app-form-card mb-3">
+      <div class="row g-3 p-3">
+        <div class="row g-3 align-items-end">
+          <div class="col-12 col-lg-2{% if form.sind_codi.errors %} field-error{% endif %}">
+            <label class="form-label" for="{{ form.sind_codi.id_for_label }}">
+              Código
+            </label>
+            {% if object and object.sind_codi %}
+            {% with codigo_exibir=object.sind_codi %}
+            <input
+              type="text"
+              class="form-control sindicato-readonly"
+              value="{{ codigo_exibir }}"
+              readonly
+            >
+            {% endwith %}
+            {% else %}
+            {% with codigo_exibir=proximo_codigo|default_if_none:form.initial.sind_codi|default_if_none:form.sind_codi.value %}
+            <input
+              type="text"
+              class="form-control sindicato-readonly"
+              {% if codigo_exibir %}value="{{ codigo_exibir }}"{% endif %}
+              {% if not codigo_exibir %}placeholder="Automático"{% endif %}
+              readonly
+            >
+            {% endwith %}
+            {% endif %}
+            {% if form.sind_codi.errors %}
+              <div class="invalid-feedback d-block">{{ form.sind_codi.errors|join:', ' }}</div>
+            {% endif %}
+          </div>
+          <div class="col-12 col-lg-7{% if form.sind_nome.errors %} field-error{% endif %}">
+            <label class="form-label" for="{{ form.sind_nome.id_for_label }}">
+              {{ form.sind_nome.label|default:"Sindicato" }}
+              {% if form.sind_nome.field.required %}<span class="text-danger">*</span>{% endif %}
+            </label>
+            {{ form.sind_nome }}
+            {% if form.sind_nome.errors %}
+              <div class="invalid-feedback d-block">{{ form.sind_nome.errors|join:', ' }}</div>
+            {% endif %}
+          </div>
+          <div class="col-12 col-lg-3{% if form.sind_apelido.errors %} field-error{% endif %}">
+            <label class="form-label" for="{{ form.sind_apelido.id_for_label }}">
+              {{ form.sind_apelido.label|default:"Apelido" }}
+            </label>
+            {{ form.sind_apelido }}
+            {% if form.sind_apelido.errors %}
+              <div class="invalid-feedback d-block">{{ form.sind_apelido.errors|join:', ' }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="app-form-card">
+      <ul class="nav nav-tabs nav-tabs-sind mb-3" id="tabsSindTrab" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-cadastrais" type="button" role="tab" aria-selected="true">
+            <i class="bi bi-person-vcard"></i> Cadastrais
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-dados-variaveis" type="button" role="tab" aria-selected="false">
+            <i class="bi bi-calendar-month"></i> Dados variáveis mês a mês
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-medias" type="button" role="tab" aria-selected="false">
+            <i class="bi bi-bar-chart-line"></i> Médias
+          </button>
+        </li>
+      </ul>
+
+      <div class="tab-content">
+        <div class="tab-pane show active tab-pane-sind" id="tab-cadastrais" role="tabpanel">
+          <div class="p-3 pt-0">
+
+            <div class="row g-3 mb-2">
+              <div class="col-12 col-lg-2">
+                <label class="form-label">Empresa</label>
+                <input
+                  type="text"
+                  class="form-control sindicato-readonly"
+                  value="{{ form.initial.sind_empr|default_if_none:'' }}"
+                  readonly
+                >
+              </div>
+              <div class="col-12 col-lg-10">
+                <label class="form-label">Empresa</label>
+                <input
+                  type="text"
+                  class="form-control sindicato-readonly"
+                  value="{{ empresa_nome|default:'Empresa padrao da licenca' }}"
+                  readonly
+                >
+              </div>
+            </div>
+
+            <div class="row g-3 mb-2">
+              <div class="col-12 col-lg-2">
+                <label class="form-label">Filial</label>
+                <input
+                  type="text"
+                  class="form-control sindicato-readonly"
+                  value="{{ form.initial.sind_fili|default_if_none:'' }}"
+                  readonly
+                >
+              </div>
+              <div class="col-12 col-lg-3{% if form.sind_tipo_entidade.errors %} field-error{% endif %}">
+                <label class="form-label" for="{{ form.sind_tipo_entidade.id_for_label }}">
+                  {{ form.sind_tipo_entidade.label|default:"Entidade" }}
+                </label>
+                {{ form.sind_tipo_entidade }}
+                {% if form.sind_tipo_entidade.errors %}
+                  <div class="invalid-feedback d-block">{{ form.sind_tipo_entidade.errors|join:', ' }}</div>
+                {% endif %}
+              </div>
+              <div class="col-12 col-lg-4{% if form.sind_entidade.errors %} field-error{% endif %}">
+                <label class="form-label" for="{{ form.sind_entidade.id_for_label }}">
+                  {{ form.sind_entidade.label|default:"Entidade" }}
+                </label>
+                {{ form.sind_entidade }}
+                {% if form.sind_entidade.errors %}
+                  <div class="invalid-feedback d-block">{{ form.sind_entidade.errors|join:', ' }}</div>
+                {% endif %}
+              </div>
+              <div class="col-12 col-lg-3{% if form.sind_codi_sind.errors %} field-error{% endif %}">
+                <label class="form-label" for="{{ form.sind_codi_sind.id_for_label }}">
+                  {{ form.sind_codi_sind.label|default:"Código entidade" }}
+                </label>
+                {{ form.sind_codi_sind }}
+                {% if form.sind_codi_sind.errors %}
+                  <div class="invalid-feedback d-block">{{ form.sind_codi_sind.errors|join:', ' }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="row g-3 mb-2">
+              <div class="col-12 col-lg-6{% if form.sind_agencia_grcs.errors %} field-error{% endif %}">
+                <label class="form-label" for="{{ form.sind_agencia_grcs.id_for_label }}">
+                  {{ form.sind_agencia_grcs.label|default:"Agência GRCS" }}
+                </label>
+                {{ form.sind_agencia_grcs }}
+                {% if form.sind_agencia_grcs.errors %}
+                  <div class="invalid-feedback d-block">{{ form.sind_agencia_grcs.errors|join:', ' }}</div>
+                {% endif %}
+              </div>
+              <div class="col-12 col-lg-6{% if form.sind_codi_cede.errors %} field-error{% endif %}">
+                <label class="form-label" for="{{ form.sind_codi_cede.id_for_label }}">
+                  {{ form.sind_codi_cede.label|default:"Código cedente" }}
+                </label>
+                {{ form.sind_codi_cede }}
+                {% if form.sind_codi_cede.errors %}
+                  <div class="invalid-feedback d-block">{{ form.sind_codi_cede.errors|join:', ' }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="row g-3 mb-2">
+              <div class="col-12 col-lg-2{% if form.sind_cep.errors %} field-error{% endif %}">
+                <label class="form-label" for="{{ form.sind_cep.id_for_label }}">
+                  {{ form.sind_cep.label|default:"CEP" }}
+                </label>
+                {{ form.sind_cep }}
+                {% if form.sind_cep.errors %}
+                  <div class="invalid-feedback d-block">{{ form.sind_cep.errors|join:', ' }}</div>
+                {% endif %}
+              </div>
+              <div class="col-12 col-lg-2{% if form.sind_logr.errors %} field-error{% endif %}">
+                <label class="form-label" for="{{ form.sind_logr.id_for_label }}">
+                  {{ form.sind_logr.label|default:"Logradouro" }}
+                </label>
+                {{ form.sind_logr }}
+                {% if form.sind_logr.errors %}
+                  <div class="invalid-feedback d-block">{{ form.sind_logr.errors|join:', ' }}</div>
+                {% endif %}
+              </div>
+              <div class="col-12 col-lg-6{% if form.sind_ende.errors %} field-error{% endif %}">
+                <label class="form-label" for="{{ form.sind_ende.id_for_label }}">
+                  {{ form.sind_ende.label|default:"Endereço" }}
+                </label>
+                {{ form.sind_ende }}
+                {% if form.sind_ende.errors %}
+                  <div class="invalid-feedback d-block">{{ form.sind_ende.errors|join:', ' }}</div>
+                {% endif %}
+              </div>
+              <div class="col-12 col-lg-2{% if form.sind_ende_nume.errors %} field-error{% endif %}">
+                <label class="form-label" for="{{ form.sind_ende_nume.id_for_label }}">
+                  {{ form.sind_ende_nume.label|default:"Número" }}
+                </label>
+                {{ form.sind_ende_nume }}
+                {% if form.sind_ende_nume.errors %}
+                  <div class="invalid-feedback d-block">{{ form.sind_ende_nume.errors|join:', ' }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="row g-3 mb-2">
+              <div class="col-12 col-lg-6{% if form.sind_ende_comp.errors %} field-error{% endif %}">
+                <label class="form-label" for="{{ form.sind_ende_comp.id_for_label }}">
+                  {{ form.sind_ende_comp.label|default:"Complemento" }}
+                </label>
+                {{ form.sind_ende_comp }}
+                {% if form.sind_ende_comp.errors %}
+                  <div class="invalid-feedback d-block">{{ form.sind_ende_comp.errors|join:', ' }}</div>
+                {% endif %}
+              </div>
+              <div class="col-12 col-lg-6{% if form.sind_ende_bair.errors %} field-error{% endif %}">
+                <label class="form-label" for="{{ form.sind_ende_bair.id_for_label }}">
+                  {{ form.sind_ende_bair.label|default:"Bairro" }}
+                </label>
+                {{ form.sind_ende_bair }}
+                {% if form.sind_ende_bair.errors %}
+                  <div class="invalid-feedback d-block">{{ form.sind_ende_bair.errors|join:', ' }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="row g-3 mb-2">
+              <div class="col-12 col-lg-2{% if form.sind_cida_codi.errors %} field-error{% endif %}">
+                <label class="form-label" for="{{ form.sind_cida_codi.id_for_label }}">
+                  {{ form.sind_cida_codi.label|default:"Cidade" }}
+                </label>
+                {{ form.sind_cida_codi }}
+                {% if form.sind_cida_codi.errors %}
+                  <div class="invalid-feedback d-block">{{ form.sind_cida_codi.errors|join:', ' }}</div>
+                {% endif %}
+              </div>
+              <div class="col-12 col-lg-8{% if form.sind_cida_desc.errors %} field-error{% endif %}">
+                <label class="form-label" for="{{ form.sind_cida_desc.id_for_label }}">
+                  &nbsp;
+                </label>
+                {{ form.sind_cida_desc }}
+                {% if form.sind_cida_desc.errors %}
+                  <div class="invalid-feedback d-block">{{ form.sind_cida_desc.errors|join:', ' }}</div>
+                {% endif %}
+              </div>
+              <div class="col-12 col-lg-2{% if form.sind_esta.errors %} field-error{% endif %}">
+                <label class="form-label" for="{{ form.sind_esta.id_for_label }}">
+                  {{ form.sind_esta.label|default:"UF" }}
+                </label>
+                {{ form.sind_esta }}
+                {% if form.sind_esta.errors %}
+                  <div class="invalid-feedback d-block">{{ form.sind_esta.errors|join:', ' }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="row g-3 mb-2">
+              <div class="col-12 col-lg-2{% if form.sind_ddd1.errors %} field-error{% endif %}">
+                <label class="form-label" for="{{ form.sind_ddd1.id_for_label }}">
+                  {{ form.sind_ddd1.label|default:"DDD" }}
+                </label>
+                {{ form.sind_ddd1 }}
+                {% if form.sind_ddd1.errors %}
+                  <div class="invalid-feedback d-block">{{ form.sind_ddd1.errors|join:', ' }}</div>
+                {% endif %}
+              </div>
+              <div class="col-12 col-lg-4{% if form.sind_fone1.errors %} field-error{% endif %}">
+                <label class="form-label" for="{{ form.sind_fone1.id_for_label }}">
+                  {{ form.sind_fone1.label|default:"Telefone" }}
+                </label>
+                {{ form.sind_fone1 }}
+                {% if form.sind_fone1.errors %}
+                  <div class="invalid-feedback d-block">{{ form.sind_fone1.errors|join:', ' }}</div>
+                {% endif %}
+              </div>
+              <div class="col-12 col-lg-2{% if form.sind_ddd2.errors %} field-error{% endif %}">
+                <label class="form-label" for="{{ form.sind_ddd2.id_for_label }}">
+                  {{ form.sind_ddd2.label|default:"DDD 2" }}
+                </label>
+                {{ form.sind_ddd2 }}
+                {% if form.sind_ddd2.errors %}
+                  <div class="invalid-feedback d-block">{{ form.sind_ddd2.errors|join:', ' }}</div>
+                {% endif %}
+              </div>
+              <div class="col-12 col-lg-4{% if form.sind_fone2.errors %} field-error{% endif %}">
+                <label class="form-label" for="{{ form.sind_fone2.id_for_label }}">
+                  {{ form.sind_fone2.label|default:"Telefone 2" }}
+                </label>
+                {{ form.sind_fone2 }}
+                {% if form.sind_fone2.errors %}
+                  <div class="invalid-feedback d-block">{{ form.sind_fone2.errors|join:', ' }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="row g-3 mb-2">
+              <div class="col-12 col-lg-8{% if form.sind_cnpj.errors %} field-error{% endif %}">
+                <label class="form-label" for="{{ form.sind_cnpj.id_for_label }}">
+                  {{ form.sind_cnpj.label|default:"CNPJ" }}
+                </label>
+                {{ form.sind_cnpj }}
+                {% if form.sind_cnpj.errors %}
+                  <div class="invalid-feedback d-block">{{ form.sind_cnpj.errors|join:', ' }}</div>
+                {% endif %}
+              </div>
+              <div class="col-12 col-lg-4{% if form.sind_tabela.errors %} field-error{% endif %}">
+                <label class="form-label" for="{{ form.sind_tabela.id_for_label }}">
+                  {{ form.sind_tabela.label|default:"Tabela" }}
+                </label>
+                {{ form.sind_tabela }}
+                {% if form.sind_tabela.errors %}
+                  <div class="invalid-feedback d-block">{{ form.sind_tabela.errors|join:', ' }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="row g-3 mb-2">
+              <div class="col-12 col-lg-12{% if form.sind_site.errors %} field-error{% endif %}">
+                <label class="form-label" for="{{ form.sind_site.id_for_label }}">
+                  {{ form.sind_site.label|default:"Site" }}
+                </label>
+                {{ form.sind_site }}
+                {% if form.sind_site.errors %}
+                  <div class="invalid-feedback d-block">{{ form.sind_site.errors|join:', ' }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="row g-3 mb-2">
+              <div class="col-12 col-lg-12{% if form.sind_emai.errors %} field-error{% endif %}">
+                <label class="form-label" for="{{ form.sind_emai.id_for_label }}">
+                  {{ form.sind_emai.label|default:"E-mail" }}
+                </label>
+                {{ form.sind_emai }}
+                {% if form.sind_emai.errors %}
+                  <div class="invalid-feedback d-block">{{ form.sind_emai.errors|join:', ' }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            {% url 'sindicatos:listar' as url_voltar %}
+            {% include "partials/ui/form_actions.html" with form_actions_url_voltar=url_voltar|add:"?banco="|add:request.banco %}
+          </div>
+        </div>
+
+        <div class="tab-pane fade tab-pane-sind" id="tab-dados-variaveis" role="tabpanel">
+          <div class="p-3 pt-0">
+
+            {# ============================================================= #}
+            {# 1. GRUPO 1: VALORES MONETÁRIOS / PERCENTUAIS TOPO #}
+            {# ============================================================= #}
+            <div class="app-form-card-inner mb-4">
+              <h6 class="text-primary mb-3 mt-1"><i class="bi bi-cash-coin"></i> Valores monetários e índices</h6>
+              <div class="row g-3 mb-2">
+                <div class="col-12 col-lg-4{% if form.sind_dv_piso_salarial.errors %} field-error{% endif %}">
+                  <label class="form-label" for="{{ form.sind_dv_piso_salarial.id_for_label }}">Piso salarial</label>
+                  {{ form.sind_dv_piso_salarial }}
+                  {% if form.sind_dv_piso_salarial.errors %}<div class="invalid-feedback d-block">{{ form.sind_dv_piso_salarial.errors|join:', ' }}</div>{% endif %}
+                </div>
+                <div class="col-12 col-lg-4{% if form.sind_dv_base_adicionais.errors %} field-error{% endif %}">
+                  <label class="form-label" for="{{ form.sind_dv_base_adicionais.id_for_label }}">Base adicionais</label>
+                  {{ form.sind_dv_base_adicionais }}
+                  {% if form.sind_dv_base_adicionais.errors %}<div class="invalid-feedback d-block">{{ form.sind_dv_base_adicionais.errors|join:', ' }}</div>{% endif %}
+                </div>
+                <div class="col-12 col-lg-4{% if form.sind_dv_indice.errors %} field-error{% endif %}">
+                  <label class="form-label" for="{{ form.sind_dv_indice.id_for_label }}">Índice</label>
+                  {{ form.sind_dv_indice }}
+                  {% if form.sind_dv_indice.errors %}<div class="invalid-feedback d-block">{{ form.sind_dv_indice.errors|join:', ' }}</div>{% endif %}
+                </div>
+              </div>
+
+              <div class="row g-3 mb-2 align-items-start">
+                <div class="col-12 col-lg-4{% if form.sind_dv_maior_remuneracao.errors %} field-error{% endif %}">
+                  <label class="form-label" for="{{ form.sind_dv_maior_remuneracao.id_for_label }}">Maior remuneração</label>
+                  {{ form.sind_dv_maior_remuneracao }}
+                  {% if form.sind_dv_maior_remuneracao.errors %}<div class="invalid-feedback d-block">{{ form.sind_dv_maior_remuneracao.errors|join:', ' }}</div>{% endif %}
+                </div>
+                <div class="col-12 col-lg-4 d-flex flex-column justify-content-center mt-2 pt-3">
+                  <div class="form-check mb-2">
+                    {{ form.sind_dv_maior_rem_agrupada }}
+                    <label class="form-check-label" for="{{ form.sind_dv_maior_rem_agrupada.id_for_label }}">Considerar maior remuneração sobre verba agrupada</label>
+                  </div>
+                  <div class="form-check">
+                    {{ form.sind_dv_aviso_previo_2anos }}
+                    <label class="form-check-label" for="{{ form.sind_dv_aviso_previo_2anos.id_for_label }}">Aviso prévio proporcional a partir de 2 anos</label>
+                  </div>
+                </div>
+                <div class="col-12 col-lg-4"></div>
+              </div>
+            </div>
+
+            {# ============================================================= #}
+            {# 2. GRUPO 2: FÉRIAS #}
+            {# ============================================================= #}
+            <div class="app-form-card-inner mb-4">
+              <h6 class="text-primary mb-3 mt-1"><i class="bi bi-calendar-week"></i> Férias</h6>
+              <div class="row g-3 mb-2">
+                <div class="col-12 col-lg-4{% if form.sind_dv_perc_abono_ferias.errors %} field-error{% endif %}">
+                  <label class="form-label" for="{{ form.sind_dv_perc_abono_ferias.id_for_label }}">% de abono de férias</label>
+                  {{ form.sind_dv_perc_abono_ferias }}
+                  {% if form.sind_dv_perc_abono_ferias.errors %}<div class="invalid-feedback d-block">{{ form.sind_dv_perc_abono_ferias.errors|join:', ' }}</div>{% endif %}
+                </div>
+                <div class="col-12 col-lg-4{% if form.sind_dv_meses_ferias_dobro.errors %} field-error{% endif %}">
+                  <label class="form-label" for="{{ form.sind_dv_meses_ferias_dobro.id_for_label }}">Quantidade meses para férias dobro</label>
+                  {{ form.sind_dv_meses_ferias_dobro }}
+                  {% if form.sind_dv_meses_ferias_dobro.errors %}<div class="invalid-feedback d-block">{{ form.sind_dv_meses_ferias_dobro.errors|join:', ' }}</div>{% endif %}
+                </div>
+                <div class="col-12 col-lg-4{% if form.sind_dv_meses_ferias_justa.errors %} field-error{% endif %}">
+                  <label class="form-label" for="{{ form.sind_dv_meses_ferias_justa.id_for_label }}">Meses para férias em justa causa</label>
+                  {{ form.sind_dv_meses_ferias_justa }}
+                  {% if form.sind_dv_meses_ferias_justa.errors %}<div class="invalid-feedback d-block">{{ form.sind_dv_meses_ferias_justa.errors|join:', ' }}</div>{% endif %}
+                </div>
+              </div>
+              <div class="row g-3">
+                <div class="col-12 col-lg-4{% if form.sind_dv_ferias_rescisao.errors %} field-error{% endif %}">
+                  <label class="form-label" for="{{ form.sind_dv_ferias_rescisao.id_for_label }}">Férias rescisão</label>
+                  {{ form.sind_dv_ferias_rescisao }}
+                  {% if form.sind_dv_ferias_rescisao.errors %}<div class="invalid-feedback d-block">{{ form.sind_dv_ferias_rescisao.errors|join:', ' }}</div>{% endif %}
+                </div>
+                <div class="col-12 col-lg-4{% if form.sind_dv_perc_adicional_noturno.errors %} field-error{% endif %}">
+                  <label class="form-label" for="{{ form.sind_dv_perc_adicional_noturno.id_for_label }}">% Adicional noturno</label>
+                  {{ form.sind_dv_perc_adicional_noturno }}
+                  {% if form.sind_dv_perc_adicional_noturno.errors %}<div class="invalid-feedback d-block">{{ form.sind_dv_perc_adicional_noturno.errors|join:', ' }}</div>{% endif %}
+                </div>
+                <div class="col-12 col-lg-4{% if form.sind_dv_data_base_mes.errors %} field-error{% endif %}">
+                  <label class="form-label" for="{{ form.sind_dv_data_base_mes.id_for_label }}">Data base (mês)</label>
+                  {{ form.sind_dv_data_base_mes }}
+                  {% if form.sind_dv_data_base_mes.errors %}<div class="invalid-feedback d-block">{{ form.sind_dv_data_base_mes.errors|join:', ' }}</div>{% endif %}
+                </div>
+              </div>
+            </div>
+
+            {# ============================================================= #}
+            {# 3. GRUPO 3: LIMINAR / VERBA MULTA RESCISÓRIA / ESTABILIDADE #}
+            {# ============================================================= #}
+            <div class="app-form-card-inner mb-4">
+              <h6 class="text-primary mb-3 mt-1"><i class="bi bi-gavel"></i> Liminar, verba multa e estabilidade</h6>
+              <div class="row g-3 mb-2">
+                <div class="col-12 col-lg-2{% if form.sind_dv_estabilidade_dias.errors %} field-error{% endif %}">
+                  <label class="form-label" for="{{ form.sind_dv_estabilidade_dias.id_for_label }}">Estabilidade (dias)</label>
+                  {{ form.sind_dv_estabilidade_dias }}
+                  {% if form.sind_dv_estabilidade_dias.errors %}<div class="invalid-feedback d-block">{{ form.sind_dv_estabilidade_dias.errors|join:', ' }}</div>{% endif %}
+                </div>
+                <div class="col-12 col-lg-4{% if form.sind_dv_liminar_aviso_codi.errors %} field-error{% endif %}">
+                  <label class="form-label" for="{{ form.sind_dv_liminar_aviso_codi.id_for_label }}">Liminar sobre aviso prévio</label>
+                  {{ form.sind_dv_liminar_aviso_codi }}
+                  {% if form.sind_dv_liminar_aviso_codi.errors %}<div class="invalid-feedback d-block">{{ form.sind_dv_liminar_aviso_codi.errors|join:', ' }}</div>{% endif %}
+                </div>
+                <div class="col-12 col-lg-6 d-flex align-items-center mt-2 pt-3">
+                  <div class="form-check">
+                    {{ form.sind_dv_liminar_aviso_13 }}
+                    <label class="form-check-label" for="{{ form.sind_dv_liminar_aviso_13.id_for_label }}">Aplicar liminar do aviso prévio para 13º salário indenizado</label>
+                  </div>
+                </div>
+              </div>
+              <div class="row g-3">
+                <div class="col-12 col-lg-12{% if form.sind_dv_verba_multa_codi.errors %} field-error{% endif %}">
+                  <label class="form-label" for="{{ form.sind_dv_verba_multa_codi.id_for_label }}">Verba multa rescisória (evento)</label>
+                  {{ form.sind_dv_verba_multa_codi }}
+                  {% if form.sind_dv_verba_multa_codi.errors %}<div class="invalid-feedback d-block">{{ form.sind_dv_verba_multa_codi.errors|join:', ' }}</div>{% endif %}
+                </div>
+              </div>
+            </div>
+
+            {# ============================================================= #}
+            {# 4. GRUPO 4: CONTRIBUIÇÃO SINDICAL + HORA NOTURNA + 2 CHECKBOX BEM #}
+            {# ============================================================= #}
+            <div class="app-form-card-inner mb-4">
+              <h6 class="text-primary mb-3 mt-1"><i class="bi bi-bank2"></i> Contribuição, horários e regras BEm</h6>
+              <div class="row g-3 mb-2">
+                <div class="col-12 col-lg-4{% if form.sind_dv_mes_desc_sindical.errors %} field-error{% endif %}">
+                  <label class="form-label" for="{{ form.sind_dv_mes_desc_sindical.id_for_label }}">Mês desconto contribuição sindical</label>
+                  {{ form.sind_dv_mes_desc_sindical }}
+                  {% if form.sind_dv_mes_desc_sindical.errors %}<div class="invalid-feedback d-block">{{ form.sind_dv_mes_desc_sindical.errors|join:', ' }}</div>{% endif %}
+                </div>
+                <div class="col-12 col-lg-4{% if form.sind_dv_meses_homologacao.errors %} field-error{% endif %}">
+                  <label class="form-label" for="{{ form.sind_dv_meses_homologacao.id_for_label }}">Meses para homologação</label>
+                  {{ form.sind_dv_meses_homologacao }}
+                  {% if form.sind_dv_meses_homologacao.errors %}<div class="invalid-feedback d-block">{{ form.sind_dv_meses_homologacao.errors|join:', ' }}</div>{% endif %}
+                </div>
+                <div class="col-12 col-lg-4{% if form.sind_dv_mes_contribuicao_opcao.errors %} field-error{% endif %}">
+                  <label class="form-label" for="{{ form.sind_dv_mes_contribuicao_opcao.id_for_label }}">Mês contribuição sindical</label>
+                  {{ form.sind_dv_mes_contribuicao_opcao }}
+                  {% if form.sind_dv_mes_contribuicao_opcao.errors %}<div class="invalid-feedback d-block">{{ form.sind_dv_mes_contribuicao_opcao.errors|join:', ' }}</div>{% endif %}
+                </div>
+              </div>
+              <div class="row g-3 mb-2">
+                <div class="col-12 col-lg-4{% if form.sind_dv_hora_noturna_inicio.errors %} field-error{% endif %}">
+                  <label class="form-label" for="{{ form.sind_dv_hora_noturna_inicio.id_for_label }}">Hora noturna início</label>
+                  {{ form.sind_dv_hora_noturna_inicio }}
+                  {% if form.sind_dv_hora_noturna_inicio.errors %}<div class="invalid-feedback d-block">{{ form.sind_dv_hora_noturna_inicio.errors|join:', ' }}</div>{% endif %}
+                </div>
+                <div class="col-12 col-lg-1 d-flex align-items-center justify-content-center text-muted">
+                  <span class="fw-bold">até</span>
+                </div>
+                <div class="col-12 col-lg-4{% if form.sind_dv_hora_noturna_fim.errors %} field-error{% endif %}">
+                  <label class="form-label" for="{{ form.sind_dv_hora_noturna_fim.id_for_label }}">Hora noturna fim</label>
+                  {{ form.sind_dv_hora_noturna_fim }}
+                  {% if form.sind_dv_hora_noturna_fim.errors %}<div class="invalid-feedback d-block">{{ form.sind_dv_hora_noturna_fim.errors|join:', ' }}</div>{% endif %}
+                </div>
+                <div class="col-12 col-lg-3"></div>
+              </div>
+              <div class="row g-3">
+                <div class="col-12 col-lg-6 d-flex align-items-center mt-2 pt-3">
+                  <div class="form-check">
+                    {{ form.sind_dv_pagar_13_integral_bem }}
+                    <label class="form-check-label" for="{{ form.sind_dv_pagar_13_integral_bem.id_for_label }}">Pagar 13º salário integral (BEm)</label>
+                  </div>
+                </div>
+                <div class="col-12 col-lg-6 d-flex align-items-center mt-2 pt-3">
+                  <div class="form-check">
+                    {{ form.sind_dv_nao_prorroga_aquisitivo_bem }}
+                    <label class="form-check-label" for="{{ form.sind_dv_nao_prorroga_aquisitivo_bem.id_for_label }}">Não prorroga período aquisitivo (BEm)</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {% url 'sindicatos:listar' as url_voltar %}
+            {% include "partials/ui/form_actions.html" with form_actions_url_voltar=url_voltar|add:"?banco="|add:request.banco %}
+          </div>
+        </div>
+
+        <div class="tab-pane fade tab-pane-sind" id="tab-medias" role="tabpanel">
+          <div class="p-3 pt-0">
+
+            {# ============================================================= #}
+            {# 1. CHECKBOXES TOPO #}
+            {# ============================================================= #}
+            <div class="app-form-card-inner mb-4">
+              <div class="row g-3">
+                <div class="col-12 col-lg-6 d-flex align-items-center">
+                  <div class="form-check">
+                    {{ form.sind_md_calc_maiores_meses_verba }}
+                    <label class="form-check-label" for="{{ form.sind_md_calc_maiores_meses_verba.id_for_label }}">Calcular maiores meses de média por verba</label>
+                  </div>
+                </div>
+                <div class="col-12 col-lg-6 d-flex align-items-center">
+                  <div class="form-check">
+                    {{ form.sind_md_calc_proporcional_verba }}
+                    <label class="form-check-label" for="{{ form.sind_md_calc_proporcional_verba.id_for_label }}">Calcular proporcionalidade de média por verba</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {# ============================================================= #}
+            {# 2. MÉDIAS PARA SITUAÇÃO #}
+            {# ============================================================= #}
+            <div class="app-form-card-inner mb-4">
+              <h6 class="text-primary mb-3 mt-1"><i class="bi bi-people"></i> Médias para situação</h6>
+              <div class="row g-3 mb-2">
+                <div class="col-12 col-lg-4">
+                  <label class="form-label fw-bold">Rendimentos variáveis</label>
+                  <div class="row g-2">
+                    <div class="col-6">{{ form.sind_md_sit_rv_mes1 }}</div>
+                    <div class="col-6">{{ form.sind_md_sit_rv_mes2 }}</div>
+                  </div>
+                  <div class="text-muted small text-center my-1">ou</div>
+                  <div class="row g-2">
+                    <div class="col-3">{{ form.sind_md_sit_rv_val1 }}</div>
+                    <div class="col-3">{{ form.sind_md_sit_rv_val2 }}</div>
+                    <div class="col-3">{{ form.sind_md_sit_rv_val3 }}</div>
+                    <div class="col-3">{{ form.sind_md_sit_rv_val4 }}</div>
+                  </div>
+                </div>
+                <div class="col-12 col-lg-4">
+                  <label class="form-label fw-bold">Horas extras</label>
+                  <div class="row g-2">
+                    <div class="col-6">{{ form.sind_md_sit_he_mes1 }}</div>
+                    <div class="col-6">{{ form.sind_md_sit_he_mes2 }}</div>
+                  </div>
+                  <div class="text-muted small text-center my-1">ou</div>
+                  <div class="row g-2">
+                    <div class="col-3">{{ form.sind_md_sit_he_val1 }}</div>
+                    <div class="col-3">{{ form.sind_md_sit_he_val2 }}</div>
+                    <div class="col-3">{{ form.sind_md_sit_he_val3 }}</div>
+                    <div class="col-3">{{ form.sind_md_sit_he_val4 }}</div>
+                  </div>
+                </div>
+                <div class="col-12 col-lg-4">
+                  <label class="form-label fw-bold">Horas normais</label>
+                  <div class="row g-2">
+                    <div class="col-6">{{ form.sind_md_sit_hn_mes1 }}</div>
+                    <div class="col-6">{{ form.sind_md_sit_hn_mes2 }}</div>
+                  </div>
+                  <div class="text-muted small text-center my-1">ou</div>
+                  <div class="row g-2">
+                    <div class="col-3">{{ form.sind_md_sit_hn_val1 }}</div>
+                    <div class="col-3">{{ form.sind_md_sit_hn_val2 }}</div>
+                    <div class="col-3">{{ form.sind_md_sit_hn_val3 }}</div>
+                    <div class="col-3">{{ form.sind_md_sit_hn_val4 }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {# ============================================================= #}
+            {# 3. MÉDIAS PARA FÉRIAS + 13º SALÁRIO #}
+            {# ============================================================= #}
+            <div class="app-form-card-inner mb-4">
+              <h6 class="text-primary mb-3 mt-1"><i class="bi bi-calendar2-week"></i> Médias para férias e 13º salário</h6>
+              <div class="row g-3 mb-3">
+                <div class="col-12 col-lg-4">
+                  <label class="form-label fw-bold">Rendimentos variáveis</label>
+                  <div class="row g-2">
+                    <div class="col-6">{{ form.sind_md_fer_rv_mes1 }}</div>
+                    <div class="col-6">{{ form.sind_md_fer_rv_mes2 }}</div>
+                  </div>
+                  <div class="text-muted small text-center my-1">ou</div>
+                  <div class="row g-2">
+                    <div class="col-3">{{ form.sind_md_fer_rv_val1 }}</div>
+                    <div class="col-3">{{ form.sind_md_fer_rv_val2 }}</div>
+                    <div class="col-3">{{ form.sind_md_fer_rv_val3 }}</div>
+                    <div class="col-3">{{ form.sind_md_fer_rv_val4 }}</div>
+                  </div>
+                </div>
+                <div class="col-12 col-lg-4">
+                  <label class="form-label fw-bold">Horas extras</label>
+                  <div class="row g-2">
+                    <div class="col-6">{{ form.sind_md_fer_he_mes1 }}</div>
+                    <div class="col-6">{{ form.sind_md_fer_he_mes2 }}</div>
+                  </div>
+                  <div class="text-muted small text-center my-1">ou</div>
+                  <div class="row g-2">
+                    <div class="col-3">{{ form.sind_md_fer_he_val1 }}</div>
+                    <div class="col-3">{{ form.sind_md_fer_he_val2 }}</div>
+                    <div class="col-3">{{ form.sind_md_fer_he_val3 }}</div>
+                    <div class="col-3">{{ form.sind_md_fer_he_val4 }}</div>
+                  </div>
+                </div>
+                <div class="col-12 col-lg-4">
+                  <label class="form-label fw-bold">Horas normais</label>
+                  <div class="row g-2">
+                    <div class="col-6">{{ form.sind_md_fer_hn_mes1 }}</div>
+                    <div class="col-6">{{ form.sind_md_fer_hn_mes2 }}</div>
+                  </div>
+                  <div class="text-muted small text-center my-1">ou</div>
+                  <div class="row g-2">
+                    <div class="col-3">{{ form.sind_md_fer_hn_val1 }}</div>
+                    <div class="col-3">{{ form.sind_md_fer_hn_val2 }}</div>
+                    <div class="col-3">{{ form.sind_md_fer_hn_val3 }}</div>
+                    <div class="col-3">{{ form.sind_md_fer_hn_val4 }}</div>
+                  </div>
+                </div>
+              </div>
+              <div class="row g-3">
+                <div class="col-12 col-lg-6 d-flex align-items-center mt-1">
+                  <div class="form-check">
+                    {{ form.sind_md_fer_calc13_anterior }}
+                    <label class="form-check-label" for="{{ form.sind_md_fer_calc13_anterior.id_for_label }}">Calcular médias 13º sobre exercício anterior</label>
+                  </div>
+                </div>
+                <div class="col-12 col-lg-6 d-flex align-items-start mt-1 pt-1">
+                  <div class="form-check w-100">
+                    {{ form.sind_md_fer_calc_112_indeniz }}
+                    <label class="form-check-label" style="white-space: normal;" for="{{ form.sind_md_fer_calc_112_indeniz.id_for_label }}">Calcular 1/12 avos de férias e 13º indenizados sobre as médias indenizadas</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {# ============================================================= #}
+            {# 4. IGNORAR MESES ZERADOS #}
+            {# ============================================================= #}
+            <div class="app-form-card-inner mb-4">
+              <h6 class="text-primary mb-3 mt-1"><i class="bi bi-x-square"></i> Ignorar meses zerados para cálculo de médias</h6>
+              <div class="row g-3">
+                <div class="col-12 col-lg-4">
+                  <div class="form-check">
+                    {{ form.sind_md_ign_rv }}
+                    <label class="form-check-label" for="{{ form.sind_md_ign_rv.id_for_label }}">Rendimentos variáveis</label>
+                  </div>
+                </div>
+                <div class="col-12 col-lg-4">
+                  <div class="form-check">
+                    {{ form.sind_md_ign_he }}
+                    <label class="form-check-label" for="{{ form.sind_md_ign_he.id_for_label }}">Horas extras</label>
+                  </div>
+                </div>
+                <div class="col-12 col-lg-4">
+                  <div class="form-check">
+                    {{ form.sind_md_ign_hn }}
+                    <label class="form-check-label" for="{{ form.sind_md_ign_hn.id_for_label }}">Horas normais</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {# ============================================================= #}
+            {# 5. SELECTS INFERIORES + CHECKBOX INCLUIR MÊS ATUAL #}
+            {# ============================================================= #}
+            <div class="app-form-card-inner mb-4">
+              <h6 class="text-primary mb-3 mt-1"><i class="bi bi-sliders2"></i> Opções gerais de médias</h6>
+              <div class="row g-3 mb-2">
+                <div class="col-12 col-lg-12{% if form.sind_md_maiores_meses_opcao.errors %} field-error{% endif %}">
+                  <label class="form-label" for="{{ form.sind_md_maiores_meses_opcao.id_for_label }}">Maiores meses para médias</label>
+                  {{ form.sind_md_maiores_meses_opcao }}
+                  {% if form.sind_md_maiores_meses_opcao.errors %}<div class="invalid-feedback d-block">{{ form.sind_md_maiores_meses_opcao.errors|join:', ' }}</div>{% endif %}
+                </div>
+              </div>
+              <div class="row g-3 mb-2">
+                <div class="col-12 col-lg-12{% if form.sind_md_media_ferias_codi.errors %} field-error{% endif %}">
+                  <label class="form-label" for="{{ form.sind_md_media_ferias_codi.id_for_label }}">Média de férias</label>
+                  {{ form.sind_md_media_ferias_codi }}
+                  {% if form.sind_md_media_ferias_codi.errors %}<div class="invalid-feedback d-block">{{ form.sind_md_media_ferias_codi.errors|join:', ' }}</div>{% endif %}
+                </div>
+              </div>
+              <div class="row g-3 mb-2">
+                <div class="col-12 col-lg-12{% if form.sind_md_media_ultimos_codi.errors %} field-error{% endif %}">
+                  <label class="form-label" for="{{ form.sind_md_media_ultimos_codi.id_for_label }}">Média últimos meses</label>
+                  {{ form.sind_md_media_ultimos_codi }}
+                  {% if form.sind_md_media_ultimos_codi.errors %}<div class="invalid-feedback d-block">{{ form.sind_md_media_ultimos_codi.errors|join:', ' }}</div>{% endif %}
+                </div>
+              </div>
+              <div class="row g-3">
+                <div class="col-12 col-lg-12 d-flex align-items-center mt-1 pt-3">
+                  <div class="form-check">
+                    {{ form.sind_md_incluir_mes_atual }}
+                    <label class="form-check-label" for="{{ form.sind_md_incluir_mes_atual.id_for_label }}">Incluir mês atual para cálculo de médias</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {% url 'sindicatos:listar' as url_voltar %}
+            {% include "partials/ui/form_actions.html" with form_actions_url_voltar=url_voltar|add:"?banco="|add:request.banco %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('[data-digits-only="true"]').forEach((input) => {
+      input.value = (input.value || '').replace(/\D/g, '');
+      const handler = () => {
+        const limpo = (input.value || '').replace(/\D/g, '');
+        if (limpo !== input.value) {
+          input.value = limpo;
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      };
+      input.addEventListener('input', handler);
+      input.addEventListener('blur', handler);
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === 'Tab') {
+          handler();
+        }
+      });
+    });
+
+    document.querySelectorAll('[data-decimal-only="true"]').forEach((input) => {
+      const sanitize = (raw) => {
+        const s = (raw || '').toString();
+        let hasComma = s.indexOf(',') !== -1;
+        let semPontos = s.replace(/\./g, '');
+        if (!hasComma) {
+          semPontos = semPontos.replace(/,/g, '');
+        } else {
+          semPontos = semPontos.replace(/,/g, '@@COMMA@@');
+          semPontos = semPontos.replace(/[^0-9@]/g, '');
+          semPontos = semPontos.replace(/@@COMMA@@/, ',');
+          const partes = semPontos.split(',');
+          if (partes.length > 2) {
+            semPontos = partes[0] + ',' + partes.slice(1).join('');
+          }
+        }
+        return semPontos.replace(/[^0-9,]/g, '');
+      };
+      input.value = sanitize(input.value);
+      const handler = () => {
+        const limpo = sanitize(input.value);
+        if (limpo !== input.value) {
+          input.value = limpo;
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      };
+      input.addEventListener('input', handler);
+      input.addEventListener('blur', handler);
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === 'Tab') {
+          handler();
+        }
+      });
+    });
+
+    document.querySelectorAll('[data-time-hhmm="true"]').forEach((input) => {
+      const formatar = (raw) => {
+        const s = (raw || '').toString();
+        const d = s.replace(/\D/g, '').slice(0, 4);
+        if (!d) return '';
+        if (d.length <= 2) return d;
+        return d.slice(0, 2) + ':' + d.slice(2);
+      };
+      input.value = formatar(input.value);
+      const handler = () => {
+        const novo = formatar(input.value);
+        if (novo !== input.value) {
+          input.value = novo;
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      };
+      input.addEventListener('input', handler);
+      input.addEventListener('blur', handler);
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === 'Tab') {
+          handler();
+        }
+      });
+    });
+
+    const cepInput = document.querySelector('[name="sind_cep"]');
+    const cidadeCodiInput = document.querySelector('[name="sind_cida_codi"]');
+    const cidadeDescInput = document.querySelector('[name="sind_cida_desc"]');
+    const ufInput = document.querySelector('[name="sind_esta"]');
+
+    var CIDADES_POR_CODIGO = {{ cidades_por_codigo_json|safe }};
+
+    function getField(fieldName) {
+      return document.querySelector(`[name="${fieldName}"]`);
+    }
+
+    function fillCepFields(data, options) {
+      const overwrite = options && options.overwrite === true;
+      const mapping = [
+        ['sind_ende', data.logradouro || ''],
+        ['sind_ende_comp', data.complemento || ''],
+        ['sind_ende_bair', data.bairro || ''],
+        ['sind_cida_desc', data.localidade || ''],
+        ['sind_esta', data.uf || ''],
+      ];
+
+      mapping.forEach(([name, value]) => {
+        const field = getField(name);
+        if (!field || !value) {
+          return;
+        }
+
+        if (!overwrite && (field.value || '').trim()) {
+          return;
+        }
+
+        field.value = value;
+        field.dispatchEvent(new Event('input', { bubbles: true }));
+        field.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+    }
+
+    function bindCepLookup() {
+      if (!cepInput) {
+        return;
+      }
+
+      let lastFetchedCep = '';
+
+      function clearCepError() {
+        cepInput.setCustomValidity('');
+      }
+
+      function handleCepLookup(overwrite) {
+        const cep = cepInput.value.replace(/\D/g, '');
+        clearCepError();
+
+        if (cep.length !== 8 || cep === lastFetchedCep) {
+          return;
+        }
+
+        fetch('https://viacep.com.br/ws/' + cep + '/json/')
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error('Falha ao consultar o CEP.');
+            }
+            return response.json();
+          })
+          .then((data) => {
+            if (data.erro) {
+              lastFetchedCep = '';
+              cepInput.setCustomValidity('CEP nao encontrado.');
+              cepInput.reportValidity();
+              return;
+            }
+
+            lastFetchedCep = cep;
+            clearCepError();
+            fillCepFields(data, { overwrite: overwrite === true });
+          })
+          .catch(() => {
+            lastFetchedCep = '';
+            cepInput.setCustomValidity('Nao foi possivel consultar o CEP agora.');
+            cepInput.reportValidity();
+          });
+      }
+
+      cepInput.addEventListener('input', () => {
+        clearCepError();
+        if (cepInput.value.replace(/\D/g, '').length < 8) {
+          lastFetchedCep = '';
+        }
+      });
+
+      cepInput.addEventListener('blur', () => {
+        handleCepLookup(true);
+      });
+
+      cepInput.addEventListener('change', () => {
+        handleCepLookup(true);
+      });
+
+      if (cepInput.value.replace(/\D/g, '').length === 8) {
+        handleCepLookup(false);
+      }
+    }
+
+    bindCepLookup();
+
+    function bindCidadeIbGELookup() {
+      if (!cidadeCodiInput) {
+        return;
+      }
+
+      async function handleLookup() {
+        const raw = (cidadeCodiInput.value || '').trim();
+        if (!raw) {
+          return;
+        }
+        const digitos = raw.replace(/\D/g, '');
+        if (!digitos) {
+          return;
+        }
+        const chave = String(parseInt(digitos, 10));
+        const info = CIDADES_POR_CODIGO[chave];
+        let nomeCidade = '';
+        let ufCidade = '';
+
+        if (info) {
+          [nomeCidade, ufCidade] = info;
+        } else {
+          const online = await lookupIbgeOnline(digitos);
+          if (online) {
+            nomeCidade = online.nome;
+            ufCidade = online.uf;
+          }
+        }
+
+        if (cidadeDescInput && nomeCidade) {
+          cidadeDescInput.value = nomeCidade;
+          cidadeDescInput.dispatchEvent(new Event('input', { bubbles: true }));
+          cidadeDescInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        if (ufInput && ufCidade) {
+          ufInput.value = ufCidade;
+          ufInput.dispatchEvent(new Event('input', { bubbles: true }));
+          ufInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      }
+
+      cidadeCodiInput.addEventListener('blur', () => { handleLookup(); });
+      cidadeCodiInput.addEventListener('change', () => { handleLookup(); });
+      cidadeCodiInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === 'Tab') {
+          handleLookup();
+        }
+      });
+    }
+
+    bindCidadeIbGELookup();
+
+    async function lookupIbgeOnline(codigo) {
+      try {
+        const url = `https://servicodados.ibge.gov.br/api/v1/localidades/municipios/${codigo}`;
+        const response = await fetch(url, { method: "GET", cache: "no-store" });
+        if (!response.ok) return null;
+        const data = await response.json();
+        if (!data) return null;
+        const nome = data.nome || "";
+        const uf = (data.microrregiao && data.microrregiao.mesorregiao && data.microrregiao.mesorregiao.UF && data.microrregiao.mesorregiao.UF.sigla) || "";
+        if (!nome || !uf) return null;
+        return { nome, uf };
+      } catch (err) {
+        return null;
+      }
+    }
+  });
+</script>
+{% endblock %}

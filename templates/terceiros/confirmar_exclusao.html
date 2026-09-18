@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Excluir Terceiro — RtaWeb{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm" style="background: var(--surface-card, var(--bs-card-bg)); border-color: var(--border-default, var(--bs-border-color));">
+    <div class="card-header fw-semibold" style="background: var(--surface-th, var(--bs-secondary-bg)); color: var(--text-primary, var(--bs-emphasis-color)); border-color: var(--border-default, var(--bs-border-color));">
+        Confirmação
+    </div>
+    <div class="card-body" style="color: var(--text-primary, var(--bs-body-color));">
+        {% with terceiro=object %}
+        <p>Tem certeza que deseja excluir o terceiro "<strong>{{ object.terc_nome }}</strong>"?</p>
+        <p class="text-muted small mb-3">
+        </p>
+        <form method="post" action="{% url 'terceiros:deletar' empr=object.terc_empr fili=object.terc_fili codi=object.terc_codi %}?banco={{ request.banco }}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Excluir</button>
+            <a href="{% url 'terceiros:listar' %}?banco={{ request.banco }}" class="btn btn-outline-secondary js-esc-exit">Cancelar</a>
+        </form>
+        {% endwith %}
+    </div>
+</div>
+{% endblock %}

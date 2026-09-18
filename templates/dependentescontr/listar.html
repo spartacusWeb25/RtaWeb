@@ -38,7 +38,7 @@
                 </div>
                 {% if empr and fili and contr %}
                 <a href="{% url 'contribuintes:atualizar' empr=empr fili=fili codi=contribuinte_contexto.contr_codi %}?banco={{ banco_limpo }}#tab-dependentes"
-                   class="btn btn-sm btn-outline-primary">
+                   class="btn btn-sm btn-outline-primary js-esc-exit">
                     <i class="bi bi-arrow-left"></i> Voltar para o Contribuinte
                 </a>
                 {% endif %}
