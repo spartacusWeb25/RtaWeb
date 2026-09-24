@@ -1517,6 +1517,8 @@
       {% include "partials/ui/form_actions.html" with form_actions_url_voltar=url_voltar_func|add:"?banco="|add:request.banco %}
     </div>
   </form>
+  <script id="mapa-cargos-cbo-data" type="application/json">{{ mapa_cargos_cbo_json|default:"{}"|safe }}</script>
+  <script id="mapa-funcoes-cbo-data" type="application/json">{{ mapa_funcoes_cbo_json|default:"{}"|safe }}</script>
 </div>
 {% endblock %}
 
@@ -1953,6 +1955,84 @@
         el.textContent = mascaraCPF(raw);
       }
     });
+
+    (function bindCargoParaCbo() {
+      try {
+        const cargosRaw = document.getElementById('mapa-cargos-cbo-data');
+        const funcoesRaw = document.getElementById('mapa-funcoes-cbo-data');
+        const mapaCargos = cargosRaw && cargosRaw.textContent ? JSON.parse(cargosRaw.textContent) : {};
+        const mapaFuncoes = funcoesRaw && funcoesRaw.textContent ? JSON.parse(funcoesRaw.textContent) : {};
+
+        const elCargo = document.getElementById('{{ form.func_cargo.id_for_label }}');
+        const elCboCargo = document.getElementById('{{ form.func_cbo_cargo.id_for_label }}');
+        const elFuncao = document.getElementById('{{ form.func_funcao.id_for_label }}');
+        const elCboFuncao = document.getElementById('{{ form.func_cbo_funcao.id_for_label }}');
+
+        function setarSelectValor(selectEl, novoValor) {
+          if (!selectEl || novoValor === undefined || novoValor === null) return false;
+          const valorStr = String(novoValor);
+          for (let i = 0; i < selectEl.options.length; i++) {
+            const opt = selectEl.options[i];
+            const optVal = opt.value == null ? '' : String(opt.value);
+            if (optVal === valorStr) {
+              selectEl.selectedIndex = i;
+              try {
+                selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+              } catch (_) {}
+              return true;
+            }
+          }
+          if (valorStr) {
+            for (let j = 0; j < selectEl.options.length; j++) {
+              const opt2 = selectEl.options[j];
+              const optVal2 = opt2.value == null ? '' : String(opt2.value);
+              if (optVal2 && optVal2.startsWith(valorStr + ' -')) {
+                selectEl.selectedIndex = j;
+                try {
+                  selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+                } catch (_) {}
+                return true;
+              }
+            }
+          }
+          return false;
+        }
+
+        function atualizarPorMudancaDeCargo() {
+          if (!elCargo || !mapaCargos || typeof mapaCargos !== 'object') return;
+          try {
+            let valSel = elCargo.value;
+            if (valSel == null || valSel === '') return;
+            let chave = null;
+            if (/^\d+$/.test(String(valSel).replace(/\D/g, ''))) {
+              chave = parseInt(String(valSel).replace(/\D/g, ''), 10);
+            } else {
+              const m = String(valSel).match(/^(\d+)\s*-\s*/);
+              if (m) chave = parseInt(m[1], 10);
+            }
+            if (!chave || !mapaCargos[String(chave)]) return;
+            const info = mapaCargos[String(chave)];
+            const cbo = (info && info.cbo) ? String(info.cbo) : '';
+            if (cbo) {
+              setarSelectValor(elCboCargo, cbo);
+            }
+            setarSelectValor(elFuncao, String(chave));
+            if (cbo) {
+              setarSelectValor(elCboFuncao, cbo);
+            }
+          } catch (_) {}
+        }
+
+        if (elCargo && elCboCargo && mapaCargos && typeof mapaCargos === 'object') {
+          elCargo.addEventListener('change', atualizarPorMudancaDeCargo);
+        }
+        if (elFuncao && elCboFuncao && mapaFuncoes && typeof mapaFuncoes === 'object') {
+          elFuncao.addEventListener('change', function () {
+            atualizarCboPorCargo(elFuncao, elCboFuncao, mapaFuncoes);
+          });
+        }
+      } catch (_) {}
+    })();
 
     const firstError = document.querySelector('.is-invalid, .field-error');
     if (!firstError) return;

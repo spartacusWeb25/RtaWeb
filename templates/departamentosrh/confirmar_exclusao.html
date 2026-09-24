@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Excluir Departamento — RtaWeb{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm" style="background: var(--surface-card, var(--bs-card-bg)); border-color: var(--border-default, var(--bs-border-color));">
+    <div class="card-header fw-semibold" style="background: var(--surface-th, var(--bs-secondary-bg)); color: var(--text-primary, var(--bs-emphasis-color)); border-color: var(--border-default, var(--bs-border-color));">
+        Confirmação
+    </div>
+    <div class="card-body" style="color: var(--text-primary, var(--bs-body-color));">
+        <p>Tem certeza que deseja excluir o departamento "<strong>{{ objeto_desc|default:object.depa_desc|default:'—' }}</strong>"?</p>
+        <form method="post" novalidate>
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Excluir</button>
+            <a href="{% url 'departamentosrh:listar' %}?banco={{ request.banco }}" class="btn btn-outline-secondary">Cancelar</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

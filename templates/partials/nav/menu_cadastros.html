@@ -38,6 +38,9 @@
         <a href="{% url 'eventos:listar' %}?banco={{ request.banco|default:'rta0001' }}">
             Eventos
         </a>
+        <a href="{% url 'departamentosrh:listar' %}?banco={{ request.banco|default:'rta0001' }}">
+            Departamentos
+        </a>
         <div
             class="submenu-item"
             tabindex="0"

@@ -115,6 +115,7 @@ INSTALLED_APPS = [
     'folharescisao',
     'horarios',
     'lancamentosfolha',
+    'departamentosrh',
     'sindicatos',
     'sindicatospatronais',
     'tabelainss',

@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Departamentos RH — RtaWeb{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+<link href="{% static 'core/css/list-cards.css' %}" rel="stylesheet">
+<link href="{% static 'core/css/tabelas-layout.css' %}" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/botoes.css' %}">
+<link rel="stylesheet" href="{% static 'css/buscas.css' %}">
+<link rel="stylesheet" href="{% static 'css/tabelas.css' %}">
+<style>
+    @media (min-width: 992px) {
+        .dep-listar .form-grid {
+            grid-template-columns: minmax(280px, 1.3fr) minmax(160px, 0.6fr) auto;
+        }
+    }
+    .dep-listar .col-codigo { width: 80px; }
+    .dep-listar .col-descricao { width: 42%; }
+    .dep-listar .col-apelido { width: 22%; }
+    .dep-listar .col-status { width: 120px; }
+    .dep-listar .col-acoes { width: 260px; }
+
+    .dep-listar td.tabela-acoes {
+        display: flex; flex-direction: row; flex-wrap: nowrap;
+        justify-content: center; gap: 10px; width: 100%; align-items: center;
+    }
+    .dep-listar thead th.col-acoes,
+    .dep-listar tbody td.col-acoes { text-align: center; }
+    .dep-listar td.col-status, .dep-listar thead th.col-status { text-align: center !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4 dep-listar">
+    <div class="d-flex justify-content-center align-items-center mb-3">
+        <h3><i class="bi bi-building-fill-gear"></i> Departamentos</h3>
+    </div>
+
+    <div class="filtros-acoes mb-3">
+        <a href="{% url 'departamentosrh:criar' %}?banco={{ request.banco }}" class="botao botao-adicionar">
+            <i class="bi bi-plus"></i> Novo Departamento
+        </a>
+        <button class="botao botao-detalhar botao-filtro-toggle" type="button" data-bs-toggle="collapse"
+            data-bs-target="#filtrosCollapseDep" id="btn-filtros-dep" aria-expanded="false"
+            aria-controls="filtrosCollapseDep">
+            <i class="bi bi-funnel"></i> Filtros
+        </button>
+    </div>
+
+    <div class="app-form-card mb-3 collapse filtros-collapse" id="filtrosCollapseDep">
+        <form method="get" class="form-grid form-grid-compact">
+            <input type="hidden" name="banco" value="{{ request.banco }}">
+
+            <div class="form-group">
+                <label class="form-label">Buscar</label>
+                <input class="form-control" type="text" name="busca" value="{{ busca|default:'' }}"
+                       placeholder="Código, descrição ou cód. departamento">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Ordem</label>
+                <select name="ordem" class="form-control">
+                    <option value="asc" {% if ordem == "asc" or not ordem %}selected{% endif %}>Crescente</option>
+                    <option value="desc" {% if ordem == "desc" %}selected{% endif %}>Decrescente</option>
+                </select>
+            </div>
+
+            <div class="form-group d-flex align-items-end">
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="?banco={{ request.banco }}" class="botao botao-limpar">
+                        <i class="bi bi-eraser"></i> Limpar
+                    </a>
+                    <button type="submit" class="botao botao-buscar">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    {% if objetos %}
+    <div class="table-responsive">
+        <table class="tabela-moderna">
+            <thead>
+                <tr>
+                    <th class="col-codigo"><i class="bi bi-key"></i> Código</th>
+                    <th class="col-descricao"><i class="bi bi-buildings-fill"></i> Descrição</th>
+                    <th class="col-apelido"><i class="bi bi-tag-fill"></i> Apelido</th>
+                    <th class="col-status"><i class="bi bi-toggle-off"></i> Status</th>
+                    <th class="col-acoes"><i class="bi bi-gear"></i> Ações</th>
+                </tr>
+            </thead>
+            <tbody data-infinite-scroll-items>
+                {% for item in objetos %}
+                <tr>
+                    <td data-label="Código" class="col-codigo text-center font-weight-bold">{{ item.depa_codi }}</td>
+                    <td data-label="Descrição" class="col-descricao">
+                        <div class="fw-semibold">{{ item.depa_desc|default:'-' }}</div>
+                        {% if item.depa_tipo_tomador_desc %}
+                        <small class="text-muted d-block">Tomador: {{ item.depa_tipo_tomador_desc }}</small>
+                        {% endif %}
+                    </td>
+                    <td data-label="Apelido" class="col-apelido">
+                        {{ item.depa_apelido|default:'-' }}
+                    </td>
+                    <td data-label="Status" class="text-center col-status">
+                        {% if item.depa_inativo %}
+                        <span class="badge badge-inativo bg-secondary text-white px-2 py-1 rounded-pill">Inativo</span>
+                        {% else %}
+                        <span class="badge badge-ativo bg-success text-white px-2 py-1 rounded-pill">Ativo</span>
+                        {% endif %}
+                    </td>
+                    <td data-label="Ações" class="col-acoes tabela-acoes">
+                        <div class="d-flex flex-row flex-nowrap justify-content-center gap-2 w-100">
+                            <a class="botao botao-editar"
+                               href="{% url 'departamentosrh:editar' depa_codi=item.depa_codi %}?banco={{ request.banco }}">
+                                <i class="bi bi-pencil-fill"></i> Editar
+                            </a>
+                            <a class="botao botao-remover"
+                               href="{% url 'departamentosrh:excluir' depa_codi=item.depa_codi %}?banco={{ request.banco }}">
+                                <i class="bi bi-trash-fill"></i> Excluir
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% include "partials/componentes/infinite_scroll.html" %}
+    {% else %}
+    <div class="alert alert-warning">
+        Nenhum departamento encontrado.
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

@@ -111,3 +111,90 @@ class SindicatoTrabalhadoresService:
             .first()
         )
         return getattr(filial, "empr_fili_descr", "") or getattr(filial, "empr_nome", "") or ""
+
+    @staticmethod
+    def listar_sindicatos(*, banco: str, db_alias: str = None,
+                          codigo_empresa: int = 1, codigo_filial: int = 1,
+                          incluir_inativos: bool = True) -> list:
+        banco_limpo = _digits_only(banco)
+        empr = int(codigo_empresa or 1)
+        fili = int(codigo_filial or 1)
+        qs = Sindicatos.objects
+        if db_alias:
+            qs = qs.using(db_alias)
+        filtros = {
+            "registro": banco_limpo,
+            "sind_empr": empr,
+            "sind_fili": fili,
+        }
+        try:
+            rows = list(
+                qs.filter(**filtros)
+                .order_by("sind_codi")
+                .values_list("sind_codi", "sind_nome", "sind_apelido")
+            )
+        except Exception:
+            from django.db import connections
+            alias = db_alias or "default"
+            try:
+                with connections[alias].cursor() as cursor:
+                    cursor.execute(
+                        "SELECT sind_codi, sind_nome, sind_apelido "
+                        "FROM sindicatos "
+                        "WHERE registro=%s AND sind_empr=%s AND sind_fili=%s "
+                        "ORDER BY sind_codi",
+                        [banco_limpo, empr, fili],
+                    )
+                    rows = cursor.fetchall() or []
+            except Exception:
+                rows = []
+        saida = []
+        seen = set()
+        for cod, nome, apelido in rows:
+            cod_clean = str(int(cod or 0))
+            if not cod_clean or cod_clean in seen:
+                continue
+            seen.add(cod_clean)
+            nome_clean = str(nome or "").strip()
+            apelido_clean = str(apelido or "").strip()
+            if not nome_clean and apelido_clean:
+                nome_clean = apelido_clean
+            label = nome_clean or f"Sindicato #{cod_clean}"
+            saida.append({"codi": int(cod_clean), "nome": nome_clean,
+                          "apelido": apelido_clean, "label": label})
+        return saida
+
+    @staticmethod
+    def choices_sindicatos(*, banco: str, db_alias: str = None,
+                           codigo_empresa: int = 1, codigo_filial: int = 1,
+                           incluir_selecione: bool = True, valor_atual=None) -> list:
+        lista = SindicatoTrabalhadoresService.listar_sindicatos(
+            banco=banco,
+            db_alias=db_alias,
+            codigo_empresa=codigo_empresa,
+            codigo_filial=codigo_filial,
+        )
+        choices = []
+        if incluir_selecione:
+            sel_val = None
+            choices.append((sel_val, "Selecione"))
+        for item in lista:
+            codi_int = int(item["codi"])
+            choices.append((codi_int, f"{item['codi']} - {item['label']}"))
+        if valor_atual is not None:
+            try:
+                val_int = int(valor_atual)
+                existe = False
+                for chave, _ in choices:
+                    try:
+                        if int(chave) == val_int:
+                            existe = True
+                            break
+                    except Exception:
+                        pass
+                if not existe and val_int > 0:
+                    desc = f"Sindicato #{val_int} (atual)"
+                    choices.append((val_int, desc))
+            except Exception:
+                pass
+        return choices

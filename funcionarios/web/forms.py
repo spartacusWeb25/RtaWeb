@@ -349,6 +349,13 @@ FORMA_PAGAMENTO_CHOICES = (
     (3, "3 - Semanal"),
 )
 
+TIPO_FUNCIONARIO_CHOICES = (
+    ("", "Selecione"),
+    (1, "1 - Mensalista"),
+    (2, "2 - Horista"),
+    (3, "3 - Comissionado"),
+)
+
 TIPO_CONTA_CHOICES = (
     ("", "Selecione"),
     (1, "1 - Conta corrente"),
@@ -778,7 +785,224 @@ FIELD_LABELS = {
 class FuncionarioForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.db_alias = kwargs.pop("db_alias", None)
+        self.banco = kwargs.pop("banco", None)
+        self.empr_codigo = kwargs.pop("empr_codigo", None)
+        self.fili_codigo = kwargs.pop("fili_codigo", None)
         super().__init__(*args, **kwargs)
+
+        try:
+            from sindicatos.services.logic import SindicatoTrabalhadoresService as _STS
+            from sindicatos.services.logic import _digits_only as _digits_only_sind
+
+            banco = self.banco or getattr(getattr(self, "instance", None), "registro", None) or ""
+            banco_clean = _digits_only_sind(banco) if banco else ""
+            empr = int(self.empr_codigo or 1)
+            fili = int(self.fili_codigo or 1)
+            if (not empr or empr <= 0) and self.instance is not None:
+                try:
+                    empr = int(getattr(self.instance, "func_empr", None) or 1)
+                except Exception:
+                    empr = 1
+            if (not fili or fili <= 0) and self.instance is not None:
+                try:
+                    fili = int(getattr(self.instance, "func_fili", None) or 1)
+                except Exception:
+                    fili = 1
+
+            valor_atual_sind = _current_field_value(self, "func_sindicato")
+            if banco_clean:
+                sind_choices = _STS.choices_sindicatos(
+                    banco=banco_clean,
+                    db_alias=self.db_alias,
+                    codigo_empresa=empr,
+                    codigo_filial=fili,
+                    incluir_selecione=True,
+                    valor_atual=valor_atual_sind,
+                )
+            else:
+                sind_choices = [
+                    (None, "Selecione"),
+                ]
+                if valor_atual_sind not in (None, ""):
+                    try:
+                        sind_choices.append((int(valor_atual_sind),
+                                             f"Sindicato #{int(valor_atual_sind)} (atual)"))
+                    except Exception:
+                        pass
+            self.sindicatos_disponiveis = sind_choices
+        except Exception as _e_sind:
+            try:
+                sind_choices = [
+                    (None, "Selecione"),
+                ]
+                valor_atual_sind = _current_field_value(self, "func_sindicato")
+                if valor_atual_sind not in (None, ""):
+                    try:
+                        sind_choices.append((int(valor_atual_sind),
+                                             f"Sindicato #{int(valor_atual_sind)} (atual)"))
+                    except Exception:
+                        pass
+                self.sindicatos_disponiveis = sind_choices
+            except Exception:
+                self.sindicatos_disponiveis = [(None, "Selecione")]
+
+        try:
+            from cargos.services.logic import CargosService as _CS
+            from cargos.services.logic import _digits_only as _digits_only_cargo
+
+            banco2 = self.banco or getattr(getattr(self, "instance", None), "registro", None) or ""
+            banco2_clean = _digits_only_cargo(banco2) if banco2 else ""
+            empr2 = int(self.empr_codigo or 1)
+            fili2 = int(self.fili_codigo or 1)
+            if (not empr2 or empr2 <= 0) and self.instance is not None:
+                try:
+                    empr2 = int(getattr(self.instance, "func_empr", None) or 1)
+                except Exception:
+                    empr2 = 1
+            if (not fili2 or fili2 <= 0) and self.instance is not None:
+                try:
+                    fili2 = int(getattr(self.instance, "func_fili", None) or 1)
+                except Exception:
+                    fili2 = 1
+
+            valor_atual_cargo = _current_field_value(self, "func_cargo")
+            if banco2_clean:
+                cargo_choices = _CS.choices_cargos(
+                    banco=banco2_clean,
+                    db_alias=self.db_alias,
+                    codigo_empresa=empr2,
+                    codigo_filial=fili2,
+                    incluir_selecione=True,
+                    valor_atual=valor_atual_cargo,
+                    incluir_inativos=True,
+                )
+            else:
+                cargo_choices = [(None, "Selecione")]
+                if valor_atual_cargo not in (None, ""):
+                    try:
+                        cargo_choices.append((int(valor_atual_cargo),
+                                              f"{int(valor_atual_cargo)} - Cargo #{int(valor_atual_cargo)} (atual)"))
+                    except Exception:
+                        pass
+            self.cargos_disponiveis = cargo_choices
+
+            valor_atual_cbo_cargo = _current_field_value(self, "func_cbo_cargo")
+            if banco2_clean:
+                cbo_cargo_choices = _CS.choices_cbos(
+                    banco=banco2_clean,
+                    db_alias=self.db_alias,
+                    incluir_selecione=True,
+                    valor_atual=valor_atual_cbo_cargo,
+                )
+            else:
+                cbo_cargo_choices = [(None, "Selecione")]
+                try:
+                    val_clean_cbo = "".join(ch for ch in str(valor_atual_cbo_cargo or "") if ch.isdigit())[:7]
+                    if val_clean_cbo:
+                        cbo_cargo_choices.append((val_clean_cbo,
+                                                  f"{val_clean_cbo} - CBO {val_clean_cbo} (atual)"))
+                except Exception:
+                    pass
+            self.cbos_cargo_disponiveis = cbo_cargo_choices
+
+            try:
+                valor_atual_funcao = _current_field_value(self, "func_funcao")
+                valor_atual_cbo_funcao = _current_field_value(self, "func_cbo_funcao")
+                if banco2_clean:
+                    funcao_choices = _CS.choices_cargos(
+                        banco=banco2_clean,
+                        db_alias=self.db_alias,
+                        codigo_empresa=empr2,
+                        codigo_filial=fili2,
+                        incluir_selecione=True,
+                        valor_atual=valor_atual_funcao,
+                        incluir_inativos=True,
+                    )
+                    cbo_funcao_choices = _CS.choices_cbos(
+                        banco=banco2_clean,
+                        db_alias=self.db_alias,
+                        incluir_selecione=True,
+                        valor_atual=valor_atual_cbo_funcao,
+                    )
+                else:
+                    funcao_choices = [(None, "Selecione")]
+                    if valor_atual_funcao not in (None, ""):
+                        try:
+                            funcao_choices.append((int(valor_atual_funcao),
+                                                   f"{int(valor_atual_funcao)} - Função #{int(valor_atual_funcao)} (atual)"))
+                        except Exception:
+                            pass
+                    cbo_funcao_choices = [(None, "Selecione")]
+                    try:
+                        val_clean_cbo_f = "".join(ch for ch in str(valor_atual_cbo_funcao or "") if ch.isdigit())[:7]
+                        if val_clean_cbo_f:
+                            cbo_funcao_choices.append((val_clean_cbo_f,
+                                                       f"{val_clean_cbo_f} - CBO {val_clean_cbo_f} (atual)"))
+                    except Exception:
+                        pass
+                self.funcoes_disponiveis = funcao_choices
+                self.cbos_funcao_disponiveis = cbo_funcao_choices
+            except Exception:
+                self.funcoes_disponiveis = [(None, "Selecione")]
+                self.cbos_funcao_disponiveis = [(None, "Selecione")]
+        except Exception as _e_cargo:
+            self.cargos_disponiveis = [(None, "Selecione")]
+            self.cbos_cargo_disponiveis = [(None, "Selecione")]
+            self.funcoes_disponiveis = [(None, "Selecione")]
+            self.cbos_funcao_disponiveis = [(None, "Selecione")]
+
+        try:
+            from departamentosrh.services.logic import DepartamentosRhService as _DS
+            from departamentosrh.services.logic import _digits_only as _digits_only_depa
+
+            banco3 = self.banco or getattr(getattr(self, "instance", None), "registro", None) or ""
+            banco3_clean = _digits_only_depa(banco3) if banco3 else ""
+            empr3 = int(self.empr_codigo or 1)
+            fili3 = int(self.fili_codigo or 1)
+            if (not empr3 or empr3 <= 0) and self.instance is not None:
+                try:
+                    empr3 = int(getattr(self.instance, "func_empr", None) or 1)
+                except Exception:
+                    empr3 = 1
+            if (not fili3 or fili3 <= 0) and self.instance is not None:
+                try:
+                    fili3 = int(getattr(self.instance, "func_fili", None) or 1)
+                except Exception:
+                    fili3 = 1
+
+            valor_atual_depa = _current_field_value(self, "func_departamento")
+            if banco3_clean:
+                depa_choices = _DS.choices_departamentos(
+                    banco=banco3_clean,
+                    db_alias=self.db_alias,
+                    codigo_empresa=empr3,
+                    codigo_filial=fili3,
+                    incluir_selecione=True,
+                    valor_atual=valor_atual_depa,
+                    incluir_inativos=True,
+                )
+            else:
+                depa_choices = [(None, "Selecione")]
+                if valor_atual_depa not in (None, ""):
+                    try:
+                        depa_choices.append((int(valor_atual_depa),
+                                             f"{int(valor_atual_depa)} - Departamento #{int(valor_atual_depa)} (atual)"))
+                    except Exception:
+                        pass
+            self.departamentos_disponiveis = depa_choices
+        except Exception as _e_depa:
+            try:
+                depa_choices = [(None, "Selecione")]
+                valor_atual_depa = _current_field_value(self, "func_departamento")
+                if valor_atual_depa not in (None, ""):
+                    try:
+                        depa_choices.append((int(valor_atual_depa),
+                                             f"{int(valor_atual_depa)} - Departamento #{int(valor_atual_depa)} (atual)"))
+                    except Exception:
+                        pass
+                self.departamentos_disponiveis = depa_choices
+            except Exception:
+                self.departamentos_disponiveis = [(None, "Selecione")]
 
         for nome, field in self.fields.items():
             model_field = self._meta.model._meta.get_field(nome)
@@ -1113,6 +1337,14 @@ class FuncionarioForm(forms.ModelForm):
             )
             self.fields["func_forma_pagamento"].required = False
 
+        if "func_tipo_funcionario" in self.fields:
+            valor_atual = _current_field_value(self, "func_tipo_funcionario")
+            self.fields["func_tipo_funcionario"].widget = forms.Select(
+                attrs={"class": "form-select"},
+                choices=_choices_with_current(TIPO_FUNCIONARIO_CHOICES, valor_atual),
+            )
+            self.fields["func_tipo_funcionario"].required = False
+
         if "func_banco" in self.fields:
             valor_atual = _current_field_value(self, "func_banco")
             if valor_atual not in (None, ""):
@@ -1202,10 +1434,46 @@ class FuncionarioForm(forms.ModelForm):
 
             valor_atual = _current_field_value(self, nome)
 
-            self.fields[nome].widget = forms.Select(
-                attrs={"class": "form-select"},
-                choices=_combo_choices_for_value(valor_atual),
-            )
+            if nome == "func_sindicato":
+                self.fields[nome].widget = forms.Select(
+                    attrs={"class": "form-select"},
+                    choices=getattr(self, "sindicatos_disponiveis", [(None, "Selecione")]),
+                )
+            elif nome == "func_departamento":
+                self.fields[nome].widget = forms.Select(
+                    attrs={"class": "form-select"},
+                    choices=getattr(self, "departamentos_disponiveis", [(None, "Selecione")]),
+                )
+            elif nome == "func_cargo":
+                self.fields[nome].widget = forms.Select(
+                    attrs={"class": "form-select"},
+                    choices=getattr(self, "cargos_disponiveis", [(None, "Selecione")]),
+                )
+            elif nome == "func_cbo_cargo":
+                self.fields[nome].widget = forms.Select(
+                    attrs={"class": "form-select"},
+                    choices=getattr(self, "cbos_cargo_disponiveis", [(None, "Selecione")]),
+                )
+            elif nome == "func_funcao":
+                self.fields[nome].widget = forms.Select(
+                    attrs={"class": "form-select"},
+                    choices=getattr(self, "funcoes_disponiveis", [(None, "Selecione")]),
+                )
+            elif nome == "func_cbo_funcao":
+                self.fields[nome].widget = forms.Select(
+                    attrs={"class": "form-select"},
+                    choices=getattr(self, "cbos_funcao_disponiveis", [(None, "Selecione")]),
+                )
+            elif nome == "func_tipo_funcionario":
+                self.fields[nome].widget = forms.Select(
+                    attrs={"class": "form-select"},
+                    choices=_choices_with_current(TIPO_FUNCIONARIO_CHOICES, valor_atual),
+                )
+            else:
+                self.fields[nome].widget = forms.Select(
+                    attrs={"class": "form-select"},
+                    choices=_combo_choices_for_value(valor_atual),
+                )
             self.fields[nome].required = False
 
         if "func_esocial_data_integracao" in self.fields:

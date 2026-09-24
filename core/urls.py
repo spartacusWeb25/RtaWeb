@@ -35,6 +35,7 @@ urlpatterns = [
     path("folharescisao/", include("folharescisao.web.urls")),
     path("horarios/", include("horarios.web.urls")),
     path("lancamentosfolha/", include("lancamentosfolha.web.urls")),
+    path("departamentosrh/", include("departamentosrh.urls")),
     path("sindicatos/", include("sindicatos.web.urls")),
     path("sindicatospatronais/", include("sindicatospatronais.web.urls")),
     path("tabelainss/", include("tabelainss.web.urls")),

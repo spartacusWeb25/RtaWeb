@@ -1,0 +1,591 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if operacao == "editar" %}Editar Departamento{% else %}Novo Departamento{% endif %} — RtaWeb{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+<style>
+  .field-error .form-control,
+  .field-error .form-select,
+  .field-error .form-check-input {
+    border-color: var(--bs-danger);
+    box-shadow: 0 0 0 0.12rem rgba(220, 53, 69, .12);
+  }
+  .invalid-feedback.d-block { font-weight: 500; }
+  .field-error { scroll-margin-top: 6rem; }
+  .depa-readonly { background: var(--bs-secondary-bg); }
+  .tab-pane-abas { padding-top: 0.5rem; }
+  .departamentosrh-section-box {
+    border: 1px solid var(--border-default, #d8dee8);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    background: var(--surface-card, #fff);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h4>{% if operacao == "editar" %}Editar Departamento{% else %}Novo Departamento{% endif %}</h4>
+
+  <form method="post" action="" novalidate>
+    {% csrf_token %}
+    {% for field in form.hidden_fields %}{{ field }}{% endfor %}
+
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger mt-3" role="alert">
+      {{ form.non_field_errors }}
+    </div>
+    {% endif %}
+
+    {% if form.errors %}
+    <div class="alert alert-warning mt-3" role="alert">
+      Revise os campos destacados em vermelho antes de salvar.
+      <ul class="mb-0 mt-2">
+        {% for field in form.visible_fields %}
+          {% for error in field.errors %}
+          <li>{{ field.label }}: {{ error }}</li>
+          {% endfor %}
+        {% endfor %}
+        {% for field in form.hidden_fields %}
+          {% for error in field.errors %}
+          <li>Campo interno ({{ field.name }}): {{ error }}</li>
+          {% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    {# ====================================================== #}
+    {# Cabeçalho: Código / Descrição / Inativo / Empresa Filial #}
+    {# ====================================================== #}
+    <div class="app-form-card mb-3">
+      <div class="row g-3 p-3">
+        <div class="row g-3 align-items-center mb-3">
+          <div class="col-12 col-lg-2{% if form.depa_codi.errors %} field-error{% endif %}">
+            <label class="form-label" for="{{ form.depa_codi.id_for_label }}">Código</label>
+            {% if operacao == "editar" %}
+              {% if object and object.depa_codi %}
+            <input type="text" class="form-control depa-readonly text-center font-weight-bold"
+                   value="{{ object.depa_codi }}" readonly>
+              {% else %}
+            <input type="text" class="form-control depa-readonly text-center font-weight-bold"
+                   placeholder="Automático" readonly>
+              {% endif %}
+            {% else %}
+              {% if proximo_codigo is not None and proximo_codigo != '' %}
+            <input type="text" class="form-control depa-readonly text-center font-weight-bold"
+                   value="{{ proximo_codigo }}" readonly>
+              {% else %}
+            <input type="text" class="form-control depa-readonly text-center font-weight-bold"
+                   placeholder="Automático" readonly>
+              {% endif %}
+            {% endif %}
+            {% if form.depa_codi.errors %}
+              <div class="invalid-feedback d-block">{{ form.depa_codi.errors|join:', ' }}</div>
+            {% endif %}
+          </div>
+          <div class="col-12 col-lg-8{% if form.depa_desc.errors %} field-error{% endif %}">
+            <label class="form-label" for="{{ form.depa_desc.id_for_label }}">
+              {{ form.depa_desc.label|default:"Descrição" }}
+              <span class="text-danger">*</span>
+            </label>
+            {{ form.depa_desc }}
+            {% if form.depa_desc.errors %}
+              <div class="invalid-feedback d-block">{{ form.depa_desc.errors|join:', ' }}</div>
+            {% endif %}
+          </div>
+          <div class="col-12 col-lg-2{% if form.depa_inativo.errors %} field-error{% endif %}">
+            <div class="d-flex align-items-start align-items-lg-center pt-2 pt-lg-4 mt-2 mt-lg-0">
+              <div class="form-check form-check-inline">
+                {{ form.depa_inativo }}
+                <label class="form-check-label ms-1" for="{{ form.depa_inativo.id_for_label }}">
+                  {{ form.depa_inativo.label|default:"Inativo" }}
+                </label>
+              </div>
+            </div>
+            {% if form.depa_inativo.errors %}
+              <div class="invalid-feedback d-block">{{ form.depa_inativo.errors|join:', ' }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# ====================================================== #}
+    {# ABA 1: Cadastrais  |  ABA 2: Informações mensais      #}
+    {# ====================================================== #}
+    <div class="app-form-card mb-4">
+      <div class="border-bottom mb-0">
+        <ul class="nav nav-tabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-cadastrais"
+                    type="button" role="tab" aria-selected="true">Cadastrais</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-info-mensais"
+                    type="button" role="tab" aria-selected="false">Informações mensais</button>
+          </li>
+        </ul>
+      </div>
+
+      <div class="tab-content p-3">
+        {# ABA 1 #}
+        <div class="tab-pane fade show active tab-pane-abas" id="tab-cadastrais" role="tabpanel">
+
+          {# Apelido #}
+          <div class="row g-3 mb-3">
+            <div class="col-12 col-lg-4{% if form.depa_apelido.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depa_apelido.id_for_label }}">
+                {{ form.depa_apelido.label|default:"Apelido" }}
+              </label>
+              {{ form.depa_apelido }}
+              {% if form.depa_apelido.errors %}<div class="invalid-feedback d-block">{{ form.depa_apelido.errors|join:', ' }}</div>{% endif %}
+            </div>
+          </div>
+
+          {# CEP + Endereço + Número (mesma linha: 3 + 7 + 2 = 12) #}
+          <div class="row g-3 mb-3 align-items-end">
+            <div class="col-12 col-lg-3 col-md-4{% if form.depa_cep.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depa_cep.id_for_label }}">CEP</label>
+              {{ form.depa_cep }}
+              {% if form.depa_cep.errors %}<div class="invalid-feedback d-block">{{ form.depa_cep.errors|join:', ' }}</div>{% endif %}
+            </div>
+            <div class="col-12 col-lg-7{% if form.depa_ende.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depa_ende.id_for_label }}">Endereço</label>
+              {{ form.depa_ende }}
+              {% if form.depa_ende.errors %}<div class="invalid-feedback d-block">{{ form.depa_ende.errors|join:', ' }}</div>{% endif %}
+            </div>
+            <div class="col-12 col-lg-2 col-md-4{% if form.depa_ende_nume.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depa_ende_nume.id_for_label }}">Número</label>
+              {{ form.depa_ende_nume }}
+              {% if form.depa_ende_nume.errors %}<div class="invalid-feedback d-block">{{ form.depa_ende_nume.errors|join:', ' }}</div>{% endif %}
+            </div>
+          </div>
+
+          {# Complemento + Bairro + Cidade (descrição) + UF na mesma linha: 4 + 4 + 3 + 1 = 12 #}
+          <div class="row g-3 mb-3 align-items-end">
+            <div class="col-12 col-lg-4{% if form.depa_ende_comp.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depa_ende_comp.id_for_label }}">Complemento</label>
+              {{ form.depa_ende_comp }}
+              {% if form.depa_ende_comp.errors %}<div class="invalid-feedback d-block">{{ form.depa_ende_comp.errors|join:', ' }}</div>{% endif %}
+            </div>
+            <div class="col-12 col-lg-4{% if form.depa_ende_bair.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depa_ende_bair.id_for_label }}">Bairro</label>
+              {{ form.depa_ende_bair }}
+              {% if form.depa_ende_bair.errors %}<div class="invalid-feedback d-block">{{ form.depa_ende_bair.errors|join:', ' }}</div>{% endif %}
+            </div>
+            <div class="col-12 col-lg-3{% if form.depa_cida_desc.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depa_cida_desc.id_for_label }}">Cidade (descrição)</label>
+              {{ form.depa_cida_desc }}
+              {% if form.depa_cida_desc.errors %}<div class="invalid-feedback d-block">{{ form.depa_cida_desc.errors|join:', ' }}</div>{% endif %}
+            </div>
+            <div class="col-12 col-lg-1{% if form.depa_esta.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depa_esta.id_for_label }}">UF</label>
+              {{ form.depa_esta }}
+              {% if form.depa_esta.errors %}<div class="invalid-feedback d-block">{{ form.depa_esta.errors|join:', ' }}</div>{% endif %}
+            </div>
+          </div>
+
+          {# Cidade (cód.) — HIDDEN (não aparece na tela, mas continua no submit para compatibilidade) #}
+          <div style="display:none;" aria-hidden="true">{{ form.depa_cida_codi }}</div>
+
+          {# Contato #}
+          <div class="row g-3 mb-4">
+            <div class="col-12 col-lg-2{% if form.depa_ddd1.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depa_ddd1.id_for_label }}">DDD</label>
+              {{ form.depa_ddd1 }}
+              {% if form.depa_ddd1.errors %}<div class="invalid-feedback d-block">{{ form.depa_ddd1.errors|join:', ' }}</div>{% endif %}
+            </div>
+            <div class="col-12 col-lg-4{% if form.depa_fone1.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depa_fone1.id_for_label }}">Telefone</label>
+              {{ form.depa_fone1 }}
+              {% if form.depa_fone1.errors %}<div class="invalid-feedback d-block">{{ form.depa_fone1.errors|join:', ' }}</div>{% endif %}
+            </div>
+            <div class="col-12 col-lg-6{% if form.depa_emai.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depa_emai.id_for_label }}">E-mail</label>
+              {{ form.depa_emai }}
+              {% if form.depa_emai.errors %}<div class="invalid-feedback d-block">{{ form.depa_emai.errors|join:', ' }}</div>{% endif %}
+            </div>
+          </div>
+
+          {# Tipo documento + CNPJ / CEI (layout igual ao de Empresas) #}
+          <div class="row g-3 mb-3 align-items-end">
+            <div class="col-12 col-md-6{% if form.depa_tipo_doc.errors %} field-error{% endif %}">
+              <label class="form-label">{{ form.depa_tipo_doc.label|default:"Tipo de documento" }}</label>
+              <div class="departamentosrh-section-box">
+                <div class="d-flex gap-4">
+                  {% for choice in form.depa_tipo_doc.field.choices %}
+                    {% if choice.0 is not None and choice.0 != '' %}
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input depa-tipo-doc-radio" type="radio"
+                           id="depa_tipo_doc_{{ choice.0 }}"
+                           name="{{ form.depa_tipo_doc.html_name }}"
+                           value="{{ choice.0 }}"
+                           data-tipo-label="{{ choice.1 }}"
+                           {% if form.depa_tipo_doc.value == choice.0 or form.depa_tipo_doc.value|default:1 == choice.0 %}checked{% endif %}>
+                    <label class="form-check-label ms-1" for="depa_tipo_doc_{{ choice.0 }}">{{ choice.1 }}</label>
+                  </div>
+                    {% endif %}
+                  {% endfor %}
+                </div>
+                {% if form.depa_tipo_doc.errors %}<div class="invalid-feedback d-block">{{ form.depa_tipo_doc.errors|join:', ' }}</div>{% endif %}
+              </div>
+            </div>
+            <div class="col-12 col-md-6{% if form.depa_cnpj.errors %} field-error{% endif %}">
+              <label class="form-label" id="depa_cnpj_label" for="{{ form.depa_cnpj.id_for_label }}">CNPJ</label>
+              {{ form.depa_cnpj }}
+              {% if form.depa_cnpj.errors %}<div class="invalid-feedback d-block">{{ form.depa_cnpj.errors|join:', ' }}</div>{% endif %}
+            </div>
+          </div>
+
+          {# Tipo tomador — campo COMBO de 12 colunas (desc. retirada) #}
+          <div class="row g-3 mb-3 align-items-end">
+            <div class="col-12{% if form.depa_tipo_tomador.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depa_tipo_tomador.id_for_label }}">Tipo tomador</label>
+              {{ form.depa_tipo_tomador }}
+              {% if form.depa_tipo_tomador.errors %}<div class="invalid-feedback d-block">{{ form.depa_tipo_tomador.errors|join:', ' }}</div>{% endif %}
+            </div>
+          </div>
+
+        </div>
+
+        {# ABA 2 - Informações mensais #}
+        <div class="tab-pane fade tab-pane-abas" id="tab-info-mensais" role="tabpanel">
+
+          {# Terceiro — combo em largura total (desc. REMOVIDO) #}
+          <div class="row g-3 mb-3 align-items-end">
+            <div class="col-12 col-lg-12{% if form.depa_im_terc.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depa_im_terc.id_for_label }}">Terceiro</label>
+              {{ form.depa_im_terc }}
+              {% if form.depa_im_terc.errors %}<div class="invalid-feedback d-block">{{ form.depa_im_terc.errors|join:', ' }}</div>{% endif %}
+            </div>
+          </div>
+
+          {# FPAS + % FPAS (desc. REMOVIDO) #}
+          <div class="row g-3 mb-3 align-items-end">
+            <div class="col-12 col-lg-8{% if form.depa_fpas_codi.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depa_fpas_codi.id_for_label }}">FPAS</label>
+              {{ form.depa_fpas_codi }}
+              {% if form.depa_fpas_codi.errors %}<div class="invalid-feedback d-block">{{ form.depa_fpas_codi.errors|join:', ' }}</div>{% endif %}
+            </div>
+            <div class="col-12 col-lg-4{% if form.depa_fpas_perc.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depa_fpas_perc.id_for_label }}">% FPAS</label>
+              <div class="input-group">
+                <span class="input-group-text bg-secondary text-white fw-bold">%</span>
+                {{ form.depa_fpas_perc }}
+              </div>
+              {% if form.depa_fpas_perc.errors %}<div class="invalid-feedback d-block">{{ form.depa_fpas_perc.errors|join:', ' }}</div>{% endif %}
+            </div>
+          </div>
+
+          {# CNAE/RAT 2.0 + % CNAE + Alíquota FAP (desc. REMOVIDO) #}
+          <div class="row g-3 mb-3 align-items-end">
+            <div class="col-12 col-lg-6{% if form.depa_cnae_codi.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depa_cnae_codi.id_for_label }}">CNAE/RAT 2.0</label>
+              {{ form.depa_cnae_codi }}
+              {% if form.depa_cnae_codi.errors %}<div class="invalid-feedback d-block">{{ form.depa_cnae_codi.errors|join:', ' }}</div>{% endif %}
+            </div>
+            <div class="col-12 col-lg-4{% if form.depa_cnae_perc.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depa_cnae_perc.id_for_label }}">% CNAE</label>
+              <div class="input-group">
+                <span class="input-group-text bg-secondary text-white fw-bold">%</span>
+                {{ form.depa_cnae_perc }}
+              </div>
+              {% if form.depa_cnae_perc.errors %}<div class="invalid-feedback d-block">{{ form.depa_cnae_perc.errors|join:', ' }}</div>{% endif %}
+            </div>
+            <div class="col-12 col-lg-2{% if form.depa_fap_aliq.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depa_fap_aliq.id_for_label }}">Alíquota FAP</label>
+              {{ form.depa_fap_aliq }}
+              {% if form.depa_fap_aliq.errors %}<div class="invalid-feedback d-block">{{ form.depa_fap_aliq.errors|join:', ' }}</div>{% endif %}
+            </div>
+          </div>
+
+          {# Cód. pag. GPS + Cód. GPS transp. — lado a lado com 6 colunas cada (desc. REMOVIDO) #}
+          <div class="row g-3 mb-3 align-items-end">
+            <div class="col-12 col-lg-6{% if form.depa_gps_pag_codi.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depa_gps_pag_codi.id_for_label }}">Cód. pag. GPS</label>
+              {{ form.depa_gps_pag_codi }}
+              {% if form.depa_gps_pag_codi.errors %}<div class="invalid-feedback d-block">{{ form.depa_gps_pag_codi.errors|join:', ' }}</div>{% endif %}
+            </div>
+            <div class="col-12 col-lg-6{% if form.depa_gps_transp_codi.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depa_gps_transp_codi.id_for_label }}">Cód. GPS transp.</label>
+              {{ form.depa_gps_transp_codi }}
+              {% if form.depa_gps_transp_codi.errors %}<div class="invalid-feedback d-block">{{ form.depa_gps_transp_codi.errors|join:', ' }}</div>{% endif %}
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3 align-items-end">
+            <div class="col-12 col-lg-5{% if form.depa_dados_cad_codi.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depa_dados_cad_codi.id_for_label }}">Dados cadastrais</label>
+              {{ form.depa_dados_cad_codi }}
+              {% if form.depa_dados_cad_codi.errors %}<div class="invalid-feedback d-block">{{ form.depa_dados_cad_codi.errors|join:', ' }}</div>{% endif %}
+            </div>
+            <div class="col-12 col-lg-5{% if form.depa_dados_perc_codi.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depa_dados_perc_codi.id_for_label }}">Dados percentuais</label>
+              {{ form.depa_dados_perc_codi }}
+              {% if form.depa_dados_perc_codi.errors %}<div class="invalid-feedback d-block">{{ form.depa_dados_perc_codi.errors|join:', ' }}</div>{% endif %}
+            </div>
+            <div class="col-12 col-lg-2{% if form.depa_tx_servico.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depa_tx_servico.id_for_label }}">Taxa de serviço</label>
+              {{ form.depa_tx_servico }}
+              {% if form.depa_tx_servico.errors %}<div class="invalid-feedback d-block">{{ form.depa_tx_servico.errors|join:', ' }}</div>{% endif %}
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-12 col-lg-4{% if form.depa_contab_codi.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depa_contab_codi.id_for_label }}">Código na contabilidade</label>
+              {{ form.depa_contab_codi }}
+              {% if form.depa_contab_codi.errors %}<div class="invalid-feedback d-block">{{ form.depa_contab_codi.errors|join:', ' }}</div>{% endif %}
+            </div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-12{% if form.depa_mensagens1.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depa_mensagens1.id_for_label }}">Mensagens</label>
+              {{ form.depa_mensagens1 }}
+              {% if form.depa_mensagens1.errors %}<div class="invalid-feedback d-block">{{ form.depa_mensagens1.errors|join:', ' }}</div>{% endif %}
+            </div>
+            <div class="col-12{% if form.depa_mensagens2.errors %} field-error{% endif %}">
+              {{ form.depa_mensagens2 }}
+              {% if form.depa_mensagens2.errors %}<div class="invalid-feedback d-block">{{ form.depa_mensagens2.errors|join:', ' }}</div>{% endif %}
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    {% url 'departamentosrh:listar' as url_voltar_depa %}
+    {% include "partials/ui/form_actions.html" with form_actions_url_voltar=url_voltar_depa|add:"?banco="|add:request.banco %}
+  </form>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Máscaras digits only
+    document.querySelectorAll('[data-digits-only="true"]').forEach(function (input) {
+      function sanitize() {
+        var raw = input.value || '';
+        var cleaned = raw.replace(/\D/g, '');
+        if (raw !== cleaned) input.value = cleaned;
+      }
+      input.addEventListener('input', sanitize);
+      input.addEventListener('blur', sanitize);
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === 'Tab') sanitize();
+      });
+      sanitize();
+    });
+
+    // Máscaras decimais
+    function applyDecimal(digits) {
+      document.querySelectorAll('[data-decimal-' + digits + '="true"]').forEach(function (input) {
+        function sanitize() {
+          var v = (input.value || '').toString();
+          if (!v) return;
+          v = v.replace(/[^\d,.-]/g, '');
+          var neg = v.startsWith('-');
+          if (neg) v = v.slice(1);
+          v = v.replace(/,/g, '.');
+          var parts = v.split('.');
+          if (parts.length > 2) {
+            v = parts.shift() + '.' + parts.join('');
+          } else if (parts.length === 2) {
+            parts[1] = (parts[1] || '').slice(0, digits);
+            v = parts[0] + '.' + parts[1];
+          }
+          if (neg) v = '-' + v;
+          input.value = v;
+        }
+        input.addEventListener('input', sanitize);
+        input.addEventListener('blur', sanitize);
+        input.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === 'Tab') sanitize();
+        });
+        sanitize();
+      });
+    }
+    applyDecimal(2);
+    applyDecimal(4);
+
+    // Telefone máscara rápida
+    var fone = document.getElementById('{{ form.depa_fone1.id_for_label }}');
+    if (fone) {
+      function maskFone() {
+        var digits = (fone.value || '').replace(/\D/g, '').slice(0, 9);
+        if (digits.length <= 4) {
+          fone.value = digits;
+        } else {
+          fone.value = digits.slice(0, digits.length - 4) + '-' + digits.slice(-4);
+        }
+      }
+      fone.addEventListener('input', maskFone);
+      fone.addEventListener('blur', maskFone);
+    }
+
+    // Tipo de documento: alterna label, placeholder e máscara entre CNPJ / CEI
+    var tipoDocRadios = document.querySelectorAll('.depa-tipo-doc-radio');
+    var cnpjLabel = document.getElementById('depa_cnpj_label');
+    var cnpjInput = document.getElementById('{{ form.depa_cnpj.id_for_label }}');
+
+    function obterTipoDocSelecionado() {
+      for (var i = 0; i < tipoDocRadios.length; i++) {
+        if (tipoDocRadios[i].checked) {
+          return String(tipoDocRadios[i].value);
+        }
+      }
+      return '1';
+    }
+
+    function aplicarMascaraDocumento() {
+      if (!cnpjInput) return;
+      var tipo = obterTipoDocSelecionado();
+      // Workaround: evita truncamento do maxlength do model (14) enquanto o
+      // usuário ainda está digitando com máscara (que precisa de 18/15 chars)
+      var savedMax = cnpjInput.maxLength;
+      try { cnpjInput.maxLength = 50; } catch (_) {}
+      var digits = (cnpjInput.value || '').replace(/\D/g, '');
+      if (tipo === '2') {
+        // CEI: 12 dígitos → "00.0000.00000-00" (15 chars com máscara)
+        digits = digits.slice(0, 12);
+        if (digits.length <= 2) {
+          cnpjInput.value = digits;
+        } else if (digits.length <= 6) {
+          cnpjInput.value = digits.slice(0, 2) + '.' + digits.slice(2);
+        } else if (digits.length <= 11) {
+          cnpjInput.value = digits.slice(0, 2) + '.' + digits.slice(2, 6) + '.' + digits.slice(6);
+        } else {
+          cnpjInput.value = digits.slice(0, 2) + '.' + digits.slice(2, 6) + '.' + digits.slice(6, 11) + '-' + digits.slice(11);
+        }
+        try { cnpjInput.maxLength = Math.max(15, savedMax || 0); } catch (_) {}
+      } else {
+        // CNPJ: 14 dígitos → "00.000.000/0000-00" (18 chars com máscara)
+        digits = digits.slice(0, 14);
+        if (digits.length <= 2) {
+          cnpjInput.value = digits;
+        } else if (digits.length <= 5) {
+          cnpjInput.value = digits.slice(0, 2) + '.' + digits.slice(2);
+        } else if (digits.length <= 8) {
+          cnpjInput.value = digits.slice(0, 2) + '.' + digits.slice(2, 5) + '.' + digits.slice(5);
+        } else if (digits.length <= 12) {
+          cnpjInput.value = digits.slice(0, 2) + '.' + digits.slice(2, 5) + '.' + digits.slice(5, 8) + '/' + digits.slice(8);
+        } else {
+          cnpjInput.value = digits.slice(0, 2) + '.' + digits.slice(2, 5) + '.' + digits.slice(5, 8) + '/' + digits.slice(8, 12) + '-' + digits.slice(12);
+        }
+        try { cnpjInput.maxLength = Math.max(18, savedMax || 0); } catch (_) {}
+      }
+    }
+
+    function atualizarInterfaceTipoDoc() {
+      var tipo = obterTipoDocSelecionado();
+      if (tipo === '2') {
+        if (cnpjLabel) cnpjLabel.textContent = 'CEI';
+        if (cnpjInput) cnpjInput.placeholder = '00.0000.00000-00';
+        if (cnpjInput) cnpjInput.maxLength = 15;
+      } else {
+        if (cnpjLabel) cnpjLabel.textContent = 'CNPJ';
+        if (cnpjInput) cnpjInput.placeholder = '00.000.000/0000-00';
+        if (cnpjInput) cnpjInput.maxLength = 18;
+      }
+      aplicarMascaraDocumento();
+    }
+
+    if (tipoDocRadios && tipoDocRadios.length) {
+      for (var i = 0; i < tipoDocRadios.length; i++) {
+        tipoDocRadios[i].addEventListener('change', atualizarInterfaceTipoDoc);
+      }
+      atualizarInterfaceTipoDoc();
+    }
+    if (cnpjInput) {
+      cnpjInput.addEventListener('input', aplicarMascaraDocumento);
+      cnpjInput.addEventListener('blur', aplicarMascaraDocumento);
+    }
+
+    // CEP máscara + busca viacep (preenche endereço completo: tipo_logradouro + logradouro)
+    var cep = document.getElementById('{{ form.depa_cep.id_for_label }}');
+    if (cep) {
+      function maskCep() {
+        // Workaround: temporariamente tira qualquer limitador de maxlength do HTML
+        // para garantir que o último dígito não é truncado pelo navegador antes de
+        // aplicarmos a máscara (Django costuma colocar maxlength=8 vindo do model)
+        var savedLen = cep.maxLength;
+        try { cep.maxLength = 50; } catch (_) {}
+        var raw = (cep.value || '').replace(/\D/g, '');
+        var d = raw.slice(0, 8);
+        if (d.length <= 5) {
+          cep.value = d;
+        } else {
+          cep.value = d.slice(0, 5) + '-' + d.slice(5);
+        }
+        try { cep.maxLength = Math.max(11, savedLen || 0); } catch (_) {}
+      }
+      // Força ao carregar a página, para garantir que maxlength do input seja 11
+      try { if (!cep.maxLength || cep.maxLength < 11) cep.maxLength = 11; } catch (_) {}
+      maskCep();
+      cep.addEventListener('input', maskCep);
+      cep.addEventListener('blur', maskCep);
+      cep.addEventListener('focus', maskCep);
+
+      async function buscarCepViacep() {
+        var d = (cep.value || '').replace(/\D/g, '').slice(0, 8);
+        if (d.length !== 8) return;
+        try {
+          var resp = await fetch('https://viacep.com.br/ws/' + d + '/json/');
+          if (!resp.ok) return;
+          var data = await resp.json();
+          if (!data || data.erro) return;
+
+          var endEl = document.getElementById('{{ form.depa_ende.id_for_label }}');
+          if (endEl && data.logradouro) {
+            var enderecoCompleto = (endEl.value || '').trim();
+            if (!enderecoCompleto) {
+              if (data.tipo_logradouro && data.logradouro.indexOf(data.tipo_logradouro) === 0) {
+                // logradouro já veio com o tipo, usa direto
+                enderecoCompleto = data.logradouro;
+              } else if (data.tipo_logradouro) {
+                enderecoCompleto = data.tipo_logradouro + ' ' + data.logradouro;
+              } else {
+                enderecoCompleto = data.logradouro;
+              }
+              endEl.value = enderecoCompleto.trim();
+            }
+          }
+          var bairEl = document.getElementById('{{ form.depa_ende_bair.id_for_label }}');
+          if (bairEl && data.bairro && !(bairEl.value || '').trim()) bairEl.value = data.bairro;
+          var cidEl = document.getElementById('{{ form.depa_cida_desc.id_for_label }}');
+          if (cidEl && data.localidade && !(cidEl.value || '').trim()) cidEl.value = data.localidade;
+          var ufEl = document.getElementById('{{ form.depa_esta.id_for_label }}');
+          if (ufEl && data.uf) {
+            for (var i = 0; i < ufEl.options.length; i++) {
+              if (String(ufEl.options[i].value) === String(data.uf)) {
+                ufEl.selectedIndex = i;
+                break;
+              }
+            }
+          }
+          var cidCodEl = document.getElementById('{{ form.depa_cida_codi.id_for_label }}');
+          if (cidCodEl && data.ibge && !(cidCodEl.value || '').trim()) {
+            // IBGE tem 7 dígitos, os 4 primeiros (desprezando prefixo de UF) costumam ser o código da cidade
+            cidCodEl.value = String(data.ibge).slice(2);
+          }
+        } catch (_) {}
+      }
+      cep.addEventListener('blur', buscarCepViacep);
+    }
+
+    function goBack(e) {
+      if (e.key === 'Escape') {
+        var btn = document.querySelector('[data-form-action="voltar"]');
+        if (btn && btn.href) window.location.href = btn.href;
+      }
+    }
+    document.addEventListener('keydown', goBack);
+  });
+</script>
+{% endblock %}

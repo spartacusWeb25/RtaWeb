@@ -791,3 +791,129 @@ class CargosService:
         except Exception as e_geral:
             _print_log(f"Erro geral listar_cbos: {e_geral}")
         return itens
+
+    @staticmethod
+    def listar_cargos(*, banco: str, db_alias: str = None,
+                      codigo_empresa: int = 1, codigo_filial: int = 1,
+                      incluir_inativos: bool = True) -> list:
+        banco_limpo = _digits_only(banco)
+        empr = int(codigo_empresa or 1)
+        fili = int(codigo_filial or 1)
+        qs = Cargos.objects
+        if db_alias:
+            qs = qs.using(db_alias)
+        filtros = {
+            "registro": banco_limpo,
+            "carg_empr": empr,
+            "carg_fili": fili,
+        }
+        if not incluir_inativos:
+            filtros["carg_inativo"] = False
+        try:
+            rows = list(
+                qs.filter(**filtros)
+                .order_by("carg_codi")
+                .values_list("carg_codi", "carg_descricao", "carg_cbo_codi", "carg_cbo_desc", "carg_inativo")
+            )
+        except Exception:
+            from django.db import connections
+            alias = db_alias or "default"
+            try:
+                with connections[alias].cursor() as cursor:
+                    sql_inativo = "" if incluir_inativos else " AND COALESCE(carg_inativo, FALSE) = FALSE"
+                    cursor.execute(
+                        "SELECT carg_codi, carg_descricao, carg_cbo_codi, carg_cbo_desc, COALESCE(carg_inativo, FALSE) "
+                        "FROM cargos "
+                        f"WHERE registro=%s AND carg_empr=%s AND carg_fili=%s{sql_inativo} "
+                        "ORDER BY carg_codi",
+                        [banco_limpo, empr, fili],
+                    )
+                    rows = cursor.fetchall() or []
+            except Exception:
+                rows = []
+        saida = []
+        seen = set()
+        for cod, desc, cbo_cod, cbo_desc, inativo in rows:
+            cod_clean = str(int(cod or 0))
+            if not cod_clean or cod_clean in seen:
+                continue
+            seen.add(cod_clean)
+            desc_clean = str(desc or "").strip()
+            label = desc_clean or f"Cargo #{cod_clean}"
+            cbo_cod_clean = _digits_only(cbo_cod)[:7] if cbo_cod is not None else ""
+            cbo_desc_clean = str(cbo_desc or "").strip()
+            saida.append({
+                "codi": int(cod_clean),
+                "descricao": desc_clean,
+                "label": label,
+                "cbo_codi": cbo_cod_clean,
+                "cbo_desc": cbo_desc_clean,
+                "inativo": bool(inativo),
+            })
+        return saida
+
+    @staticmethod
+    def choices_cargos(*, banco: str, db_alias: str = None,
+                       codigo_empresa: int = 1, codigo_filial: int = 1,
+                       incluir_selecione: bool = True, valor_atual=None,
+                       incluir_inativos: bool = True) -> list:
+        lista = CargosService.listar_cargos(
+            banco=banco,
+            db_alias=db_alias,
+            codigo_empresa=codigo_empresa,
+            codigo_filial=codigo_filial,
+            incluir_inativos=incluir_inativos,
+        )
+        choices = []
+        if incluir_selecione:
+            choices.append((None, "Selecione"))
+        for item in lista:
+            codi_int = int(item["codi"])
+            rotulo = f"{item['codi']} - {item['label']}"
+            if item.get("inativo"):
+                rotulo = f"{rotulo} (Inativo)"
+            choices.append((codi_int, rotulo))
+        if valor_atual is not None:
+            try:
+                val_int = int(valor_atual)
+                existe = False
+                for chave, _ in choices:
+                    try:
+                        if int(chave) == val_int:
+                            existe = True
+                            break
+                    except Exception:
+                        pass
+                if not existe and val_int > 0:
+                    choices.append((val_int, f"{val_int} - Cargo #{val_int} (atual)"))
+            except Exception:
+                pass
+        return choices
+
+    @staticmethod
+    def choices_cbos(*, banco: str, db_alias: str = None,
+                     incluir_selecione: bool = True, valor_atual=None) -> list:
+        lista = CargosService.listar_cbos(banco=banco, db_alias=db_alias)
+        choices = []
+        if incluir_selecione:
+            choices.append((None, "Selecione"))
+        for item in lista:
+            codi_clean = _digits_only(item.get("codi", ""))[:7]
+            if not codi_clean:
+                continue
+            desc = str(item.get("desc") or "").strip() or f"CBO {codi_clean}"
+            choices.append((codi_clean, f"{codi_clean} - {desc}"))
+        if valor_atual is not None:
+            try:
+                val_clean = _digits_only(valor_atual)[:7]
+                if val_clean:
+                    existe = False
+                    for chave, _ in choices:
+                        if str(chave) == val_clean:
+                            existe = True
+                            break
+                    if not existe:
+                        choices.append((val_clean, f"{val_clean} - CBO {val_clean} (atual)"))
+            except Exception:
+                pass
+        return choices

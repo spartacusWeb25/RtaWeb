@@ -22,6 +22,21 @@ class FuncionarioMixin(BancoObrigatorioMixin):
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs["db_alias"] = self.db_alias
+        banco = getattr(self.request, "banco", "") or ""
+        kwargs["banco"] = banco
+
+        empr_default = self.obter_codigo_empresa_contexto()
+        fili_default = self.obter_filial_empresa_contexto()
+        try:
+            empr_int = int(empr_default) if str(empr_default or "").isdigit() else 1
+        except Exception:
+            empr_int = 1
+        try:
+            fili_int = int(fili_default) if str(fili_default or "").isdigit() else 1
+        except Exception:
+            fili_int = 1
+        kwargs["empr_codigo"] = empr_int
+        kwargs["fili_codigo"] = fili_int
         return kwargs
 
     def get_object(self, queryset=None):
@@ -81,3 +96,48 @@ class FuncionarioMixin(BancoObrigatorioMixin):
             db_alias=self.db_alias,
             codigo_empresa=codigo_empresa,
         )
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        banco = getattr(self.request, "banco", "") or ""
+        empr = self.obter_codigo_empresa_contexto(form=ctx.get("form"))
+        fili = self.obter_filial_empresa_contexto(form=ctx.get("form"))
+        try:
+            empr_int = int(empr) if str(empr or "").isdigit() else 1
+        except Exception:
+            empr_int = 1
+        try:
+            fili_int = int(fili) if str(fili or "").isdigit() else 1
+        except Exception:
+            fili_int = 1
+
+        mapa_cargos_cbo = {}
+        mapa_funcoes_cbo = {}
+        try:
+            from cargos.services.logic import CargosService
+            lista_cargos = CargosService.listar_cargos(
+                banco=banco,
+                db_alias=self.db_alias,
+                codigo_empresa=empr_int,
+                codigo_filial=fili_int,
+                incluir_inativos=True,
+            )
+            for item in lista_cargos:
+                chave = int(item["codi"])
+                entrada = {"cbo": item.get("cbo_codi") or "", "desc": item.get("cbo_desc") or "",
+                           "cargo_nome": item.get("label") or ""}
+                mapa_cargos_cbo[chave] = entrada
+                mapa_funcoes_cbo[chave] = entrada
+        except Exception:
+            mapa_cargos_cbo = {}
+            mapa_funcoes_cbo = {}
+        ctx["mapa_cargos_cbo"] = mapa_cargos_cbo
+        ctx["mapa_funcoes_cbo"] = mapa_funcoes_cbo
+        try:
+            import json
+            ctx["mapa_cargos_cbo_json"] = json.dumps(mapa_cargos_cbo, ensure_ascii=False)
+            ctx["mapa_funcoes_cbo_json"] = json.dumps(mapa_funcoes_cbo, ensure_ascii=False)
+        except Exception:
+            ctx["mapa_cargos_cbo_json"] = "{}"
+            ctx["mapa_funcoes_cbo_json"] = "{}"
+        return ctx
