@@ -111,6 +111,17 @@ class FuncionarioMixin(BancoObrigatorioMixin):
         except Exception:
             fili_int = 1
 
+        ctx["empr_codigo"] = empr_int
+        ctx["fili_codigo"] = fili_int
+        try:
+            ctx["empresa_nome"] = FuncionariosService.obter_nome_empresa(
+                banco=banco,
+                db_alias=self.db_alias,
+                codigo_empresa=empr_int,
+            ) or "Empresa padrão da licença"
+        except Exception:
+            ctx["empresa_nome"] = "Empresa padrão da licença"
+
         mapa_cargos_cbo = {}
         mapa_funcoes_cbo = {}
         try:

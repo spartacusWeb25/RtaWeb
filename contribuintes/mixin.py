@@ -4,6 +4,8 @@ from contribuintes.models import Contribuintes
 from contribuintes.services.logic import ContribuintesService
 from contribuintes.web.forms import ContribuinteForm
 from contribuintes.web.choices import COUNTRY_CHOICES, _TOP_CIDADES_IBGE
+from django.utils.safestring import mark_safe
+import json
 
 
 def _digits_only(value):
@@ -36,6 +38,8 @@ class ContribuinteMixin(BancoObrigatorioMixin):
         kwargs = super().get_form_kwargs()
         kwargs["db_alias"] = self.db_alias
         kwargs["banco"] = self.banco_limpo
+        kwargs["empr_codigo"] = self.obter_codigo_empresa_contexto() or 1
+        kwargs["fili_codigo"] = self.obter_codigo_filial_contexto() or 1
         return kwargs
 
     def get_object(self, queryset=None):
@@ -137,3 +141,42 @@ class ContribuinteMixin(BancoObrigatorioMixin):
                 "label": f"{codigo:0>7} — {nome} / {uf}",
             })
         return result
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["empr_codigo"] = self.obter_codigo_empresa_contexto(form=ctx.get("form")) or 1
+        ctx["fili_codigo"] = self.obter_codigo_filial_contexto(form=ctx.get("form")) or 1
+
+        mapa_cargos_cbo = {}
+        try:
+            from cargos.services.logic import CargosService
+
+            banco_clean = self.banco_limpo or ""
+            empr_int = int(ctx.get("empr_codigo") or 1) or 1
+            fili_int = int(ctx.get("fili_codigo") or 1) or 1
+            listagem = CargosService.listar_cargos(
+                banco=banco_clean,
+                db_alias=self.db_alias,
+                codigo_empresa=empr_int,
+                codigo_filial=fili_int,
+                incluir_inativos=True,
+            )
+            for item in listagem or []:
+                try:
+                    chave = int(item.get("codi"))
+                except Exception:
+                    continue
+                entrada = {
+                    "cbo": item.get("cbo_codi") or "",
+                    "desc": item.get("cbo_desc") or "",
+                    "cargo_nome": item.get("label") or "",
+                }
+                mapa_cargos_cbo[chave] = entrada
+        except Exception:
+            mapa_cargos_cbo = {}
+        ctx["mapa_cargos_cbo"] = mapa_cargos_cbo
+        try:
+            ctx["mapa_cargos_cbo_json"] = json.dumps(mapa_cargos_cbo, ensure_ascii=False)
+        except Exception:
+            ctx["mapa_cargos_cbo_json"] = "{}"
+        return ctx

@@ -357,6 +357,8 @@ class TerceirosForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.db_alias = kwargs.pop("db_alias", None)
         self.banco = kwargs.pop("banco", None)
+        self.empr_codigo = kwargs.pop("empr_codigo", None)
+        self.fili_codigo = kwargs.pop("fili_codigo", None)
         if args:
             args_list = list(args)
             for i in range(len(args_list)):
@@ -584,12 +586,46 @@ class TerceirosForm(forms.ModelForm):
             field.required = False
 
         if "terc_cbo" in self.fields:
-            valor_atual = _current_field_value(self, "terc_cbo")
-            self.fields["terc_cbo"].widget = forms.Select(
-                attrs={"class": "form-select"},
-                choices=_choices_with_current((("", "Selecione"),), valor_atual),
-            )
-            self.fields["terc_cbo"].required = False
+            try:
+                from cargos.services.logic import CargosService as _CS_TERC_CBO
+                from cargos.services.logic import _digits_only as _digits_only_terc_cbo_nat
+
+                _banco_terc_cbo = self.banco or getattr(getattr(self, "instance", None), "registro", None) or ""
+                _banco_terc_cbo_clean = _digits_only_terc_cbo_nat(_banco_terc_cbo) if _banco_terc_cbo else ""
+                _valor_atual_cbo_terc = _current_field_value(self, "terc_cbo")
+                if _banco_terc_cbo_clean:
+                    _cbo_choices_nacional = _CS_TERC_CBO.choices_cbos(
+                        banco=_banco_terc_cbo_clean,
+                        db_alias=self.db_alias,
+                        incluir_selecione=True,
+                        valor_atual=_valor_atual_cbo_terc,
+                    )
+                else:
+                    _cbo_choices_nacional = [(None, "Selecione")]
+                    try:
+                        _val_c_terc = "".join(ch for ch in str(_valor_atual_cbo_terc or "") if ch.isdigit())[:6]
+                        if _val_c_terc:
+                            _cbo_choices_nacional.append((_val_c_terc, f"{_val_c_terc} - CBO {_val_c_terc} (atual)"))
+                    except Exception:
+                        pass
+                self.fields["terc_cbo"].label = "CBO"
+                self.fields["terc_cbo"].widget = forms.Select(
+                    attrs={"class": "form-select"},
+                    choices=list(_cbo_choices_nacional),
+                )
+                self.fields["terc_cbo"].required = False
+                self.fields["terc_cbo"].validators = [
+                    v for v in self.fields["terc_cbo"].validators
+                    if not isinstance(v, MaxLengthValidator)
+                ]
+            except Exception:
+                valor_atual = _current_field_value(self, "terc_cbo")
+                self.fields["terc_cbo"].label = "CBO"
+                self.fields["terc_cbo"].widget = forms.Select(
+                    attrs={"class": "form-select"},
+                    choices=_choices_with_current((("", "Selecione"),), valor_atual),
+                )
+                self.fields["terc_cbo"].required = False
 
         if "terc_ddd" in self.fields:
             field = self.fields["terc_ddd"]

@@ -1273,6 +1273,34 @@ class EmpresasForm(forms.ModelForm):
             raise forms.ValidationError("Informe o registro.")
         return "".join(ch for ch in registro if ch.isdigit()) or registro
 
+    def clean_empr_empr(self):
+        valor = self.cleaned_data.get("empr_empr")
+        if valor in (None, ""):
+            raise forms.ValidationError("Informe o Código da empresa.")
+        try:
+            valor_int = int(valor)
+        except (TypeError, ValueError):
+            raise forms.ValidationError("Informe um número válido para Código.")
+        if valor_int <= 0:
+            raise forms.ValidationError("O Código da empresa deve ser maior que zero.")
+        if valor_int > 999999:
+            raise forms.ValidationError("O Código da empresa não pode ultrapassar 6 dígitos.")
+        return valor_int
+
+    def clean_empr_fili(self):
+        valor = self.cleaned_data.get("empr_fili")
+        if valor in (None, ""):
+            raise forms.ValidationError("Informe a Filial.")
+        try:
+            valor_int = int(valor)
+        except (TypeError, ValueError):
+            raise forms.ValidationError("Informe um número válido para Filial.")
+        if valor_int <= 0:
+            raise forms.ValidationError("A Filial deve ser maior que zero (não pode ser 0).")
+        if valor_int > 999999:
+            raise forms.ValidationError("A Filial não pode ultrapassar 6 dígitos.")
+        return valor_int
+
     def _calculate_mod11_digit(self, numbers, weights):
         total = sum(int(number) * weight for number, weight in zip(numbers, weights))
         remainder = total % 11

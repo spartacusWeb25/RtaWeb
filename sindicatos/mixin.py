@@ -94,6 +94,11 @@ class SindicatoTrabalhadoresMixin(BancoObrigatorioMixin):
         if "form" in ctx:
             ctx["empresa_nome"] = self.obter_nome_empresa_contexto(form=ctx["form"])
             ctx["filial_nome"] = self.obter_nome_filial_contexto(form=ctx["form"])
+            ctx["empr_codigo"] = self.obter_codigo_empresa_contexto(form=ctx["form"]) or 1
+            ctx["fili_codigo"] = self.obter_codigo_filial_contexto(form=ctx["form"]) or 1
+        else:
+            ctx["empr_codigo"] = self.obter_codigo_empresa_contexto() or 1
+            ctx["fili_codigo"] = self.obter_codigo_filial_contexto() or 1
         if not ctx.get("cidades_json"):
             try:
                 from cidades.services.listar import ListarCidadesService

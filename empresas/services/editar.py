@@ -16,6 +16,10 @@ class EmpresasEditarService:
         if not EmpresasChaveService.chave_preenchida(chave_original):
             raise ValueError("Informe o código para localizar a empresa.")
 
+        valida_orig, msg_orig = EmpresasChaveService.chave_valida(chave_original)
+        if not valida_orig:
+            raise ValueError(msg_orig or "Chave inválida para localizar a empresa.")
+
         empresa = EmpresasChaveService.buscar(
             banco=banco,
             db_alias=db_alias,
@@ -32,6 +36,10 @@ class EmpresasEditarService:
 
         if not EmpresasChaveService.chave_preenchida(nova_chave):
             raise ValueError("Informe o código para salvar a empresa.")
+
+        valida_nova, msg_nova = EmpresasChaveService.chave_valida(nova_chave)
+        if not valida_nova:
+            raise ValueError(msg_nova or "Chave inválida para salvar a empresa.")
 
         if nova_chave != chave_original and EmpresasChaveService.existe(
             banco=banco,

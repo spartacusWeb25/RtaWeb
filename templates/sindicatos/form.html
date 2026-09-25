@@ -72,53 +72,33 @@
 
     <div class="app-form-card mb-3">
       <div class="row g-3 p-3">
-        <div class="row g-3 align-items-end">
-          <div class="col-12 col-lg-2{% if form.sind_codi.errors %} field-error{% endif %}">
-            <label class="form-label" for="{{ form.sind_codi.id_for_label }}">
-              Código
-            </label>
-            {% if object and object.sind_codi %}
-            {% with codigo_exibir=object.sind_codi %}
+        <div class="row g-3 align-items-center">
+          <div class="col-12 col-lg-2">
+            <label class="form-label">Empresa</label>
             <input
               type="text"
               class="form-control sindicato-readonly"
-              value="{{ codigo_exibir }}"
+              value="{{ empr_codigo|default_if_none:'' }}"
               readonly
             >
-            {% endwith %}
-            {% else %}
-            {% with codigo_exibir=proximo_codigo|default_if_none:form.initial.sind_codi|default_if_none:form.sind_codi.value %}
+          </div>
+          <div class="col-12 col-lg-8">
+            <label class="form-label">Empresa</label>
             <input
               type="text"
               class="form-control sindicato-readonly"
-              {% if codigo_exibir %}value="{{ codigo_exibir }}"{% endif %}
-              {% if not codigo_exibir %}placeholder="Automático"{% endif %}
+              value="{{ empresa_nome|default:'Empresa padrao da licenca' }}"
               readonly
             >
-            {% endwith %}
-            {% endif %}
-            {% if form.sind_codi.errors %}
-              <div class="invalid-feedback d-block">{{ form.sind_codi.errors|join:', ' }}</div>
-            {% endif %}
           </div>
-          <div class="col-12 col-lg-7{% if form.sind_nome.errors %} field-error{% endif %}">
-            <label class="form-label" for="{{ form.sind_nome.id_for_label }}">
-              {{ form.sind_nome.label|default:"Sindicato" }}
-              {% if form.sind_nome.field.required %}<span class="text-danger">*</span>{% endif %}
-            </label>
-            {{ form.sind_nome }}
-            {% if form.sind_nome.errors %}
-              <div class="invalid-feedback d-block">{{ form.sind_nome.errors|join:', ' }}</div>
-            {% endif %}
-          </div>
-          <div class="col-12 col-lg-3{% if form.sind_apelido.errors %} field-error{% endif %}">
-            <label class="form-label" for="{{ form.sind_apelido.id_for_label }}">
-              {{ form.sind_apelido.label|default:"Apelido" }}
-            </label>
-            {{ form.sind_apelido }}
-            {% if form.sind_apelido.errors %}
-              <div class="invalid-feedback d-block">{{ form.sind_apelido.errors|join:', ' }}</div>
-            {% endif %}
+          <div class="col-12 col-lg-2">
+            <label class="form-label">Filial</label>
+            <input
+              type="text"
+              class="form-control sindicato-readonly"
+              value="{{ fili_codigo|default_if_none:'' }}"
+              readonly
+            >
           </div>
         </div>
       </div>
@@ -147,37 +127,57 @@
         <div class="tab-pane show active tab-pane-sind" id="tab-cadastrais" role="tabpanel">
           <div class="p-3 pt-0">
 
-            <div class="row g-3 mb-2">
-              <div class="col-12 col-lg-2">
-                <label class="form-label">Empresa</label>
+            <div class="row g-3 mb-2 align-items-end">
+              <div class="col-12 col-lg-2{% if form.sind_codi.errors %} field-error{% endif %}">
+                <label class="form-label" for="{{ form.sind_codi.id_for_label }}">
+                  Código
+                </label>
+                {% if object and object.sind_codi %}
+                {% with codigo_exibir=object.sind_codi %}
                 <input
                   type="text"
                   class="form-control sindicato-readonly"
-                  value="{{ form.initial.sind_empr|default_if_none:'' }}"
+                  value="{{ codigo_exibir }}"
                   readonly
                 >
+                {% endwith %}
+                {% else %}
+                {% with codigo_exibir=proximo_codigo|default_if_none:form.initial.sind_codi|default_if_none:form.sind_codi.value %}
+                <input
+                  type="text"
+                  class="form-control sindicato-readonly"
+                  {% if codigo_exibir %}value="{{ codigo_exibir }}"{% endif %}
+                  {% if not codigo_exibir %}placeholder="Automático"{% endif %}
+                  readonly
+                >
+                {% endwith %}
+                {% endif %}
+                {% if form.sind_codi.errors %}
+                  <div class="invalid-feedback d-block">{{ form.sind_codi.errors|join:', ' }}</div>
+                {% endif %}
               </div>
-              <div class="col-12 col-lg-10">
-                <label class="form-label">Empresa</label>
-                <input
-                  type="text"
-                  class="form-control sindicato-readonly"
-                  value="{{ empresa_nome|default:'Empresa padrao da licenca' }}"
-                  readonly
-                >
+              <div class="col-12 col-lg-7{% if form.sind_nome.errors %} field-error{% endif %}">
+                <label class="form-label" for="{{ form.sind_nome.id_for_label }}">
+                  {{ form.sind_nome.label|default:"Sindicato" }}
+                  {% if form.sind_nome.field.required %}<span class="text-danger">*</span>{% endif %}
+                </label>
+                {{ form.sind_nome }}
+                {% if form.sind_nome.errors %}
+                  <div class="invalid-feedback d-block">{{ form.sind_nome.errors|join:', ' }}</div>
+                {% endif %}
+              </div>
+              <div class="col-12 col-lg-3{% if form.sind_apelido.errors %} field-error{% endif %}">
+                <label class="form-label" for="{{ form.sind_apelido.id_for_label }}">
+                  {{ form.sind_apelido.label|default:"Apelido" }}
+                </label>
+                {{ form.sind_apelido }}
+                {% if form.sind_apelido.errors %}
+                  <div class="invalid-feedback d-block">{{ form.sind_apelido.errors|join:', ' }}</div>
+                {% endif %}
               </div>
             </div>
 
             <div class="row g-3 mb-2">
-              <div class="col-12 col-lg-2">
-                <label class="form-label">Filial</label>
-                <input
-                  type="text"
-                  class="form-control sindicato-readonly"
-                  value="{{ form.initial.sind_fili|default_if_none:'' }}"
-                  readonly
-                >
-              </div>
               <div class="col-12 col-lg-3{% if form.sind_tipo_entidade.errors %} field-error{% endif %}">
                 <label class="form-label" for="{{ form.sind_tipo_entidade.id_for_label }}">
                   {{ form.sind_tipo_entidade.label|default:"Entidade" }}
@@ -196,7 +196,7 @@
                   <div class="invalid-feedback d-block">{{ form.sind_entidade.errors|join:', ' }}</div>
                 {% endif %}
               </div>
-              <div class="col-12 col-lg-3{% if form.sind_codi_sind.errors %} field-error{% endif %}">
+              <div class="col-12 col-lg-5{% if form.sind_codi_sind.errors %} field-error{% endif %}">
                 <label class="form-label" for="{{ form.sind_codi_sind.id_for_label }}">
                   {{ form.sind_codi_sind.label|default:"Código entidade" }}
                 </label>

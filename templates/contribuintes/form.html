@@ -214,9 +214,34 @@
 
     <div class="app-form-card mb-3">
       <div class="row g-3 p-3">
-        <div class="row g-3">
-          {% include "contribuintes/_field.html" with field=form.contr_codi col="col-12 col-lg-2" %}
-          {% include "contribuintes/_field.html" with field=form.contr_nome col="col-12 col-lg-10" %}
+        <div class="row g-3 align-items-center">
+          <div class="col-12 col-lg-2">
+            <label class="form-label">Empresa</label>
+            <input
+              type="text"
+              class="form-control contribuinte-readonly"
+              value="{{ empr_codigo|default_if_none:'' }}"
+              readonly
+            >
+          </div>
+          <div class="col-12 col-lg-8">
+            <label class="form-label">Empresa</label>
+            <input
+              type="text"
+              class="form-control contribuinte-readonly"
+              value="{{ empresa_nome|default:'Empresa padrão da licença' }}"
+              readonly
+            >
+          </div>
+          <div class="col-12 col-lg-2">
+            <label class="form-label">Filial</label>
+            <input
+              type="text"
+              class="form-control contribuinte-readonly"
+              value="{{ fili_codigo|default_if_none:'' }}"
+              readonly
+            >
+          </div>
         </div>
       </div>
     </div>
@@ -307,25 +332,13 @@
                 <div class="contribuinte-section-box">
                   <div class="row g-2">
                     <div class="row g-2 mb-2">
-                      {% include "contribuintes/_field.html" with field=form.contr_empr col="col-12 col-lg-2" %}
-                      <div class="col-12 col-lg-10">
-                        <label class="form-label" for="empresa_nome_display">Empresa</label>
-                        <input
-                          id="empresa_nome_display"
-                          type="text"
-                          class="form-control contribuinte-readonly"
-                          value="{{ empresa_nome|default:'Empresa padrão da licença' }}"
-                          readonly
-                        >
-                      </div>
+                      {% include "contribuintes/_field.html" with field=form.contr_codi col="col-12 col-lg-2" %}
+                      {% include "contribuintes/_field.html" with field=form.contr_nome col="col-12 col-lg-10" %}
                     </div>
-
-                    <div class="row g-2">
-                      {% include "contribuintes/_field.html" with field=form.contr_fili col="col-12 col-lg-2" %}
+                    <div class="row g-2 mb-2 align-items-end">
                       {% include "contribuintes/_field.html" with field=form.contr_admissao_preliminar col="col-12 col-lg-3" %}
                       {% include "contribuintes/_field.html" with field=form.contr_matricula_esocial col="col-12 col-lg-3" %}
-                      <div class="col-12 col-lg-4">
-                        <label class="form-label d-block">&nbsp;</label>
+                      <div class="col-12 col-lg-6">
                         <div class="contribuinte-status {% if integracao_esocial_ok %}ok{% else %}pending{% endif %}">
                           <span>Integração eSocial</span>
                           <i class="bi {% if integracao_esocial_ok %}bi-check-circle-fill{% else %}bi-dash-circle{% endif %}"></i>
@@ -1349,6 +1362,7 @@
       {% include "partials/ui/form_actions.html" with form_actions_url_voltar=url_voltar_contribuinte|add:"?banco="|add:request.banco %}
     </div>
   </form>
+  <script id="mapa-cargos-cbo-data" type="application/json">{{ mapa_cargos_cbo_json|default:"{}"|safe }}</script>
 </div>
 {% endblock %}
 
@@ -1636,6 +1650,72 @@
     }
 
     bindCepLookup();
+
+    (function bindCargoParaCbo() {
+      try {
+        const cargosRaw = document.getElementById('mapa-cargos-cbo-data');
+        const mapaCargos = cargosRaw && cargosRaw.textContent ? JSON.parse(cargosRaw.textContent) : {};
+
+        const elCargo = document.getElementById('{{ form.contr_cargo.id_for_label }}');
+        const elCbo = document.getElementById('{{ form.contr_cbo.id_for_label }}');
+
+        function setarSelectValor(selectEl, novoValor) {
+          if (!selectEl || novoValor === undefined || novoValor === null) return false;
+          const valorStr = String(novoValor);
+          for (let i = 0; i < selectEl.options.length; i++) {
+            const opt = selectEl.options[i];
+            const optVal = opt.value == null ? '' : String(opt.value);
+            if (optVal === valorStr) {
+              selectEl.selectedIndex = i;
+              try {
+                selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+              } catch (_) {}
+              return true;
+            }
+          }
+          if (valorStr) {
+            for (let j = 0; j < selectEl.options.length; j++) {
+              const opt2 = selectEl.options[j];
+              const optVal2 = opt2.value == null ? '' : String(opt2.value);
+              if (optVal2 && optVal2.startsWith(valorStr + ' -')) {
+                selectEl.selectedIndex = j;
+                try {
+                  selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+                } catch (_) {}
+                return true;
+              }
+            }
+          }
+          return false;
+        }
+
+        function atualizarPorMudancaDeCargo() {
+          if (!elCargo || !mapaCargos || typeof mapaCargos !== 'object') return;
+          try {
+            let valSel = elCargo.value;
+            if (valSel == null || valSel === '') return;
+            let chave = null;
+            if (/^\d+$/.test(String(valSel).replace(/\D/g, ''))) {
+              chave = parseInt(String(valSel).replace(/\D/g, ''), 10);
+            } else {
+              const m = String(valSel).match(/^(\d+)\s*-\s*/);
+              if (m) chave = parseInt(m[1], 10);
+            }
+            if (!chave || !mapaCargos[String(chave)]) return;
+            const info = mapaCargos[String(chave)];
+            const cbo = (info && info.cbo) ? String(info.cbo) : '';
+            if (cbo) {
+              setarSelectValor(elCbo, cbo);
+            }
+          } catch (_) {}
+        }
+
+        if (elCargo && elCbo && mapaCargos && typeof mapaCargos === 'object') {
+          elCargo.addEventListener('change', atualizarPorMudancaDeCargo);
+          atualizarPorMudancaDeCargo();
+        }
+      } catch (_) {}
+    })();
   });
 </script>
 {% endblock %}

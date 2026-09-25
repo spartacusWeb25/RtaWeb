@@ -297,6 +297,8 @@ class ContribuinteForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.db_alias = kwargs.pop("db_alias", None)
         self.banco = kwargs.pop("banco", None)
+        self.empr_codigo = kwargs.pop("empr_codigo", None)
+        self.fili_codigo = kwargs.pop("fili_codigo", None)
         super().__init__(*args, **kwargs)
 
         for nome, field in self.fields.items():
@@ -373,10 +375,203 @@ class ContribuinteForm(forms.ModelForm):
                 field.required = False
                 continue
 
+            if nome in ("contr_depto", "contr_cargo", "contr_cbo"):
+                if nome == "contr_depto":
+                    choices_lista = getattr(self, "departamentos_disponiveis", [(None, "Selecione")])
+                    label = "Departamento"
+                elif nome == "contr_cargo":
+                    choices_lista = getattr(self, "cargos_disponiveis", [(None, "Selecione")])
+                    label = "Cargo"
+                else:
+                    choices_lista = getattr(self, "cbos_disponiveis", [(None, "Selecione")])
+                    label = "CBO"
+                field.label = label
+                field.widget = forms.Select(
+                    attrs={"class": "form-select"},
+                    choices=list(choices_lista),
+                )
+                field.required = False
+                continue
+
             if not field.widget.attrs.get("class"):
                 field.widget.attrs["class"] = "form-control"
             else:
                 field.widget.attrs.setdefault("class", "form-control")
+
+        # -----------------------------------------------------------------
+        # Departamento (aba Vínculos) - tabela departamentosrh
+        # -----------------------------------------------------------------
+        try:
+            from departamentosrh.services.logic import DepartamentosRhService as _DS
+            from departamentosrh.services.logic import _digits_only as _digits_only_depa
+
+            banco_depa = self.banco or getattr(getattr(self, "instance", None), "registro", None) or ""
+            banco_depa_clean = _digits_only_depa(banco_depa) if banco_depa else ""
+            empr_depa = int(self.empr_codigo or 1)
+            fili_depa = int(self.fili_codigo or 1)
+            if (not empr_depa or empr_depa <= 0) and self.instance is not None:
+                try:
+                    empr_depa = int(getattr(self.instance, "contr_empr", None) or 1)
+                except Exception:
+                    empr_depa = 1
+            if (not fili_depa or fili_depa <= 0) and self.instance is not None:
+                try:
+                    fili_depa = int(getattr(self.instance, "contr_fili", None) or 1)
+                except Exception:
+                    fili_depa = 1
+
+            valor_atual_depa = _current_field_value(self, "contr_depto")
+            if banco_depa_clean:
+                depa_choices = _DS.choices_departamentos(
+                    banco=banco_depa_clean,
+                    db_alias=self.db_alias,
+                    codigo_empresa=empr_depa,
+                    codigo_filial=fili_depa,
+                    incluir_selecione=True,
+                    valor_atual=valor_atual_depa,
+                    incluir_inativos=True,
+                )
+            else:
+                depa_choices = [(None, "Selecione")]
+                if valor_atual_depa not in (None, ""):
+                    try:
+                        depa_choices.append((int(valor_atual_depa),
+                                             f"{int(valor_atual_depa)} - Departamento #{int(valor_atual_depa)} (atual)"))
+                    except Exception:
+                        pass
+            self.departamentos_disponiveis = depa_choices
+        except Exception as _e_depa:
+            try:
+                depa_choices = [(None, "Selecione")]
+                valor_atual_depa = _current_field_value(self, "contr_depto")
+                if valor_atual_depa not in (None, ""):
+                    try:
+                        depa_choices.append((int(valor_atual_depa),
+                                             f"{int(valor_atual_depa)} - Departamento #{int(valor_atual_depa)} (atual)"))
+                    except Exception:
+                        pass
+                self.departamentos_disponiveis = depa_choices
+            except Exception:
+                self.departamentos_disponiveis = [(None, "Selecione")]
+
+        # -----------------------------------------------------------------
+        # Cargo + CBO (aba Vínculos) - tabela cargos
+        # -----------------------------------------------------------------
+        try:
+            from cargos.services.logic import CargosService as _CS
+            from cargos.services.logic import _digits_only as _digits_only_cargo
+
+            banco_cargo = self.banco or getattr(getattr(self, "instance", None), "registro", None) or ""
+            banco_cargo_clean = _digits_only_cargo(banco_cargo) if banco_cargo else ""
+            empr_cargo = int(self.empr_codigo or 1)
+            fili_cargo = int(self.fili_codigo or 1)
+            if (not empr_cargo or empr_cargo <= 0) and self.instance is not None:
+                try:
+                    empr_cargo = int(getattr(self.instance, "contr_empr", None) or 1)
+                except Exception:
+                    empr_cargo = 1
+            if (not fili_cargo or fili_cargo <= 0) and self.instance is not None:
+                try:
+                    fili_cargo = int(getattr(self.instance, "contr_fili", None) or 1)
+                except Exception:
+                    fili_cargo = 1
+
+            valor_atual_cargo = _current_field_value(self, "contr_cargo")
+            if banco_cargo_clean:
+                cargo_choices = _CS.choices_cargos(
+                    banco=banco_cargo_clean,
+                    db_alias=self.db_alias,
+                    codigo_empresa=empr_cargo,
+                    codigo_filial=fili_cargo,
+                    incluir_selecione=True,
+                    valor_atual=valor_atual_cargo,
+                    incluir_inativos=True,
+                )
+            else:
+                cargo_choices = [(None, "Selecione")]
+                if valor_atual_cargo not in (None, ""):
+                    try:
+                        cargo_choices.append((int(valor_atual_cargo),
+                                              f"{int(valor_atual_cargo)} - Cargo #{int(valor_atual_cargo)} (atual)"))
+                    except Exception:
+                        pass
+            self.cargos_disponiveis = cargo_choices
+
+            valor_atual_cbo = _current_field_value(self, "contr_cbo")
+            if banco_cargo_clean:
+                try:
+                    listagem_cargos = _CS.listar_cargos(
+                        banco=banco_cargo_clean,
+                        db_alias=self.db_alias,
+                        codigo_empresa=empr_cargo,
+                        codigo_filial=fili_cargo,
+                        incluir_inativos=True,
+                    )
+                    _cbo_seen = set()
+                    cbo_choices_from_cargos = []
+                    if True:
+                        cbo_choices_from_cargos.append((None, "Selecione"))
+                    for _item_cargo in listagem_cargos or []:
+                        _cbo_c = _digits_only_cargo(_item_cargo.get("cbo_codi"))[:6] if _item_cargo.get("cbo_codi") is not None else ""
+                        if not _cbo_c or _cbo_c in _cbo_seen:
+                            continue
+                        _cbo_seen.add(_cbo_c)
+                        _cbo_d = str(_item_cargo.get("cbo_desc") or "").strip() or f"CBO {_cbo_c}"
+                        cbo_choices_from_cargos.append((_cbo_c, f"{_cbo_c} - {_cbo_d}"))
+                    if valor_atual_cbo not in (None, ""):
+                        try:
+                            val_clean = "".join(ch for ch in str(valor_atual_cbo or "") if ch.isdigit())[:6]
+                            if val_clean and val_clean not in _cbo_seen:
+                                cbo_choices_from_cargos.append((val_clean, f"{val_clean} - CBO {val_clean} (atual)"))
+                        except Exception:
+                            pass
+                    cbo_choices = cbo_choices_from_cargos
+                except Exception:
+                    cbo_choices = [(None, "Selecione")]
+                    try:
+                        val_clean = "".join(ch for ch in str(valor_atual_cbo or "") if ch.isdigit())[:6]
+                        if val_clean:
+                            cbo_choices.append((val_clean, f"{val_clean} - CBO {val_clean} (atual)"))
+                    except Exception:
+                        pass
+            else:
+                cbo_choices = [(None, "Selecione")]
+                try:
+                    val_clean = "".join(ch for ch in str(valor_atual_cbo or "") if ch.isdigit())[:6]
+                    if val_clean:
+                        cbo_choices.append((val_clean, f"{val_clean} - CBO {val_clean} (atual)"))
+                except Exception:
+                    pass
+            self.cbos_disponiveis = cbo_choices
+        except Exception as _e_cargo:
+            self.cargos_disponiveis = [(None, "Selecione")]
+            self.cbos_disponiveis = [(None, "Selecione")]
+
+        if "contr_depto" in self.fields:
+            self.fields["contr_depto"].label = "Departamento"
+            self.fields["contr_depto"].widget = forms.Select(
+                attrs={"class": "form-select"},
+                choices=list(getattr(self, "departamentos_disponiveis", [(None, "Selecione")])),
+            )
+            self.fields["contr_depto"].required = False
+        if "contr_cargo" in self.fields:
+            self.fields["contr_cargo"].label = "Cargo"
+            self.fields["contr_cargo"].widget = forms.Select(
+                attrs={"class": "form-select"},
+                choices=list(getattr(self, "cargos_disponiveis", [(None, "Selecione")])),
+            )
+            self.fields["contr_cargo"].required = False
+        if "contr_cbo" in self.fields:
+            self.fields["contr_cbo"].label = "CBO"
+            self.fields["contr_cbo"].widget = forms.Select(
+                attrs={"class": "form-select"},
+                choices=list(getattr(self, "cbos_disponiveis", [(None, "Selecione")])),
+            )
+            self.fields["contr_cbo"].required = False
+            self.fields["contr_cbo"].validators = [
+                v for v in self.fields["contr_cbo"].validators
+                if not isinstance(v, MaxLengthValidator)
+            ]
 
         if "contr_cpf" in self.fields:
             field = self.fields["contr_cpf"]
@@ -604,18 +799,6 @@ class ContribuinteForm(forms.ModelForm):
                 if not isinstance(v, MaxLengthValidator)
             ]
 
-        if "contr_depto" in self.fields:
-            valor_atual = _current_field_value(self, "contr_depto")
-            self.fields["contr_depto"].label = "Departamento"
-            self.fields["contr_depto"].choices = _choices_with_current(
-                (("", "Selecione"),), valor_atual
-            )
-            self.fields["contr_depto"].widget = forms.Select(
-                attrs={"class": "form-select"},
-                choices=_choices_with_current((("", "Selecione"),), valor_atual),
-            )
-            self.fields["contr_depto"].required = False
-
         if "contr_depto_desc" in self.fields:
             self.fields["contr_depto_desc"].widget = forms.HiddenInput()
             self.fields["contr_depto_desc"].required = False
@@ -644,39 +827,11 @@ class ContribuinteForm(forms.ModelForm):
                 if not isinstance(v, MaxLengthValidator)
             ]
 
-        if "contr_cargo" in self.fields:
-            valor_atual = _current_field_value(self, "contr_cargo")
-            self.fields["contr_cargo"].label = "Cargo"
-            self.fields["contr_cargo"].choices = _choices_with_current(
-                (("", "Selecione"),), valor_atual
-            )
-            self.fields["contr_cargo"].widget = forms.Select(
-                attrs={"class": "form-select"},
-                choices=_choices_with_current((("", "Selecione"),), valor_atual),
-            )
-            self.fields["contr_cargo"].required = False
-
         if "contr_cargo_desc" in self.fields:
             self.fields["contr_cargo_desc"].widget = forms.HiddenInput()
             self.fields["contr_cargo_desc"].required = False
             self.fields["contr_cargo_desc"].validators = [
                 v for v in self.fields["contr_cargo_desc"].validators
-                if not isinstance(v, MaxLengthValidator)
-            ]
-
-        if "contr_cbo" in self.fields:
-            valor_atual = _current_field_value(self, "contr_cbo")
-            self.fields["contr_cbo"].label = "CBO"
-            self.fields["contr_cbo"].choices = _choices_with_current(
-                (("", "Selecione"),), valor_atual
-            )
-            self.fields["contr_cbo"].widget = forms.Select(
-                attrs={"class": "form-select"},
-                choices=_choices_with_current((("", "Selecione"),), valor_atual),
-            )
-            self.fields["contr_cbo"].required = False
-            self.fields["contr_cbo"].validators = [
-                v for v in self.fields["contr_cbo"].validators
                 if not isinstance(v, MaxLengthValidator)
             ]
 
@@ -879,8 +1034,74 @@ class ContribuinteForm(forms.ModelForm):
     def clean_contr_rne(self):
         return _only_digits(self.cleaned_data.get("contr_rne"))[:20] or None
 
+    def clean_contr_depto(self):
+        valor = self.cleaned_data.get("contr_depto")
+        if valor in (None, ""):
+            if "contr_depto_desc" in self.cleaned_data:
+                self.cleaned_data["contr_depto_desc"] = None
+            return None
+        try:
+            valor_int = int(valor)
+        except (TypeError, ValueError):
+            raise forms.ValidationError("Selecione um departamento válido.")
+        desc_label = ""
+        for cod, desc in getattr(self, "departamentos_disponiveis", []):
+            if cod in (None, ""):
+                continue
+            try:
+                if int(cod) == valor_int:
+                    desc_label = str(desc)
+                    break
+            except (TypeError, ValueError):
+                continue
+        if not desc_label:
+            desc_label = f"{valor_int} - Departamento #{valor_int}"
+        self.cleaned_data["contr_depto_desc"] = desc_label
+        return valor_int
+
+    def clean_contr_cargo(self):
+        valor = self.cleaned_data.get("contr_cargo")
+        if valor in (None, ""):
+            if "contr_cargo_desc" in self.cleaned_data:
+                self.cleaned_data["contr_cargo_desc"] = None
+            return None
+        try:
+            valor_int = int(valor)
+        except (TypeError, ValueError):
+            raise forms.ValidationError("Selecione um cargo válido.")
+        desc_label = ""
+        for cod, desc in getattr(self, "cargos_disponiveis", []):
+            if cod in (None, ""):
+                continue
+            try:
+                if int(cod) == valor_int:
+                    desc_label = str(desc)
+                    break
+            except (TypeError, ValueError):
+                continue
+        if not desc_label:
+            desc_label = f"{valor_int} - Cargo #{valor_int}"
+        self.cleaned_data["contr_cargo_desc"] = desc_label
+        return valor_int
+
     def clean_contr_cbo(self):
-        return _only_digits(self.cleaned_data.get("contr_cbo"))[:6] or None
+        valor = self.cleaned_data.get("contr_cbo")
+        digits = _only_digits(valor)[:6]
+        if not digits:
+            if "contr_cbo_desc" in self.cleaned_data:
+                self.cleaned_data["contr_cbo_desc"] = None
+            return None
+        desc_label = ""
+        for cod, desc in getattr(self, "cbos_disponiveis", []):
+            if cod in (None, ""):
+                continue
+            if str(cod) == digits:
+                desc_label = str(desc)
+                break
+        if not desc_label:
+            desc_label = f"{digits} - CBO {digits}"
+        self.cleaned_data["contr_cbo_desc"] = desc_label
+        return digits or None
 
     def clean_contr_categoria_esocial(self):
         valor = self.cleaned_data.get("contr_categoria_esocial")

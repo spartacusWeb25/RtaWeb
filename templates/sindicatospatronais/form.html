@@ -66,7 +66,42 @@
 
     <div class="app-form-card mb-3">
       <div class="row g-3 p-3">
-        <div class="row g-3 align-items-end">
+        <div class="row g-3 align-items-center">
+          <div class="col-12 col-lg-2">
+            <label class="form-label">Empresa</label>
+            <input
+              type="text"
+              class="form-control sindicato-readonly"
+              value="{{ empr_codigo|default_if_none:'' }}"
+              readonly
+            >
+          </div>
+          <div class="col-12 col-lg-8">
+            <label class="form-label">Empresa</label>
+            <input
+              type="text"
+              class="form-control sindicato-readonly"
+              value="{{ empresa_nome|default:'Empresa padrao da licenca' }}"
+              readonly
+            >
+          </div>
+          <div class="col-12 col-lg-2">
+            <label class="form-label">Filial</label>
+            <input
+              type="text"
+              class="form-control sindicato-readonly"
+              value="{{ fili_codigo|default_if_none:'' }}"
+              readonly
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="app-form-card">
+      <div class="p-3">
+
+        <div class="row g-3 mb-2 align-items-end">
           <div class="col-12 col-lg-2{% if form.sind_codi.errors %} field-error{% endif %}">
             <label class="form-label" for="{{ form.sind_codi.id_for_label }}">
               Código
@@ -104,32 +139,6 @@
             {% if form.sind_nome.errors %}
               <div class="invalid-feedback d-block">{{ form.sind_nome.errors|join:', ' }}</div>
             {% endif %}
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="app-form-card">
-      <div class="p-3">
-
-        <div class="row g-3 mb-2">
-          <div class="col-12 col-lg-2">
-            <label class="form-label">Empresa</label>
-            <input
-              type="text"
-              class="form-control sindicato-readonly"
-              value="{{ form.initial.sind_empr|default_if_none:'' }}"
-              readonly
-            >
-          </div>
-          <div class="col-12 col-lg-10">
-            <label class="form-label">Empresa</label>
-            <input
-              type="text"
-              class="form-control sindicato-readonly"
-              value="{{ empresa_nome|default:'Empresa padrao da licenca' }}"
-              readonly
-            >
           </div>
         </div>
 

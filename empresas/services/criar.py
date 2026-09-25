@@ -16,6 +16,10 @@ class EmpresasCriarService:
         if not EmpresasChaveService.chave_preenchida(chave):
             raise ValueError("Informe registro, empresa e filial para criar a empresa.")
 
+        valida, msg = EmpresasChaveService.chave_valida(chave)
+        if not valida:
+            raise ValueError(msg or "Chave inválida para criar a empresa.")
+
         if EmpresasChaveService.existe(
             banco=banco,
             db_alias=db_alias,

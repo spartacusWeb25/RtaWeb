@@ -201,7 +201,28 @@
             <div class="card-body p-4">
                 <div class="row align-items-center mb-0">
                     <div class="col-lg-10">
-                        <div class="row g-3 mb-4">
+                        <div class="row g-3 mb-4 align-items-center">
+                            <div class="col-lg-2">
+                                <label class="card-label-row">Empresa</label>
+                                <div class="form-control text-center bg-secondary text-white">
+                                    {{ empr_codigo }}
+                                </div>
+                            </div>
+                            <div class="col-lg-8">
+                                <label class="card-label-row">Empresa (Nome)</label>
+                                <div class="form-control bg-secondary text-white">
+                                    {{ empr_nome }}
+                                </div>
+                            </div>
+                            <div class="col-lg-2">
+                                <label class="card-label-row">Filial</label>
+                                <div class="form-control text-center bg-secondary text-white">
+                                    {{ fili_codigo }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4 align-items-end">
                             <div class="col-lg-2">
                                 <label class="card-label-row">Código</label>
                                 <div class="form-control text-center font-weight-bold bg-secondary text-white">
@@ -230,27 +251,6 @@
                                             Horário flexível
                                         </label>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row g-3 mb-4 align-items-center">
-                            <div class="col-lg-2">
-                                <label class="card-label-row">Empresa</label>
-                                <div class="form-control text-center bg-secondary text-white">
-                                    {{ empr_codigo }}
-                                </div>
-                            </div>
-                            <div class="col-lg-8">
-                                <label class="card-label-row">Empresa (Nome)</label>
-                                <div class="form-control bg-secondary text-white">
-                                    {{ empr_nome }}
-                                </div>
-                            </div>
-                            <div class="col-lg-2">
-                                <label class="card-label-row">Filial</label>
-                                <div class="form-control text-center bg-secondary text-white">
-                                    {{ fili_codigo }}
                                 </div>
                             </div>
                         </div>

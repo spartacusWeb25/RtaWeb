@@ -219,15 +219,33 @@
 
     <div class="app-form-card mb-3">
       <div class="row g-3 p-3">
-        <div class="row g-3 align-items-end">
-          {% include "terceiros/_field.html" with field=form.terc_codi col="col-12 col-lg-2" %}
-          {% include "terceiros/_field.html" with field=form.terc_nome col="col-12 col-lg-8" %}
-          <div class="col-12 col-lg-2 d-flex align-items-lg-end justify-content-lg-end justify-content-start{% if form.terc_inativo.errors %} field-error{% endif %}">
-            <div class="funcionario-check-item pb-2">
-              {{ form.terc_inativo }}
-              <label for="id_{{ form.terc_inativo.html_name }}">{{ form.terc_inativo.label|default:"Inativo" }}</label>
-            </div>
-            {% if form.terc_inativo.errors %}<div class="invalid-feedback d-block">{{ form.terc_inativo.errors|join:', ' }}</div>{% endif %}
+        <div class="row g-3 align-items-center">
+          <div class="col-12 col-lg-2">
+            <label class="form-label">Empresa</label>
+            <input
+              type="text"
+              class="form-control funcionario-readonly"
+              value="{{ empr_codigo|default_if_none:'' }}"
+              readonly
+            >
+          </div>
+          <div class="col-12 col-lg-8">
+            <label class="form-label">Empresa</label>
+            <input
+              type="text"
+              class="form-control funcionario-readonly"
+              value="{{ empresa_nome|default:'Empresa padrão da licença' }}"
+              readonly
+            >
+          </div>
+          <div class="col-12 col-lg-2">
+            <label class="form-label">Filial</label>
+            <input
+              type="text"
+              class="form-control funcionario-readonly"
+              value="{{ fili_codigo|default_if_none:'' }}"
+              readonly
+            >
           </div>
         </div>
       </div>
@@ -285,19 +303,16 @@
                 <div class="terceiro-section-box">
                   <div class="row g-2">
 
-                    <div class="row g-2 mb-2 align-items-start">
-                      {% include "terceiros/_field.html" with field=form.terc_empr col="col-12 col-lg-2" %}
-                      <div class="col-12 col-lg-7">
-                        <label class="form-label" for="empresa_nome_display">Empresa</label>
-                        <input
-                          id="empresa_nome_display"
-                          type="text"
-                          class="form-control funcionario-readonly"
-                          value="{{ empresa_nome }}"
-                          readonly
-                        >
+                    <div class="row g-2 mb-2 align-items-end">
+                      {% include "terceiros/_field.html" with field=form.terc_codi col="col-12 col-lg-2" %}
+                      {% include "terceiros/_field.html" with field=form.terc_nome col="col-12 col-lg-8" %}
+                      <div class="col-12 col-lg-2 d-flex align-items-lg-end justify-content-lg-end justify-content-start{% if form.terc_inativo.errors %} field-error{% endif %}">
+                        <div class="funcionario-check-item pb-2">
+                          {{ form.terc_inativo }}
+                          <label for="id_{{ form.terc_inativo.html_name }}">{{ form.terc_inativo.label|default:"Inativo" }}</label>
+                        </div>
+                        {% if form.terc_inativo.errors %}<div class="invalid-feedback d-block">{{ form.terc_inativo.errors|join:', ' }}</div>{% endif %}
                       </div>
-                      {% include "terceiros/_field.html" with field=form.terc_fili col="col-12 col-lg-3" %}
                     </div>
 
                     <div class="row g-2 mb-2 align-items-start">

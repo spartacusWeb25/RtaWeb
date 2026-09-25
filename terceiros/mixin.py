@@ -38,6 +38,8 @@ class TerceiroMixin(BancoObrigatorioMixin):
         kwargs = super().get_form_kwargs()
         kwargs["db_alias"] = self.db_alias
         kwargs["banco"] = self.banco_limpo
+        kwargs["empr_codigo"] = self.obter_codigo_empresa_contexto() or 1
+        kwargs["fili_codigo"] = self.obter_codigo_filial_contexto() or 1
         return kwargs
 
     def get_object(self, queryset=None):
@@ -114,4 +116,6 @@ class TerceiroMixin(BancoObrigatorioMixin):
             json.dumps(CIDADES_POR_CODIGO, ensure_ascii=False)
         )
         ctx["banco_limpo"] = self.banco_limpo
+        ctx["empr_codigo"] = self.obter_codigo_empresa_contexto(form=ctx.get("form")) or 1
+        ctx["fili_codigo"] = self.obter_codigo_filial_contexto(form=ctx.get("form")) or 1
         return ctx
