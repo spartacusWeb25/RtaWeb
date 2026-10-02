@@ -180,49 +180,45 @@
         </div>
 
         <div class="row g-3 mb-2 align-items-end">
-          <div class="col-12 col-lg-2{% if form.carg_cbo_codi.errors %} field-error{% endif %}">
+          <div class="col-12{% if form.carg_cbo_codi.errors %} field-error{% endif %}">
             <label class="form-label" for="{{ form.carg_cbo_codi.id_for_label }}">
-              CBO (código)
+              CBO
             </label>
-            <input
-              type="text"
-              id="{{ form.carg_cbo_codi.id_for_label }}"
-              name="{{ form.carg_cbo_codi.html_name }}"
-              class="form-control form-control-sm{% if form.carg_cbo_codi.errors %} is-invalid{% endif %}"
-              {% if form.carg_cbo_codi.value %}value="{{ form.carg_cbo_codi.value }}"{% endif %}
-              placeholder="Cód."
-              data-digits-only="true"
-              inputmode="numeric"
-              maxlength="7"
-              data-role="cbo-codi"
+
+            <div
+              class="position-relative"
+              data-role="cbo-combobox-wrapper"
+              id="cbo-combobox-wrapper"
             >
+              <div class="d-flex align-items-center">
+                {{ form.carg_cbo_codi }}
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary btn-sm d-flex align-items-center justify-content-center"
+                  style="border-top-left-radius:0;border-bottom-left-radius:0;min-width:36px;height:calc(1.5em + .5rem + 2px);border-left:0;"
+                  data-role="cbo-toggle"
+                  title="Abrir lista de CBOs"
+                  tabindex="-1"
+                >
+                  <span style="font-size:.9rem;">▾</span>
+                </button>
+              </div>
+              <ul
+                id="cbo-listbox"
+                class="list-unstyled dropdown-menu w-100 p-0 shadow m-0"
+                style="display:none;max-height:320px;overflow-y:auto;z-index:1050;border-radius:.35rem;"
+                data-role="cbo-listbox"
+              ></ul>
+            </div>
             {% if form.carg_cbo_codi.errors %}
               <div class="invalid-feedback d-block">{{ form.carg_cbo_codi.errors|join:', ' }}</div>
             {% endif %}
           </div>
-          <div class="col-12 col-lg-10{% if form.carg_cbo_desc.errors %} field-error{% endif %}">
-            <label class="form-label" for="{{ form.carg_cbo_desc.id_for_label }}">
-              CBO (descrição)
-            </label>
-            <input
-              type="text"
-              id="{{ form.carg_cbo_desc.id_for_label }}"
-              name="{{ form.carg_cbo_desc.html_name }}"
-              class="form-control form-control-sm{% if form.carg_cbo_desc.errors %} is-invalid{% endif %}"
-              {% if form.carg_cbo_desc.value %}value="{{ form.carg_cbo_desc.value }}"{% endif %}
-              placeholder="Descrição CBO (digite para buscar)"
-              maxlength="200"
-              list="cbo-options-datalist"
-              data-role="cbo-desc"
-              autocomplete="off"
-              title="CBOs carregados: carregando..."
-            >
-            <datalist id="cbo-options-datalist"></datalist>
-            {% if form.carg_cbo_desc.errors %}
-              <div class="invalid-feedback d-block">{{ form.carg_cbo_desc.errors|join:', ' }}</div>
-            {% endif %}
-          </div>
         </div>
+        {{ form.carg_cbo_desc }}
+        {% if form.carg_cbo_desc.errors %}
+          <div class="invalid-feedback d-block">{{ form.carg_cbo_desc.errors|join:', ' }}</div>
+        {% endif %}
 
       </div>
     </div>
@@ -234,144 +230,274 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-
+    // ======================================================================
+    // COMBOBOX CBO: PESQUISA DINÂMICA EM TEMPO REAL (Vanilla JS, sem libs)
+    // - Digita no campo → FILTRA as 10.185 opções MOSTRANDO APENAS as que
+    //   contêm a substring tanto no CÓDIGO quanto na DESCRIÇÃO.
+    // - Clica na seta → abre/fecha lista.
+    // - Enter / Espaço / Tab → seleciona item destacado.
+    // - Setas cima/baixo → navega.
+    // - Esc → fecha.
+    // - Item selecionado: mostra "COD - DESC" no input, envia SOMENTE o COD
+    //   no backend (campo hidden extra + submit handler).
+    // ======================================================================
     var CBOS = {{ cbos_disponiveis_json|default:"[]" }};
-    console.log('[CBO] CBOs carregados do banco:', CBOS ? CBOS.length : 0, CBOS);
 
-    var inputDescDebug = document.querySelector('[data-role="cbo-desc"]');
-    if (inputDescDebug) {
-      inputDescDebug.title = 'CBOs carregados: ' + (CBOS ? CBOS.length : 0);
-    }
-    var datalist = document.getElementById('cbo-options-datalist');
-    if (datalist && CBOS && CBOS.length) {
-      CBOS.forEach(function (item) {
-        if (!item || !item.codi) return;
-        var opt = document.createElement('option');
-        var label = (item.codi || '') + (item.desc ? ' — ' + item.desc : ' (sem descrição)');
-        opt.value = label;
-        opt.setAttribute('data-codi', item.codi || '');
-        opt.setAttribute('data-desc', item.desc || '');
-        datalist.appendChild(opt);
-      });
-      console.log('[CBO] datalist montado com', datalist.children.length, 'opções');
-    } else {
-      console.warn('[CBO] datalist vazio ou sem CBOs');
-    }
+    var wrapper = document.querySelector('[data-role="cbo-combobox-wrapper"]');
+    var input   = document.querySelector('[data-role="cbo-search"]');
+    var toggle  = document.querySelector('[data-role="cbo-toggle"]');
+    var listbox = document.querySelector('[data-role="cbo-listbox"]');
 
-    var inputCodi = document.querySelector('[data-role="cbo-codi"]');
-    var inputDesc = document.querySelector('[data-role="cbo-desc"]');
-    console.log('[CBO] elementos: inputCodi=', !!inputCodi, ' / inputDesc=', !!inputDesc);
-    if (inputCodi) console.log('[CBO] valor atual campo CODIGO inputCodi.value = "' + inputCodi.value + '"');
-    if (inputDesc) console.log('[CBO] valor atual campo DESCRICAO inputDesc.value = "' + inputDesc.value + '"');
+    // Campo HIDDEN que enviamos de fato (só código). O input visível é só display.
+    var hiddenCod = document.createElement('input');
+    hiddenCod.type = 'hidden';
+    hiddenCod.name = input ? input.name : '';
+    hiddenCod.id   = input ? input.id : '';
+    var hiddenDesc = document.querySelector('input[name="carg_cbo_desc"]') || null;
 
-    function encontrarCBOporCodigo(codi) {
-      if (!codi || !CBOS) return null;
-      var clean = String(codi).replace(/\D/g, '');
-      console.log('[CBO] encontrarCBOporCodigo: buscando clean="' + clean + '" em ' + CBOS.length + ' itens');
-      for (var i = 0; i < CBOS.length; i++) {
-        var it = CBOS[i];
-        var itClean = String(it.codi || '').replace(/\D/g, '');
-        if (it && itClean === clean) {
-          console.log('[CBO] encontrarCBOporCodigo: ENCONTROU!', it);
-          return it;
+    if (wrapper && input && listbox) {
+      // Desativar envio do input visível (não tem o COD puro, tem "COD - DESC")
+      input.removeAttribute('name');
+      // O ID no input é necessário para o <label for="">; name vai pro hidden.
+      wrapper.appendChild(hiddenCod);
+
+      var selectedCodi = null; // código CBO atualmente selecionado (ex: "724315")
+      var highlightIdx = -1;   // índice item visualmente selecionado na lista
+      var renderedItems = [];  // nós <li> atualmente visíveis (após filtro)
+
+      // ---- MODO EDITAR: se há valor inicial, preencher input display ----
+      var initialCod = hiddenCod.value || input.getAttribute('value') || input.value || '';
+      initialCod = String(initialCod).replace(/\D/g, '');
+      if (initialCod) {
+        selectedCodi = initialCod;
+        hiddenCod.value = initialCod;
+        // achar a primeira descrição correspondente (principal)
+        for (var i0 = 0; i0 < CBOS.length; i0++) {
+          if (String(CBOS[i0].codi || '') === initialCod) {
+            input.value = (CBOS[i0].codi + ' - ' + (CBOS[i0].desc || ''));
+            break;
+          }
         }
-      }
-      console.warn('[CBO] encontrarCBOporCodigo: NÃO ENCONTROU clean="' + clean + '"');
-      return null;
-    }
-
-    function encontrarCBOporLabel(label) {
-      if (!label || !datalist) return null;
-      var options = datalist.querySelectorAll('option');
-      console.log('[CBO] encontrarCBOporLabel: buscando value="' + label + '" em ' + options.length + ' options do datalist');
-      for (var i = 0; i < options.length; i++) {
-        var opt = options[i];
-        if (opt.value === label) {
-          var res = {
-            codi: opt.getAttribute('data-codi') || '',
-            desc: opt.getAttribute('data-desc') || ''
-          };
-          console.log('[CBO] encontrarCBOporLabel: ENCONTROU!', res);
-          return res;
-        }
-      }
-      console.warn('[CBO] encontrarCBOporLabel: NÃO ENCONTROU');
-      return null;
-    }
-
-    function preencherSeEncontradoNoCodigo(evitarSobrescreverDesc) {
-      console.log('[CBO] preencherSeEncontradoNoCodigo() chamado. evitarSobrescreverDesc=' + evitarSobrescreverDesc + '. inputCodi.value="' + (inputCodi ? inputCodi.value : '-') + '" inputDesc.value="' + (inputDesc ? inputDesc.value : '-') + '"');
-      if (!inputCodi || !inputDesc) { console.warn('[CBO] inputs não existem, saindo.'); return; }
-      var found = encontrarCBOporCodigo(inputCodi.value);
-      if (!found) { console.warn('[CBO] CBO não encontrado na lista para cód "' + inputCodi.value + '".'); return; }
-      console.log('[CBO] CBO encontrado. desc = "' + (found.desc || '') + '"');
-      var devePreencher = !evitarSobrescreverDesc || !inputDesc.value;
-      console.log('[CBO] devePreencher?', devePreencher, '( evitarSobrescreverDesc=' + evitarSobrescreverDesc + ' / inputDesc.value.length=' + (inputDesc.value ? inputDesc.value.length : 0) + ')');
-      if (devePreencher && found.desc) {
-        inputDesc.value = found.desc;
-        console.log('[CBO] DESCRICAO PREENCHIDA AUTOMATICAMENTE: inputDesc.value = "' + inputDesc.value + '"');
-      } else if (devePreencher && !found.desc) {
-        console.warn('[CBO] CBO encontrado MAS DESCRICAO VEIO VAZIA (found.desc falsy). Não há o que preencher.');
       } else {
-        console.log('[CBO] NÃO preencheu (usuário preencheu manualmente ou flag desativada).');
+        input.value = '';
+        input.placeholder = 'Selecione...';
       }
-    }
 
-    if (inputDesc) {
-      inputDesc.addEventListener('input', function () {
-        console.log('[CBO] EVENT inputDesc.input value="' + inputDesc.value + '"');
-        var found = encontrarCBOporLabel(inputDesc.value);
-        if (found) {
-          if (inputCodi) inputCodi.value = found.codi || '';
-          if (found.desc) inputDesc.value = found.desc;
-          console.log('[CBO] inputDesc input aplicou: cod=' + (found.codi || '') + ' desc=' + (found.desc || ''));
+      // ---- FUNÇÕES AUXILIARES ----
+      function normalizeStr(s) {
+        if (!s) return '';
+        return String(s)
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/\s+/g, ' ');
+      }
+
+      function fecharLista() {
+        listbox.style.display = 'none';
+        highlightIdx = -1;
+      }
+      function abrirLista() {
+        listbox.style.display = 'block';
+      }
+      function listaEstaAberta() {
+        return listbox.style.display === 'block';
+      }
+
+      function renderizarLista(filtro) {
+        var q = normalizeStr(filtro);
+        var soDigitos = q.length > 0 && /^\d+$/.test(q.trim());
+        var dedupPorCodigo = !q || soDigitos;
+        var limite = dedupPorCodigo ? 3000 : 150;  // Dedup tem 2.617 → usa 3k para caber todos (010xxx ate 999xxx). Sinonimos → 150.
+        var itemsMostrados = 0;
+        listbox.innerHTML = '';
+        renderedItems = [];
+        var codigosJaAdicionados = {}; // para dedup quando pesquisa por número/sem filtro
+
+        // 1) Opção fixa "Selecione..." sempre visível
+        var liSelecione = document.createElement('li');
+        liSelecione.className = 'dropdown-item p-2 border-bottom';
+        liSelecione.style.cursor = 'pointer';
+        liSelecione.innerHTML = '<span class="text-muted small">— Selecione (limpar) —</span>';
+        liSelecione.setAttribute('data-codi', '');
+        liSelecione.setAttribute('data-desc', '');
+        liSelecione.addEventListener('mousedown', function (e) {
+          e.preventDefault();
+          selecionarItem('', '');
+        });
+        listbox.appendChild(liSelecione);
+        renderedItems.push(liSelecione);
+
+        // 2) CBOs filtrados
+        // - SEM FILTRO (lista aberta vazia) ou SÓ DÍGITOS (pesquisa por código) → 1 RESULTADO POR CÓDIGO (DESC PRINCIPAL)
+        // - COM LETRAS (pesquisa por palavra chave) → TODOS OS SINÔNIMOS
+
+        for (var i = 0; i < CBOS.length && itemsMostrados < limite; i++) {
+          var it = CBOS[i];
+          var cod = String(it.codi || '');
+          var desc = String(it.desc || '');
+          var hay = normalizeStr(cod + ' ' + desc);
+          if (q && hay.indexOf(q) < 0) continue;
+          if (dedupPorCodigo) {
+            if (codigosJaAdicionados[cod]) continue;
+            codigosJaAdicionados[cod] = true;
+          }
+          var li = document.createElement('li');
+          li.className = 'dropdown-item p-2 small';
+          li.style.cursor = 'pointer';
+          li.innerHTML = '<strong>' + cod + '</strong>' +
+                         '<span class="text-muted mx-2">—</span>' +
+                         '<span>' + desc + '</span>';
+          li.setAttribute('data-codi', cod);
+          li.setAttribute('data-desc', desc);
+          li.addEventListener('mousedown', (function (c, d) {
+            return function (e) {
+              e.preventDefault();
+              selecionarItem(c, d);
+            };
+          })(cod, desc));
+          li.addEventListener('mouseenter', (function (idx) {
+            return function () { destacarItem(idx, false); };
+          })(renderedItems.length));
+          listbox.appendChild(li);
+          renderedItems.push(li);
+          itemsMostrados++;
         }
-      });
-      inputDesc.addEventListener('change', function () {
-        console.log('[CBO] EVENT inputDesc.change value="' + inputDesc.value + '"');
-        var found = encontrarCBOporLabel(inputDesc.value);
-        if (found) {
-          if (inputCodi) inputCodi.value = found.codi || '';
-          if (found.desc) inputDesc.value = found.desc;
-          console.log('[CBO] inputDesc change aplicou: cod=' + (found.codi || '') + ' desc=' + (found.desc || ''));
+
+        // Se não há nada após o filtro, msg "nada encontrado"
+        if (itemsMostrados === 0) {
+          var liVazio = document.createElement('li');
+          liVazio.className = 'dropdown-item p-2 text-muted small';
+          liVazio.textContent = 'Nenhum CBO encontrado para "' + (filtro || '') + '"';
+          liVazio.style.cursor = 'default';
+          listbox.appendChild(liVazio);
+          renderedItems.push(liVazio);
         }
-      });
-    }
 
-    if (inputCodi) {
-      inputCodi.addEventListener('input', function () {
-        console.log('[CBO] EVENT inputCodi.input value="' + inputCodi.value + '"');
-        preencherSeEncontradoNoCodigo(true);
-      });
-      inputCodi.addEventListener('blur', function () {
-        console.log('[CBO] EVENT inputCodi.blur value="' + inputCodi.value + '"');
-        preencherSeEncontradoNoCodigo(true);
-      });
-    }
+        if (highlightIdx < 0 || highlightIdx >= renderedItems.length) {
+          highlightIdx = 1; // primeiro CBO depois do "Selecione"
+        }
+        destacarItem(highlightIdx, true);
+      }
 
-    // Modo EDITAR: ao carregar página, se campo cód já estiver preenchido (cargo existente), preenche a desc automaticamente SEM depender de evento
-    console.log('[CBO] --- CHAMADA INICIAL onload preencherSeEncontradoNoCodigo(false) ---');
-    preencherSeEncontradoNoCodigo(false);
-
-    document.querySelectorAll('[data-digits-only="true"]').forEach(function (input) {
-      function sanitize() {
-        var raw = input.value || '';
-        var cleaned = raw.replace(/\D/g, '');
-        if (raw !== cleaned) {
-          input.value = cleaned;
+      function destacarItem(idx, scrollTo) {
+        for (var k = 0; k < renderedItems.length; k++) {
+          if (renderedItems[k]) renderedItems[k].classList.remove('active', 'bg-primary', 'text-white');
+        }
+        if (idx >= 0 && idx < renderedItems.length) {
+          highlightIdx = idx;
+          var li = renderedItems[idx];
+          li.classList.add('active', 'bg-primary', 'text-white');
+          if (scrollTo) {
+            try { li.scrollIntoView({ block: 'nearest' }); } catch (e) {}
+          }
         }
       }
-      input.addEventListener('input', sanitize);
-      input.addEventListener('blur', sanitize);
+
+      function selecionarItem(codi, desc) {
+        selectedCodi = codi ? String(codi) : '';
+        hiddenCod.value = selectedCodi;
+        if (!selectedCodi) {
+          input.value = '';
+          input.placeholder = 'Selecione...';
+        } else {
+          input.value = selectedCodi + ' - ' + (desc || '');
+        }
+        if (hiddenDesc) hiddenDesc.value = (desc || '');
+        fecharLista();
+        input.blur();
+      }
+
+      function moverDestaque(delta) {
+        if (!listaEstaAberta()) {
+          renderizarLista(input.value);
+          abrirLista();
+          return;
+        }
+        if (!renderedItems.length) return;
+        // Pular o primeiro item "Selecione..." apenas se delta subir a partir dele? Nao, deixar livre.
+        var prox = highlightIdx + delta;
+        if (prox < 0) prox = 0;
+        if (prox >= renderedItems.length) prox = renderedItems.length - 1;
+        destacarItem(prox, true);
+      }
+
+      function confirmarItemAtualmenteDestacado() {
+        if (!listaEstaAberta() || highlightIdx < 0 || highlightIdx >= renderedItems.length) return;
+        var li = renderedItems[highlightIdx];
+        var c = li.getAttribute('data-codi') || '';
+        var d = li.getAttribute('data-desc') || '';
+        selecionarItem(c, d);
+      }
+
+      // ---- EVENTOS ----
+      input.addEventListener('focus', function () {
+        renderizarLista(input.value);
+        abrirLista();
+      });
+      input.addEventListener('input', function () {
+        renderizarLista(input.value);
+        abrirLista();
+      });
       input.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' || e.key === 'Tab') {
-          sanitize();
+        if (e.key === 'ArrowDown') { e.preventDefault(); moverDestaque(+1); return; }
+        if (e.key === 'ArrowUp')   { e.preventDefault(); moverDestaque(-1); return; }
+        if (e.key === 'Enter')     {
+          if (listaEstaAberta() && highlightIdx >= 0) {
+            e.preventDefault();
+            confirmarItemAtualmenteDestacado();
+          } else {
+            // Enter sem abrir: abre a lista
+            e.preventDefault();
+            renderizarLista(input.value);
+            abrirLista();
+          }
+          return;
         }
+        if (e.key === 'Escape')    { fecharLista(); input.blur(); return; }
       });
-    });
 
+      if (toggle) {
+        toggle.addEventListener('mousedown', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          if (listaEstaAberta()) fecharLista();
+          else { renderizarLista(input.value); abrirLista(); input.focus(); }
+        });
+      }
+
+      // Fechar ao clicar fora
+      document.addEventListener('mousedown', function (e) {
+        if (!wrapper) return;
+        if (!wrapper.contains(e.target)) fecharLista();
+      });
+
+      // Submit: garantir que input display nao atrapalhe, hiddenCod tem valor puro
+      var formEl = input.closest('form');
+      if (formEl) {
+        formEl.addEventListener('submit', function () {
+          // Se o usuário digitou sem selecionar nenhum item do dropdown,
+          // tentamos extrair o código do que ele digitou (ex: digitou "724315")
+          if (!selectedCodi) {
+            var raw = input.value || '';
+            var codApenas = raw.split(' - ', 1)[0];
+            codApenas = String(codApenas).replace(/\D/g, '');
+            if (codApenas) {
+              hiddenCod.value = codApenas;
+            } else {
+              hiddenCod.value = '';
+            }
+          }
+        });
+      }
+    }
+
+    // Botão voltar (Escape) — mantido
     function goBack(e) {
       if (e.key === 'Escape') {
+        // Não acionar ESC se a lista do combobox está aberta
+        if (document.getElementById('cbo-listbox') &&
+            document.getElementById('cbo-listbox').style.display === 'block') return;
         var btn = document.querySelector('[data-form-action="voltar"]');
         if (btn && btn.href) {
           window.location.href = btn.href;
