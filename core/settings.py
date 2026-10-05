@@ -126,6 +126,7 @@ INSTALLED_APPS = [
     'terceiros',
     'dependentesterc',
     'usuarios',
+    'prepara_recisoes',
 ]
 
 MIDDLEWARE = [

@@ -45,6 +45,7 @@ urlpatterns = [
     path("tabelasalariominimo/", include("tabelasalariominimo.web.urls")),
     path("terceiros/", include("terceiros.web.urls")),
     path("usuarios/", include("usuarios.web.urls")),
+    path("prepara-recisoes/", include("prepara_recisoes.urls")),
 ]
 
 # Em ambiente local, garante o serviço dos arquivos estáticos mesmo com DEBUG=False.

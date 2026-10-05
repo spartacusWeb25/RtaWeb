@@ -223,6 +223,15 @@
     <div class="app-form-card mb-3">
       <div class="row g-3 p-3">
         <div class="row g-3 align-items-center">
+          {# ============================================================ #}
+          {# FIX BUG: Campos reais do Django form para EMPRESA e FILIAL #}
+          {# são renderizados como HIDDEN. Garante que o browser envie   #}
+          {# esses 2 campos no HTTP POST (diferente dos inputs readonly  #}
+          {# de visualização que NÃO tinham atributo name).              #}
+          {# ============================================================ #}
+          {{ form.func_empr }}
+          {{ form.func_fili }}
+
           <div class="col-12 col-lg-2">
             <label class="form-label">Empresa</label>
             <input

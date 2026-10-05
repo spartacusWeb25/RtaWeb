@@ -2,17 +2,33 @@
     <button class="nav-btn"> <i class="bi bi-book-half" style="font-size: 1.2rem;  color: #ebb6ba;"></i> Processos <i
             class="bi bi-chevron-down chevron"></i>
     </button>
+
     <div class="dropdown-panel sortable-submenu">
-        <!--
-        <a href="#">Lançamentos de Múltiplos Vínculos</a>
-        <a href="#">Lançamentos de Múltiplos Vínculos - Fontes Pagadoras</a>
-        <a href="#">Lançamentos de Múltiplos Vínculos - Fontes Pagadoras (Terceiros)</a>
-        <a href="#">Folha Complementar</a>
-        <a href="#">Treinamentos</a>
-        <a href="#">Outros</a>
-        <a href="{% url 'usuarios:listar' %}?banco={{ request.banco|default:'rta0001' }}">
-            Usuários Licença
-        </a>
-        -->
+        {% comment %}
+        <div
+            class="submenu-item"
+            tabindex="0"
+            role="button"
+            aria-haspopup="true"
+            aria-expanded="false"
+            data-submenu-toggle
+        >Preparações
+            <div class="submenu-panel" role="menu" style="display:none;">
+                <a href="{% url 'prepara_recisoes:listar' %}?banco={{ request.banco|default:'rta0001' }}" role="menuitem">
+                    Rescisões
+                </a>
+                <a href="#" role="menuitem">
+                    Situações
+                </a>
+                <a href="#" role="menuitem">
+                    Verbas agrupadas
+                </a>
+                <a href="#" role="menuitem">
+                    Verbas automáticas
+                </a>
+            </div>
+        </div>
+        {% endcomment %}
     </div>
+
 </li>

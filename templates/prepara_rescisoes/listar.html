@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Preparação de Rescisões — RtaWeb{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+<link href="{% static 'core/css/list-cards.css' %}" rel="stylesheet">
+<link href="{% static 'core/css/tabelas-layout.css' %}" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/botoes.css' %}">
+<link rel="stylesheet" href="{% static 'css/buscas.css' %}">
+<link rel="stylesheet" href="{% static 'css/tabelas.css' %}">
+<style>
+    @media (min-width: 992px) {
+        .prep-resc-listar .form-grid {
+            grid-template-columns: minmax(280px, 1.3fr) minmax(180px, 0.6fr) auto;
+        }
+    }
+    .prep-resc-listar .col-codigo { width: 80px; }
+    .prep-resc-listar .col-descricao { width: 32%; }
+    .prep-resc-listar .col-iniciativa { width: 18%; }
+    .prep-resc-listar .col-aviso { width: 18%; }
+    .prep-resc-listar .col-status { width: 100px; }
+    .prep-resc-listar .col-acoes { width: 260px; }
+
+    .prep-resc-listar td.tabela-acoes {
+        display: flex; flex-direction: row; flex-wrap: nowrap;
+        justify-content: center; gap: 10px; width: 100%; align-items: center;
+    }
+    .prep-resc-listar thead th.col-acoes,
+    .prep-resc-listar tbody td.col-acoes { text-align: center; }
+    .prep-resc-listar td.col-status, .prep-resc-listar thead th.col-status { text-align: center !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4 prep-resc-listar">
+    <div class="d-flex justify-content-center align-items-center mb-3">
+        <h3><i class="bi bi-file-earmark-ruled-fill"></i> Preparação de Rescisões</h3>
+    </div>
+
+    <div class="filtros-acoes mb-3">
+        <a href="{% url 'prepara_recisoes:criar' %}?banco={{ request.banco }}" class="botao botao-adicionar">
+            <i class="bi bi-plus"></i> Nova Preparação
+        </a>
+        <button class="botao botao-detalhar botao-filtro-toggle" type="button" data-bs-toggle="collapse"
+            data-bs-target="#filtrosCollapsePrepResc" id="btn-filtros-prep" aria-expanded="false"
+            aria-controls="filtrosCollapsePrepResc">
+            <i class="bi bi-funnel"></i> Filtros
+        </button>
+    </div>
+
+    <div class="app-form-card mb-3 collapse filtros-collapse" id="filtrosCollapsePrepResc">
+        <form method="get" class="form-grid form-grid-compact">
+            <input type="hidden" name="banco" value="{{ request.banco }}">
+
+            <div class="form-group">
+                <label class="form-label">Buscar</label>
+                <input class="form-control" type="text" name="busca" value="{{ busca|default:'' }}"
+                       placeholder="Código, descrição, motivo eSocial, CAGED, RAIS etc.">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Ordem</label>
+                <select name="ordem" class="form-control">
+                    <option value="asc" {% if ordem == "asc" or not ordem %}selected{% endif %}>Crescente</option>
+                    <option value="desc" {% if ordem == "desc" %}selected{% endif %}>Decrescente</option>
+                </select>
+            </div>
+
+            <div class="form-group d-flex align-items-end">
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="?banco={{ request.banco }}" class="botao botao-limpar">
+                        <i class="bi bi-eraser"></i> Limpar
+                    </a>
+                    <button type="submit" class="botao botao-buscar">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    {% if objetos %}
+    <div class="table-responsive">
+        <table class="tabela-moderna">
+            <thead>
+                <tr>
+                    <th class="col-codigo"><i class="bi bi-key"></i> Código</th>
+                    <th class="col-descricao"><i class="bi bi-journal-text"></i> Descrição</th>
+                    <th class="col-iniciativa"><i class="bi bi-hand-index-thumb"></i> Iniciativa</th>
+                    <th class="col-aviso"><i class="bi bi-calendar-event"></i> Aviso Prévio</th>
+                    <th class="col-status"><i class="bi bi-toggle-off"></i> Status</th>
+                    <th class="col-acoes"><i class="bi bi-gear"></i> Ações</th>
+                </tr>
+            </thead>
+            <tbody data-infinite-scroll-items>
+                {% for item in objetos %}
+                <tr>
+                    <td data-label="Código" class="col-codigo text-center font-weight-bold">
+                        {{ item.prep_codi }}
+                    </td>
+                    <td data-label="Descrição" class="col-descricao">
+                        <div class="fw-semibold">
+                            {{ item.prep_descricao|default:item.prep_desc|default:'-' }}
+                        </div>
+                        {% if item.prep_motivo_esocial_codi or item.prep_motivo_esocial_desc %}
+                        <small class="text-muted d-block">
+                            <i class="bi bi-chat-square-dots"></i> eSocial
+                            {% if item.prep_motivo_esocial_codi %}[{{ item.prep_motivo_esocial_codi }}]{% endif %}
+                            {% if item.prep_motivo_esocial_desc %} {{ item.prep_motivo_esocial_desc }}{% endif %}
+                        </small>
+                        {% endif %}
+                    </td>
+                    <td data-label="Iniciativa" class="col-iniciativa">
+                        {{ item.prep_iniciativa_desc|default:'-' }}
+                    </td>
+                    <td data-label="Aviso Prévio" class="col-aviso">
+                        {% if item.prep_inden_ferias_13 %}
+                            <small class="badge bg-info-subtle text-info-emphasis me-1">+13º/Férias</small>
+                        {% endif %}
+                        {{ item.prep_aviso_previo_desc|default:'-' }}
+                    </td>
+                    <td data-label="Status" class="text-center col-status">
+                        {% if item.prep_inativo %}
+                        <span class="badge badge-inativo bg-secondary text-white px-2 py-1 rounded-pill">Inativo</span>
+                        {% else %}
+                        <span class="badge badge-ativo bg-success text-white px-2 py-1 rounded-pill">Ativo</span>
+                        {% endif %}
+                    </td>
+                    <td data-label="Ações" class="col-acoes tabela-acoes">
+                        <div class="d-flex flex-row flex-nowrap justify-content-center gap-2 w-100">
+                            <a class="botao botao-editar"
+                               href="{% url 'prepara_recisoes:editar' prep_codi=item.prep_codi %}?banco={{ request.banco }}">
+                                <i class="bi bi-pencil-fill"></i> Editar
+                            </a>
+                            <a class="botao botao-remover"
+                               href="{% url 'prepara_recisoes:excluir' prep_codi=item.prep_codi %}?banco={{ request.banco }}">
+                                <i class="bi bi-trash-fill"></i> Excluir
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% include "partials/componentes/infinite_scroll.html" %}
+    {% else %}
+    <div class="alert alert-warning">
+        Nenhuma preparação de rescisão cadastrada até o momento.
+        <a href="{% url 'prepara_recisoes:criar' %}?banco={{ request.banco }}">Cadastrar a primeira</a>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

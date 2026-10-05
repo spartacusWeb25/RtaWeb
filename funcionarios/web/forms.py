@@ -790,6 +790,65 @@ class FuncionarioForm(forms.ModelForm):
         self.fili_codigo = kwargs.pop("fili_codigo", None)
         super().__init__(*args, **kwargs)
 
+        # =====================================================================
+        # FIX BUG EMPRESA/FILIAL OBRIGATORIOS NA HORA DE SALVAR (Root Cause):
+        #  - O form sempre recebe empr_codigo/fili_codigo do mixin (FuncionarioMixin
+        #    linha 38-39, get_form_kwargs). Empresa/Filial NAO sao editaveis
+        #    na tela, então não faz sentido required=True nem widgets visiveis.
+        #  - Forcamos o initial e o widget Hidden para que SEMPRE aparecam
+        #    no POST como campos do Django.
+        # =====================================================================
+        try:
+            _empr_instance = None
+            _fili_instance = None
+            if self.instance is not None:
+                try:
+                    _empr_instance = int(getattr(self.instance, "func_empr", None) or 0)
+                    _fili_instance = int(getattr(self.instance, "func_fili", None) or 0)
+                except Exception:
+                    pass
+            empr_fixed = int(self.empr_codigo or _empr_instance or 1)
+            fili_fixed = int(self.fili_codigo or _fili_instance or 1)
+            if empr_fixed <= 0:
+                empr_fixed = 1
+            if fili_fixed <= 0:
+                fili_fixed = 1
+            self._empr_fixed = empr_fixed
+            self._fili_fixed = fili_fixed
+
+            if "func_empr" in self.fields:
+                f_empr = self.fields["func_empr"]
+                f_empr.required = False
+                f_empr.widget = forms.HiddenInput()
+                if not self.initial.get("func_empr"):
+                    self.initial["func_empr"] = empr_fixed
+                if self.data and str(self.data.get("func_empr", "")).strip() == "":
+                    # POST veio vazio (bug do template antigo): força o valor no dicionario data
+                    # para ser considerado pelo full_clean / cleaned_data
+                    try:
+                        if isinstance(self.data, dict):
+                            self.data["func_empr"] = empr_fixed
+                    except Exception:
+                        pass
+
+            if "func_fili" in self.fields:
+                f_fili = self.fields["func_fili"]
+                f_fili.required = False
+                f_fili.widget = forms.HiddenInput()
+                if not self.initial.get("func_fili"):
+                    self.initial["func_fili"] = fili_fixed
+                if self.data and str(self.data.get("func_fili", "")).strip() == "":
+                    try:
+                        if isinstance(self.data, dict):
+                            self.data["func_fili"] = fili_fixed
+                    except Exception:
+                        pass
+        except Exception:
+            # Em caso de erro extremo, não crasha: deixa seguir
+            self._empr_fixed = int(self.empr_codigo or 1)
+            self._fili_fixed = int(self.fili_codigo or 1)
+            pass
+
         try:
             from sindicatos.services.logic import SindicatoTrabalhadoresService as _STS
             from sindicatos.services.logic import _digits_only as _digits_only_sind
@@ -2618,7 +2677,39 @@ class FuncionarioForm(forms.ModelForm):
         return digits
 
     def clean(self):
-        cleaned_data = super().clean()
+        cleaned_data = super().clean() or {}
+
+        # =====================================================================
+        # FIX BUG DUPLA PROTECAO: Empresa/Filial nao podem ficar vazios!
+        # Se por algum motivo o widget Hidden ou o template nao enviou os
+        # valores no POST, sobrescreve no cleaned_data com o default do mixin.
+        # =====================================================================
+        try:
+            empr_inst = None
+            fili_inst = None
+            if self.instance is not None:
+                try:
+                    empr_inst = int(getattr(self.instance, "func_empr", None) or 0)
+                    fili_inst = int(getattr(self.instance, "func_fili", None) or 0)
+                except Exception:
+                    pass
+            _empr = int(cleaned_data.get("func_empr") or self._empr_fixed or empr_inst or 1)
+            _fili = int(cleaned_data.get("func_fili") or self._fili_fixed or fili_inst or 1)
+            if _empr <= 0:
+                _empr = 1
+            if _fili <= 0:
+                _fili = 1
+            cleaned_data["func_empr"] = _empr
+            cleaned_data["func_fili"] = _fili
+            if self.instance is not None:
+                try:
+                    setattr(self.instance, "func_empr", _empr)
+                    setattr(self.instance, "func_fili", _fili)
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
         for campo in DECIMAL_FIELDS_META:
             if campo not in cleaned_data:
                 continue
