@@ -870,6 +870,12 @@ class ContribuinteForm(forms.ModelForm):
             self.fields["registro"].widget = forms.HiddenInput()
             self.fields["registro"].required = False
 
+        if "contr_codi" in self.fields:
+            self.fields["contr_codi"].required = False
+            if getattr(self.instance, "_state", None) is None or getattr(self.instance._state, "adding", True):
+                self.fields["contr_codi"].widget.attrs["readonly"] = "readonly"
+                self.fields["contr_codi"].widget.attrs["class"] = "form-control contribuinte-readonly"
+
         if "contr_tem_dependentes" in self.fields:
             self.fields["contr_tem_dependentes"].widget = forms.HiddenInput()
             self.fields["contr_tem_dependentes"].required = False

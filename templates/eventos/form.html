@@ -137,11 +137,21 @@
   }
   .evento-header-row {
     display: grid;
-    grid-template-columns: 160px 1fr auto;
+    grid-template-columns: 180px minmax(0, 1fr) 160px;
     gap: 1rem;
     align-items: start;
     padding: 1.25rem;
     border-bottom: 1px solid var(--border-default, var(--bs-border-color));
+  }
+  .evento-top-readonly .form-control {
+    background: var(--surface-input, #ffffff) !important;
+  }
+  .evento-meta-row {
+    display: grid;
+    grid-template-columns: 160px minmax(0, 1fr) auto;
+    gap: 1rem;
+    align-items: start;
+    margin-bottom: 1rem;
   }
   .evento-aba-card {
     border: 1px solid var(--border-default, #d8dee8);
@@ -274,6 +284,9 @@
     justify-content: flex-end;
     min-height: 66px;
   }
+  .evento-meta-row .inativa-wrapper {
+    min-height: 64px;
+  }
   .funcionario-check-box {
     border: 1px solid var(--border-default, #d8dee8);
     border-radius: var(--radius-md);
@@ -304,6 +317,16 @@
     margin-bottom: 0;
     cursor: pointer;
   }
+  @media (max-width: 991px) {
+    .evento-header-row,
+    .evento-meta-row {
+      grid-template-columns: 1fr;
+    }
+    .evento-meta-row .inativa-wrapper {
+      justify-content: flex-start;
+      min-height: auto;
+    }
+  }
 </style>
 {% endblock %}
 
@@ -317,16 +340,18 @@
     {% csrf_token %}
 
     <div class="card mt-3 shadow-sm evento-card">
-      <div class="evento-header-row">
-        {% include "funcionarios/_field.html" with field=form.even_codi col="col-auto" %}
-        {% include "funcionarios/_field.html" with field=form.even_desc col="col-12" %}
-        <div class="inativa-wrapper">
-          <div class="funcionario-check-item">
-            {{ form.even_inativo }}
-            <label class="fw-semibold" for="{{ form.even_inativo.id_for_label }}">
-              {{ form.even_inativo.label }}
-            </label>
-          </div>
+      <div class="evento-header-row evento-top-readonly">
+        <div>
+          <label class="form-label">Empresa</label>
+          <input type="text" class="form-control" value="{{ empr_codigo|default_if_none:'' }}" readonly>
+        </div>
+        <div>
+          <label class="form-label">Razão social</label>
+          <input type="text" class="form-control" value="{{ empresa_nome|default:'Empresa padrão da licença' }}" readonly>
+        </div>
+        <div>
+          <label class="form-label">Filial</label>
+          <input type="text" class="form-control" value="{{ fili_codigo|default_if_none:'' }}" readonly>
         </div>
       </div>
 
@@ -375,6 +400,18 @@
           <!-- ===================== INCIDÊNCIA ===================== -->
           <div class="tab-pane fade show {% if not abas_com_erro or not abas_com_erro.incidencia %}active{% endif %}" id="aba-incidencia" role="tabpanel">
             <div class="evento-aba-card">
+              <div class="evento-meta-row">
+                {% include "funcionarios/_field.html" with field=form.even_codi col="col-auto" %}
+                {% include "funcionarios/_field.html" with field=form.even_desc col="col-12" %}
+                <div class="inativa-wrapper">
+                  <div class="funcionario-check-item">
+                    {{ form.even_inativo }}
+                    <label class="fw-semibold" for="{{ form.even_inativo.id_for_label }}">
+                      {{ form.even_inativo.label }}
+                    </label>
+                  </div>
+                </div>
+              </div>
 
               <div class="row g-3">
                 {% include "funcionarios/_field.html" with field=form.even_classificacao col="col-12 col-xl-6" %}

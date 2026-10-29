@@ -12,10 +12,19 @@ class ContribuinteCreateView(ContribuinteMixin, CreateView):
 
     def get_initial(self):
         initial = super().get_initial()
+        contr_empr = initial.get("contr_empr") or self.obter_codigo_empresa_contexto()
+        contr_fili = initial.get("contr_fili") or self.obter_codigo_filial_contexto()
         if not initial.get("contr_empr"):
-            initial["contr_empr"] = self.obter_codigo_empresa_contexto()
+            initial["contr_empr"] = contr_empr
         if not initial.get("contr_fili"):
-            initial["contr_fili"] = self.obter_codigo_filial_contexto()
+            initial["contr_fili"] = contr_fili
+        if not initial.get("contr_codi"):
+            initial["contr_codi"] = ContribuintesService.proximo_codigo(
+                banco=self.request.banco,
+                db_alias=self.db_alias,
+                contr_empr=contr_empr,
+                contr_fili=contr_fili,
+            )
         return initial
 
     def get_context_data(self, **kwargs):
@@ -43,6 +52,7 @@ class ContribuinteCreateView(ContribuinteMixin, CreateView):
                 db_alias=self.db_alias,
                 contr_empr=contr_empr,
                 contr_fili=contr_fili,
+                operacao="criar",
             )
             messages.success(self.request, "Contribuinte cadastrado com sucesso.")
             return redirect(reverse("contribuintes:listar") + f"?banco={self.request.banco}")

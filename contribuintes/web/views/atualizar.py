@@ -69,6 +69,7 @@ class ContribuinteUpdateView(ContribuinteMixin, UpdateView):
                 db_alias=self.db_alias,
                 contr_empr=contr_empr,
                 contr_fili=contr_fili,
+                operacao="editar",
             )
             messages.success(self.request, "Contribuinte atualizado com sucesso.")
             return redirect(reverse("contribuintes:listar") + f"?banco={self.request.banco}")

@@ -1,4 +1,6 @@
 from django.core.exceptions import ValidationError
+from django.db.models import IntegerField, Max
+from django.db.models.functions import Coalesce
 from empresas.models import Empresas
 from contribuintes.models import Contribuintes
 
@@ -10,6 +12,28 @@ def _digits_only(value):
 class ContribuintesService:
 
     @staticmethod
+    def proximo_codigo(*, banco, db_alias, contr_empr=None, contr_fili=None):
+        banco_limpo = _digits_only(banco)
+        empr = int(contr_empr or 1)
+        fili = int(contr_fili or 1)
+
+        qs = Contribuintes.objects
+        if db_alias:
+            qs = qs.using(db_alias)
+
+        max_codi = (
+            qs.filter(
+                registro=banco_limpo,
+                contr_empr=empr,
+                contr_fili=fili,
+            )
+            .aggregate(maximo=Coalesce(Max("contr_codi", output_field=IntegerField()), 0))
+            .get("maximo")
+            or 0
+        )
+        return int(max_codi) + 1
+
+    @staticmethod
     def salvar_form(form, banco, db_alias, contr_empr=None, contr_fili=None, **kwargs):
         instance = form.save(commit=False)
         instance.registro = _digits_only(banco)
@@ -17,6 +41,16 @@ class ContribuintesService:
             instance.contr_empr = contr_empr
         if contr_fili is not None:
             instance.contr_fili = contr_fili
+
+        operacao = kwargs.get("operacao") or ("criar" if getattr(instance._state, "adding", True) else "editar")
+
+        if operacao == "criar":
+            instance.contr_codi = ContribuintesService.proximo_codigo(
+                banco=banco,
+                db_alias=db_alias,
+                contr_empr=instance.contr_empr,
+                contr_fili=instance.contr_fili,
+            )
 
         for binary_field_name in ["contr_foto_3x4", "contr_carteira_identidade_arquivo"]:
             uploaded = form.cleaned_data.get(binary_field_name) if form.is_bound else None

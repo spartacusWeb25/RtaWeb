@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Excluir aumento salarial - RtaWeb{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header fw-semibold">
+        Confirmação
+    </div>
+    <div class="card-body">
+        <p>Tem certeza que deseja excluir o aumento salarial
+           "<strong>{{ objeto_desc|default:object.aume_desc|default:'-' }}</strong>"?</p>
+        <form method="post" novalidate>
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Excluir</button>
+            <a href="{% url 'aumento_salarial:listar' %}?banco={{ request.banco }}"
+               class="btn btn-outline-secondary">Cancelar</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

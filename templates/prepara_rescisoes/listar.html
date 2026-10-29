@@ -19,8 +19,10 @@
     .prep-resc-listar .col-codigo { width: 80px; }
     .prep-resc-listar .col-descricao { width: 32%; }
     .prep-resc-listar .col-iniciativa { width: 18%; }
-    .prep-resc-listar .col-aviso { width: 18%; }
-    .prep-resc-listar .col-status { width: 100px; }
+    .prep-resc-listar .col-aviso { width: 18%; }        
+    .prep-resc-listar .col-fgts { width: 18%; }
+    .prep-resc-listar .col-caged { width: 18%; }
+
     .prep-resc-listar .col-acoes { width: 260px; }
 
     .prep-resc-listar td.tabela-acoes {
@@ -29,7 +31,6 @@
     }
     .prep-resc-listar thead th.col-acoes,
     .prep-resc-listar tbody td.col-acoes { text-align: center; }
-    .prep-resc-listar td.col-status, .prep-resc-listar thead th.col-status { text-align: center !important; }
 </style>
 {% endblock %}
 
@@ -40,7 +41,7 @@
     </div>
 
     <div class="filtros-acoes mb-3">
-        <a href="{% url 'prepara_recisoes:criar' %}?banco={{ request.banco }}" class="botao botao-adicionar">
+        <a href="{% url 'prepara_rescisoes:criar' %}?banco={{ request.banco }}" class="botao botao-adicionar">
             <i class="bi bi-plus"></i> Nova Preparação
         </a>
         <button class="botao botao-detalhar botao-filtro-toggle" type="button" data-bs-toggle="collapse"
@@ -57,7 +58,7 @@
             <div class="form-group">
                 <label class="form-label">Buscar</label>
                 <input class="form-control" type="text" name="busca" value="{{ busca|default:'' }}"
-                       placeholder="Código, descrição, motivo eSocial, CAGED, RAIS etc.">
+                       placeholder="Código ou descrição">
             </div>
 
             <div class="form-group">
@@ -90,7 +91,8 @@
                     <th class="col-descricao"><i class="bi bi-journal-text"></i> Descrição</th>
                     <th class="col-iniciativa"><i class="bi bi-hand-index-thumb"></i> Iniciativa</th>
                     <th class="col-aviso"><i class="bi bi-calendar-event"></i> Aviso Prévio</th>
-                    <th class="col-status"><i class="bi bi-toggle-off"></i> Status</th>
+                    <th class="col-fgts"><i class="bi bi-journal-text"></i> Fgts</th>
+                    <th class="col-caged"><i class="bi bi-journal-text"></i> Caged</th>
                     <th class="col-acoes"><i class="bi bi-gear"></i> Ações</th>
                 </tr>
             </thead>
@@ -121,21 +123,20 @@
                         {% endif %}
                         {{ item.prep_aviso_previo_desc|default:'-' }}
                     </td>
-                    <td data-label="Status" class="text-center col-status">
-                        {% if item.prep_inativo %}
-                        <span class="badge badge-inativo bg-secondary text-white px-2 py-1 rounded-pill">Inativo</span>
-                        {% else %}
-                        <span class="badge badge-ativo bg-success text-white px-2 py-1 rounded-pill">Ativo</span>
-                        {% endif %}
+                    <td data-label="Fgts" class="col-aviso">
+                        {{ item.prep_fgts_desc|default:'-' }}
+                    </td>
+                    <td data-label="Caged" class="col-aviso">
+                        {{ item.prep_caged_desc|default:'-' }}
                     </td>
                     <td data-label="Ações" class="col-acoes tabela-acoes">
                         <div class="d-flex flex-row flex-nowrap justify-content-center gap-2 w-100">
                             <a class="botao botao-editar"
-                               href="{% url 'prepara_recisoes:editar' prep_codi=item.prep_codi %}?banco={{ request.banco }}">
+                               href="{% url 'prepara_rescisoes:editar' prep_codi=item.prep_codi %}?banco={{ request.banco }}">
                                 <i class="bi bi-pencil-fill"></i> Editar
                             </a>
                             <a class="botao botao-remover"
-                               href="{% url 'prepara_recisoes:excluir' prep_codi=item.prep_codi %}?banco={{ request.banco }}">
+                               href="{% url 'prepara_rescisoes:excluir' prep_codi=item.prep_codi %}?banco={{ request.banco }}">
                                 <i class="bi bi-trash-fill"></i> Excluir
                             </a>
                         </div>
@@ -150,7 +151,7 @@
     {% else %}
     <div class="alert alert-warning">
         Nenhuma preparação de rescisão cadastrada até o momento.
-        <a href="{% url 'prepara_recisoes:criar' %}?banco={{ request.banco }}">Cadastrar a primeira</a>
+        <a href="{% url 'prepara_rescisoes:criar' %}?banco={{ request.banco }}">Cadastrar a primeira</a>
     </div>
     {% endif %}
 

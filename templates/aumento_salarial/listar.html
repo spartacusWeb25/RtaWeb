@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Aumento salarial - RtaWeb{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+<link href="{% static 'core/css/list-cards.css' %}" rel="stylesheet">
+<link href="{% static 'core/css/tabelas-layout.css' %}" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/botoes.css' %}">
+<link rel="stylesheet" href="{% static 'css/buscas.css' %}">
+<link rel="stylesheet" href="{% static 'css/tabelas.css' %}">
+<style>
+    @media (min-width: 992px) {
+        .aumento-listar .form-grid {
+            grid-template-columns: minmax(280px, 1.3fr) minmax(180px, 0.6fr) auto;
+        }
+    }
+    .aumento-listar .col-codigo { width: 90px; }
+    .aumento-listar .col-descricao { width: 24%; }
+    .aumento-listar .col-funcionario { width: 24%; }
+    .aumento-listar .col-data { width: 12%; }
+    .aumento-listar .col-forma { width: 10%; }
+    .aumento-listar .col-valor { width: 12%; }
+    .aumento-listar .col-acoes { width: 240px; }
+    .aumento-listar thead th.col-valor,
+    .aumento-listar tbody td.col-valor {
+        text-align: right;
+    }
+    .aumento-listar thead th.col-acoes,
+    .aumento-listar td.tabela-acoes {
+        text-align: center;
+    }
+    .aumento-listar .acoes-wrap {
+        display: flex;
+        flex-wrap: nowrap;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4 aumento-listar">
+    <div class="d-flex justify-content-center align-items-center mb-3">
+        <h3><i class="bi bi-graph-up-arrow"></i> Aumento salarial</h3>
+    </div>
+
+    <div class="filtros-acoes mb-3">
+        <a href="{% url 'aumento_salarial:criar' %}?banco={{ request.banco }}" class="botao botao-adicionar">
+            <i class="bi bi-plus"></i> Novo aumento
+        </a>
+        <button class="botao botao-detalhar botao-filtro-toggle" type="button" data-bs-toggle="collapse"
+            data-bs-target="#filtrosCollapseAumento" id="btn-filtros-aumento" aria-expanded="false"
+            aria-controls="filtrosCollapseAumento">
+            <i class="bi bi-funnel"></i> Filtros
+        </button>
+    </div>
+
+    <div class="app-form-card mb-3 collapse filtros-collapse" id="filtrosCollapseAumento">
+        <form method="get" class="form-grid form-grid-compact">
+            <input type="hidden" name="banco" value="{{ request.banco }}">
+
+            <div class="form-group">
+                <label class="form-label">Buscar</label>
+                <input class="form-control" type="text" name="busca" value="{{ busca|default:'' }}"
+                       placeholder="Código, descrição ou funcionário">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Ordem</label>
+                <select name="ordem" class="form-control">
+                    <option value="asc" {% if ordem == "asc" or not ordem %}selected{% endif %}>Crescente</option>
+                    <option value="desc" {% if ordem == "desc" %}selected{% endif %}>Decrescente</option>
+                </select>
+            </div>
+
+            <div class="form-group d-flex align-items-end">
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="?banco={{ request.banco }}" class="botao botao-limpar">
+                        <i class="bi bi-eraser"></i> Limpar
+                    </a>
+                    <button type="submit" class="botao botao-buscar">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    {% if objetos %}
+    <div class="table-responsive">
+        <table class="tabela-moderna">
+            <thead>
+                <tr>
+                    <th class="col-codigo"><i class="bi bi-key"></i> Código</th>
+                    <th class="col-descricao"><i class="bi bi-journal-text"></i> Descrição do aumento</th>
+                    <th class="col-funcionario"><i class="bi bi-person-badge"></i> Funcionário</th>
+                    <th class="col-data"><i class="bi bi-calendar-event"></i> Data da alteração</th>
+                    <th class="col-data"><i class="bi bi-calendar-check"></i> Data de efeito</th>
+                    <th class="col-forma"><i class="bi bi-ui-checks-grid"></i> Forma</th>
+                    <th class="col-valor"><i class="bi bi-cash-coin"></i> Valor</th>
+                    <th class="col-acoes"><i class="bi bi-gear"></i> Ações</th>
+                </tr>
+            </thead>
+            <tbody data-infinite-scroll-items>
+                {% for item in objetos %}
+                <tr>
+                    <td data-label="Código" class="col-codigo text-center fw-bold">{{ item.aume_codi }}</td>
+                    <td data-label="Descrição" class="col-descricao">{{ item.aume_desc|default:'-' }}</td>
+                    <td data-label="Funcionário" class="col-funcionario">{{ item.funcionario_nome|default:'-' }}</td>
+                    <td data-label="Data da alteração" class="col-data">{{ item.aume_data_alteracao|date:"d/m/Y"|default:'-' }}</td>
+                    <td data-label="Data de efeito" class="col-data">{{ item.aume_data_efeito|date:"d/m/Y"|default:'-' }}</td>
+                    <td data-label="Forma" class="col-forma">{{ item.aume_forma_desc|default:'-' }}</td>
+                    <td data-label="Valor" class="col-valor text-end">
+                        {% if item.aume_valor is not None %}
+                            {{ item.aume_valor|floatformat:2 }}{% if item.aume_forma == "P" %}%{% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td data-label="Ações" class="col-acoes tabela-acoes">
+                        <div class="acoes-wrap">
+                            <a class="botao botao-editar"
+                               href="{% url 'aumento_salarial:editar' aume_codi=item.aume_codi %}?banco={{ request.banco }}">
+                                <i class="bi bi-pencil-fill"></i> Editar
+                            </a>
+                            <a class="botao botao-remover"
+                               href="{% url 'aumento_salarial:excluir' aume_codi=item.aume_codi %}?banco={{ request.banco }}">
+                                <i class="bi bi-trash-fill"></i> Excluir
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% include "partials/componentes/infinite_scroll.html" %}
+    {% else %}
+    <div class="alert alert-warning">
+        Nenhum aumento salarial cadastrado até o momento.
+        <a href="{% url 'aumento_salarial:criar' %}?banco={{ request.banco }}">Cadastrar o primeiro</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

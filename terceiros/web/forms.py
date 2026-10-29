@@ -440,14 +440,18 @@ class TerceirosForm(forms.ModelForm):
             self.fields["registro"].required = False
 
         if "terc_empr" in self.fields:
-            self.fields["terc_empr"].required = True
+            self.fields["terc_empr"].required = False
             self.fields["terc_empr"].label = "Empresa"
-            self.fields["terc_empr"].widget.attrs["readonly"] = "readonly"
+            self.fields["terc_empr"].widget = forms.HiddenInput()
+            if self.initial.get("terc_empr") in (None, "") and self.empr_codigo not in (None, ""):
+                self.initial["terc_empr"] = self.empr_codigo
 
         if "terc_fili" in self.fields:
-            self.fields["terc_fili"].required = True
+            self.fields["terc_fili"].required = False
             self.fields["terc_fili"].label = "Filial"
-            self.fields["terc_fili"].widget.attrs["readonly"] = "readonly"
+            self.fields["terc_fili"].widget = forms.HiddenInput()
+            if self.initial.get("terc_fili") in (None, "") and self.fili_codigo not in (None, ""):
+                self.initial["terc_fili"] = self.fili_codigo
 
         for desc_field in (
             "terc_pais_nacionalidade_desc",

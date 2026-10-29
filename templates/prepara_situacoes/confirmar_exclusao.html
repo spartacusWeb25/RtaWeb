@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Excluir Preparação de Situação - RtaWeb{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header fw-semibold">
+        Confirmação
+    </div>
+    <div class="card-body">
+        <p>Tem certeza que deseja excluir a preparação de situação
+           "<strong>{{ objeto_desc|default:object.prep_descricao|default:object.prep_desc|default:'-' }}</strong>"?</p>
+        <form method="post" novalidate>
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Excluir</button>
+            <a href="{% url 'prepara_situacoes:listar' %}?banco={{ request.banco }}"
+               class="btn btn-outline-secondary">Cancelar</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

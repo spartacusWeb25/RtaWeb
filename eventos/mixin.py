@@ -53,3 +53,39 @@ class EventoMixin(BancoObrigatorioMixin):
             db_alias=self.db_alias,
         )
         return getattr(empresa_padrao, "empr_empr", "") or ""
+
+    def obter_codigo_filial_contexto(self):
+        codigo_empresa = self.obter_codigo_empresa_contexto()
+        filial_padrao = EventosService.obter_filial_padrao(
+            banco=self.request.banco,
+            db_alias=self.db_alias,
+            codigo_empresa=codigo_empresa,
+        )
+        return getattr(filial_padrao, "empr_fili", "") or ""
+
+    def obter_nome_empresa_contexto(self, form=None):
+        codigo_empresa = self.obter_codigo_empresa_contexto(form=form)
+        return EventosService.obter_nome_empresa(
+            banco=self.request.banco,
+            db_alias=self.db_alias,
+            codigo_empresa=codigo_empresa,
+        )
+
+    def obter_nome_filial_contexto(self):
+        codigo_empresa = self.obter_codigo_empresa_contexto()
+        codigo_filial = self.obter_codigo_filial_contexto()
+        return EventosService.obter_nome_filial(
+            banco=self.request.banco,
+            db_alias=self.db_alias,
+            codigo_empresa=codigo_empresa,
+            codigo_filial=codigo_filial,
+        )
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        form = ctx.get("form")
+        ctx["empr_codigo"] = self.obter_codigo_empresa_contexto(form=form)
+        ctx["empresa_nome"] = self.obter_nome_empresa_contexto(form=form)
+        ctx["fili_codigo"] = self.obter_codigo_filial_contexto()
+        ctx["filial_nome"] = self.obter_nome_filial_contexto()
+        return ctx

@@ -1,0 +1,345 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ titulo|default:"Eventos automáticos" }} - RtaWeb{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+<style>
+    .eventos-automaticos-page .evento-search-wrap {
+        position: relative;
+    }
+    .eventos-automaticos-page .evento-search-results {
+        position: absolute;
+        top: calc(100% + 2px);
+        left: 0;
+        right: 0;
+        z-index: 20;
+        max-height: 240px;
+        overflow-y: auto;
+        border: 1px solid var(--bs-border-color);
+        border-radius: 0.5rem;
+        background: var(--bs-body-bg);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.18);
+        display: none;
+    }
+    .eventos-automaticos-page .evento-search-results.is-open {
+        display: block;
+    }
+    .eventos-automaticos-page .evento-search-option {
+        padding: 0.5rem 0.75rem;
+        cursor: pointer;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    .eventos-automaticos-page .evento-search-option:last-child {
+        border-bottom: 0;
+    }
+    .eventos-automaticos-page .evento-search-option:hover,
+    .eventos-automaticos-page .evento-search-option.is-active {
+        background: rgba(13, 110, 253, 0.12);
+    }
+    .eventos-automaticos-page .evento-search-empty {
+        padding: 0.5rem 0.75rem;
+        color: var(--bs-secondary-color);
+    }
+    .eventos-automaticos-page .nav-tabs .nav-link {
+        color: var(--bs-body-color);
+    }
+    .eventos-automaticos-page .nav-tabs .nav-link.active {
+        font-weight: 600;
+    }
+    .eventos-automaticos-page .tab-pane-card {
+        border: 1px solid var(--bs-border-color);
+        border-top: 0;
+        border-radius: 0 0 0.75rem 0.75rem;
+        padding: 1rem;
+        background: var(--bs-body-bg);
+    }
+    .eventos-automaticos-page .tabela-eventos {
+        margin-bottom: 0;
+    }
+    .eventos-automaticos-page .col-verba {
+        width: 130px;
+        white-space: nowrap;
+    }
+    .eventos-automaticos-page .col-acoes {
+        width: 130px;
+        text-align: center;
+        white-space: nowrap;
+    }
+    .eventos-automaticos-page .linha-vazia td {
+        color: var(--bs-secondary-color);
+        text-align: center;
+        padding: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5 eventos-automaticos-page">
+    <div class="d-flex justify-content-center align-items-center mb-3">
+        <h3><i class="bi bi-lightning-charge-fill"></i> {{ titulo }}</h3>
+    </div>
+
+    <div class="app-form-card mb-3">
+        <div class="row g-3 mb-2 align-items-end">
+            <div class="col-3">
+                <label class="form-label">Empresa</label>
+                <input type="text" class="form-control form-control-plaintext border px-2"
+                       value="{{ empr_padrao_cod|default:'1' }}" readonly>
+            </div>
+            <div class="col-7">
+                <label class="form-label">Razão social</label>
+                <input type="text" class="form-control form-control-plaintext border px-2"
+                       value="{{ empresa_nome|default:'-' }}" readonly>
+            </div>
+            <div class="col-2">
+                <label class="form-label">Filial</label>
+                <input type="text" class="form-control form-control-plaintext border px-2"
+                       value="{{ fili_padrao_cod|default:'1' }}" readonly>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-form-card">
+        <ul class="nav nav-tabs border-0 border-bottom px-3 pt-3" role="tablist">
+            {% for aba in abas %}
+            <li class="nav-item" role="presentation">
+                <a class="nav-link {% if aba_ativa == aba.codigo %}active{% endif %}"
+                   href="{% url 'eventos_automaticos:listar' %}?banco={{ request.banco }}&aba={{ aba.codigo }}">
+                    {{ aba.titulo }}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+
+        <div class="tab-pane-card">
+            {% for aba in abas %}
+            <div class="{% if aba_ativa != aba.codigo %}d-none{% endif %}">
+                <form method="post" class="row g-2 align-items-end mb-3" novalidate>
+                    {% csrf_token %}
+                    <input type="hidden" name="acao" value="adicionar">
+                    <input type="hidden" name="aba" value="{{ aba.codigo }}">
+                    {{ aba.form.even_tipo_calculo }}
+                    <div class="col-lg-9">
+                        <label class="form-label" for="{{ aba.form.even_codi_search.id_for_label }}">Evento</label>
+                        <div class="evento-search-wrap js-evento-search">
+                            <script type="application/json" class="js-evento-search-data">{{ aba.form.event_search_options_json|safe }}</script>
+                            {{ aba.form.even_codi }}
+                            {{ aba.form.even_codi_search }}
+                            <div class="evento-search-results js-evento-search-results"></div>
+                        </div>
+                        {% if aba.form.even_codi_search.errors %}
+                        <div class="invalid-feedback d-block">{{ aba.form.even_codi_search.errors|join:', ' }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-lg-3">
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="bi bi-plus-circle"></i> Adicionar
+                        </button>
+                    </div>
+                    {% if aba.form.non_field_errors %}
+                    <div class="col-12">
+                        <div class="alert alert-danger small mb-0">
+                            {{ aba.form.non_field_errors|join:' ' }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </form>
+
+                <div class="table-responsive">
+                    <table class="table table-hover tabela-eventos align-middle">
+                        <thead>
+                            <tr>
+                                <th class="col-evento">Evento</th>
+                                <th>Descrição</th>
+                                <th class="col-acoes">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in aba.eventos %}
+                            <tr>
+                                <td class="col-verba">{{ item.even_codi }}</td>
+                                <td>{{ item.even_desc }}</td>
+                                <td class="col-acoes">
+                                    <form method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="acao" value="excluir">
+                                        <input type="hidden" name="aba" value="{{ aba.codigo }}">
+                                        <input type="hidden" name="even_tipo_calculo" value="{{ aba.codigo }}">
+                                        <input type="hidden" name="even_codi" value="{{ item.even_codi }}">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                            <i class="bi bi-trash"></i> Excluir
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr class="linha-vazia">
+                                <td colspan="3">Nenhum evento automático cadastrado nesta aba.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    function normalize(value) {
+        return String(value || "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase()
+            .trim();
+    }
+
+    function buildMatcher(query) {
+        const normalized = normalize(query);
+        return function (item) {
+            if (!normalized) {
+                return true;
+            }
+            return normalize(item.label).includes(normalized)
+                || normalize(item.desc).includes(normalized)
+                || String(item.code).includes(normalized);
+        };
+    }
+
+    document.querySelectorAll(".js-evento-search").forEach(function (wrapper) {
+        const input = wrapper.querySelector(".js-evento-search-input");
+        const hidden = wrapper.querySelector('input[type="hidden"][name="even_codi"]');
+        const results = wrapper.querySelector(".js-evento-search-results");
+        const dataNode = wrapper.querySelector(".js-evento-search-data");
+        let options = [];
+        try {
+            options = JSON.parse((dataNode && dataNode.textContent) || "[]");
+        } catch (error) {
+            options = [];
+        }
+        let highlightedIndex = -1;
+        let currentItems = [];
+
+        function closeResults() {
+            results.classList.remove("is-open");
+            results.innerHTML = "";
+            highlightedIndex = -1;
+            currentItems = [];
+        }
+
+        function setSelection(item) {
+            input.value = item.label;
+            hidden.value = item.code;
+            closeResults();
+        }
+
+        function renderResults(items) {
+            currentItems = items.slice(0, 12);
+            highlightedIndex = -1;
+
+            if (!currentItems.length) {
+                results.innerHTML = '<div class="evento-search-empty">Nenhum evento encontrado.</div>';
+                results.classList.add("is-open");
+                return;
+            }
+
+            results.innerHTML = currentItems.map(function (item, index) {
+                return '<div class="evento-search-option" data-index="' + index + '">' + item.label + '</div>';
+            }).join("");
+            results.classList.add("is-open");
+        }
+
+        function refreshFromQuery() {
+            hidden.value = "";
+            renderResults(options.filter(buildMatcher(input.value)));
+        }
+
+        input.addEventListener("focus", function () {
+            renderResults(options.filter(buildMatcher(input.value)));
+        });
+
+        input.addEventListener("input", refreshFromQuery);
+
+        input.addEventListener("keydown", function (event) {
+            if (!results.classList.contains("is-open")) {
+                if (event.key === "ArrowDown") {
+                    renderResults(options.filter(buildMatcher(input.value)));
+                } else {
+                    return;
+                }
+            }
+
+            if (!currentItems.length) {
+                return;
+            }
+
+            if (event.key === "ArrowDown") {
+                event.preventDefault();
+                highlightedIndex = Math.min(highlightedIndex + 1, currentItems.length - 1);
+            } else if (event.key === "ArrowUp") {
+                event.preventDefault();
+                highlightedIndex = Math.max(highlightedIndex - 1, 0);
+            } else if (event.key === "Enter") {
+                if (highlightedIndex >= 0 && currentItems[highlightedIndex]) {
+                    event.preventDefault();
+                    setSelection(currentItems[highlightedIndex]);
+                }
+                return;
+            } else if (event.key === "Escape") {
+                closeResults();
+                return;
+            } else {
+                return;
+            }
+
+            results.querySelectorAll(".evento-search-option").forEach(function (option, index) {
+                option.classList.toggle("is-active", index === highlightedIndex);
+            });
+        });
+
+        results.addEventListener("mousedown", function (event) {
+            const option = event.target.closest(".evento-search-option");
+            if (!option) {
+                return;
+            }
+            event.preventDefault();
+            const item = currentItems[Number(option.dataset.index)];
+            if (item) {
+                setSelection(item);
+            }
+        });
+
+        document.addEventListener("click", function (event) {
+            if (!wrapper.contains(event.target)) {
+                closeResults();
+            }
+        });
+
+        const form = wrapper.closest("form");
+        if (form) {
+            form.addEventListener("submit", function () {
+                if (hidden.value) {
+                    return;
+                }
+                const exact = options.find(function (item) {
+                    const query = normalize(input.value);
+                    return normalize(item.label) === query
+                        || normalize(item.desc) === query
+                        || String(item.code) === String(input.value).trim();
+                });
+                if (exact) {
+                    hidden.value = exact.code;
+                    input.value = exact.label;
+                }
+            });
+        }
+    });
+})();
+</script>
+{% endblock %}

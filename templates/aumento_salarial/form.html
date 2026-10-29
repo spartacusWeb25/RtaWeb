@@ -1,0 +1,338 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ titulo|default:"Aumento salarial" }} - RtaWeb{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+<style>
+    .aumento-form .field-box {
+        border: 1px solid var(--border-default);
+        border-radius: 4px;
+        padding: 1rem 1rem 0.85rem;
+        margin-bottom: 1rem;
+        background: var(--surface-raised);
+        color: var(--text-primary);
+    }
+    .aumento-form .field-box > legend {
+        float: none;
+        width: auto;
+        padding: 0 0.4rem;
+        margin-bottom: 0.2rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        background: var(--surface-card);
+        border-radius: 4px;
+    }
+    .aumento-form .radio-box {
+        min-height: 100%;
+    }
+    .aumento-form .radio-stack {
+        display: grid;
+        gap: 0.7rem;
+        padding-top: 0.2rem;
+    }
+    .aumento-form .opcoes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 0.65rem 1rem;
+    }
+    .aumento-form .filtro-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.9rem 1rem;
+    }
+    .aumento-form .opcoes-inline-area {
+        display: grid;
+        grid-template-columns: minmax(430px, 1.6fr) minmax(230px, 0.9fr);
+        gap: 0.45rem 2.25rem;
+        padding-top: 1.6rem;
+        align-items: start;
+    }
+    .aumento-form .opcoes-inline-col {
+        display: grid;
+        gap: 0.45rem;
+        align-content: start;
+    }
+    .aumento-form .opcoes-inline-col.opcoes-direita {
+        justify-self: end;
+        padding-left: 0.75rem;
+    }
+    .aumento-form .opcoes-inline-area .form-check {
+        margin-bottom: 0;
+    }
+    .aumento-form .opcoes-inline-col.opcoes-esquerda .form-check-label {
+        white-space: nowrap;
+    }
+    .aumento-form .row-filtros {
+        align-items: stretch;
+    }
+    .aumento-form .row-filtros > .col-lg-3,
+    .aumento-form .row-filtros > .col-lg-9 {
+        display: flex;
+    }
+    .aumento-form .full-height-box {
+        width: 100%;
+        height: 100%;
+        margin-bottom: 0;
+    }
+    .aumento-form .codigo-wrap {
+        max-width: 130px;
+    }
+    .aumento-form .readonly-codigo {
+        background: var(--surface-input);
+        color: var(--text-primary);
+        border-color: var(--border-default);
+    }
+    .aumento-form .valor-input-group .input-group-text {
+        background: var(--surface-input);
+        color: var(--text-primary);
+        border-color: var(--border-default);
+        min-width: 42px;
+        justify-content: center;
+    }
+    .aumento-form .percent-suffix.is-hidden {
+        display: none;
+    }
+    .aumento-form .field-box .form-label,
+    .aumento-form .field-box .form-check-label {
+        color: var(--text-primary);
+    }
+    .aumento-form .field-box .form-check-input {
+        border-color: var(--border-strong);
+    }
+    @media (max-width: 991px) {
+        .aumento-form .opcoes-inline-area {
+            grid-template-columns: 1fr;
+            padding-top: 0;
+        }
+        .aumento-form .opcoes-inline-col.opcoes-direita {
+            justify-self: start;
+            padding-left: 0;
+        }
+        .aumento-form .opcoes-inline-col.opcoes-esquerda .form-check-label {
+            white-space: normal;
+        }
+        .aumento-form .row-filtros > .col-lg-3,
+        .aumento-form .row-filtros > .col-lg-9 {
+            display: block;
+        }
+        .aumento-form .filtro-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5 aumento-form">
+    <div class="d-flex justify-content-center align-items-center mb-3">
+        <h3><i class="bi bi-graph-up-arrow"></i> {{ titulo }}</h3>
+    </div>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {% for field in form.hidden_fields %}{{ field }}{% endfor %}
+
+        <div class="app-form-card mb-3">
+            <div class="row g-3 mb-2 align-items-end">
+                <div class="col-3">
+                    <label class="form-label">Empresa</label>
+                    <input type="text" class="form-control form-control-plaintext border px-2"
+                           value="{{ empr_padrao_cod|default:'1' }}" readonly>
+                </div>
+                <div class="col-7">
+                    <label class="form-label">Razão social</label>
+                    <input type="text" class="form-control form-control-plaintext border px-2"
+                           value="{{ empresa_nome|default:'-' }}" readonly>
+                </div>
+                <div class="col-2">
+                    <label class="form-label">Filial</label>
+                    <input type="text" class="form-control form-control-plaintext border px-2"
+                           value="{{ fili_padrao_cod|default:'1' }}" readonly>
+                </div>
+            </div>
+        </div>
+
+        <div class="app-form-card">
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger small mb-3">
+                <strong>Atenção:</strong>
+                {{ form.non_field_errors|join:' ' }}
+            </div>
+            {% endif %}
+
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label" for="{{ form.aume_func.id_for_label }}">Funcionário</label>
+                    {{ form.aume_func }}
+                    {% if form.aume_func.errors %}
+                    <div class="invalid-feedback d-block">{{ form.aume_func.errors|join:', ' }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-lg-2 codigo-wrap">
+                    <label class="form-label">Tipo de aumento</label>
+                    <input type="text" class="form-control form-control-sm readonly-codigo" value="{{ proximo_codigo|default:form.instance.aume_codi|default:'' }}" readonly>
+                </div>
+                <div class="col-lg-10">
+                    <label class="form-label" for="{{ form.aume_desc.id_for_label }}">Descrição</label>
+                    {{ form.aume_desc }}
+                    {% if form.aume_desc.errors %}
+                    <div class="invalid-feedback d-block">{{ form.aume_desc.errors|join:', ' }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="col-lg-3">
+                    <label class="form-label" for="{{ form.aume_data_alteracao.id_for_label }}">Data da alteração</label>
+                    {{ form.aume_data_alteracao }}
+                    {% if form.aume_data_alteracao.errors %}
+                    <div class="invalid-feedback d-block">{{ form.aume_data_alteracao.errors|join:', ' }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-lg-3">
+                    <label class="form-label" for="{{ form.aume_data_efeito.id_for_label }}">Data de efeito</label>
+                    {{ form.aume_data_efeito }}
+                    {% if form.aume_data_efeito.errors %}
+                    <div class="invalid-feedback d-block">{{ form.aume_data_efeito.errors|join:', ' }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-12">
+                    <label class="form-label" for="{{ form.aume_motivo.id_for_label }}">Motivo</label>
+                    {{ form.aume_motivo }}
+                    {% if form.aume_motivo.errors %}
+                    <div class="invalid-feedback d-block">{{ form.aume_motivo.errors|join:', ' }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-lg-2">
+                    <label class="form-label" for="{{ form.aume_forma.id_for_label }}">Forma</label>
+                    {{ form.aume_forma }}
+                    {% if form.aume_forma.errors %}
+                    <div class="invalid-feedback d-block">{{ form.aume_forma.errors|join:', ' }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-lg-2">
+                    <label class="form-label" for="{{ form.aume_valor.id_for_label }}">Valor</label>
+                    <div class="input-group valor-input-group">
+                        {{ form.aume_valor }}
+                        <span class="input-group-text percent-suffix is-hidden js-percent-suffix">%</span>
+                    </div>
+                    {% if form.aume_valor.errors %}
+                    <div class="invalid-feedback d-block">{{ form.aume_valor.errors|join:', ' }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-lg-8">
+                    <div class="opcoes-inline-area">
+                        <div class="opcoes-inline-col opcoes-esquerda">
+                            <div class="form-check form-check-inline">
+                                {{ form.aume_aumento_proporcional }}
+                                <label class="form-check-label ms-1" for="{{ form.aume_aumento_proporcional.id_for_label }}">
+                                    Aumento de salário proporcional para admitidos no último ano
+                                </label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                {{ form.aume_arredondar_salario }}
+                                <label class="form-check-label ms-1" for="{{ form.aume_arredondar_salario.id_for_label }}">Arredondar salário</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                {{ form.aume_alterar_meses_posteriores }}
+                                <label class="form-check-label ms-1" for="{{ form.aume_alterar_meses_posteriores.id_for_label }}">Alterar meses posteriores</label>
+                            </div>
+                        </div>
+                        <div class="opcoes-inline-col opcoes-direita">
+                            <div class="form-check form-check-inline">
+                                {{ form.aume_demitidos_mes }}
+                                <label class="form-check-label ms-1" for="{{ form.aume_demitidos_mes.id_for_label }}">Demitidos no mês</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                {{ form.aume_admitidos_mes }}
+                                <label class="form-check-label ms-1" for="{{ form.aume_admitidos_mes.id_for_label }}">Admitidos no mês</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                {{ form.aume_contribuintes }}
+                                <label class="form-check-label ms-1" for="{{ form.aume_contribuintes.id_for_label }}">Contribuintes</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3 mt-1 row-filtros">
+                <div class="col-lg-3">
+                    <fieldset class="field-box radio-box full-height-box">
+                        <legend>Tipo de funcionários</legend>
+                        <div class="radio-stack">
+                            {% for radio in form.aume_tipo_funcionario %}
+                            <div class="form-check">
+                                {{ radio.tag }}
+                                <label class="form-check-label ms-1" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% if form.aume_tipo_funcionario.errors %}
+                        <div class="invalid-feedback d-block mt-2">{{ form.aume_tipo_funcionario.errors|join:', ' }}</div>
+                        {% endif %}
+                    </fieldset>
+                </div>
+
+                <div class="col-lg-9">
+                    <fieldset class="field-box full-height-box">
+                        <legend>Filtro de funcionários</legend>
+                        <div class="filtro-grid">
+                            <div>
+                                <label class="form-label" for="{{ form.aume_classe.id_for_label }}">Classe</label>
+                                {{ form.aume_classe }}
+                            </div>
+                            <div>
+                                <label class="form-label" for="{{ form.aume_cargo.id_for_label }}">Cargo</label>
+                                {{ form.aume_cargo }}
+                            </div>
+                            <div>
+                                <label class="form-label" for="{{ form.aume_departamento.id_for_label }}">Departamento</label>
+                                {{ form.aume_departamento }}
+                            </div>
+                            <div>
+                                <label class="form-label" for="{{ form.aume_centro_custo.id_for_label }}">Centro de custo</label>
+                                {{ form.aume_centro_custo }}
+                            </div>
+                            <div>
+                                <label class="form-label" for="{{ form.aume_sindicato.id_for_label }}">Sindicato</label>
+                                {{ form.aume_sindicato }}
+                            </div>
+                            <div>
+                                <label class="form-label" for="{{ form.aume_salario_atual.id_for_label }}">Salário atual</label>
+                                {{ form.aume_salario_atual }}
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+
+            {% url 'aumento_salarial:listar' as url_voltar_aumento_salarial %}
+            {% include "partials/ui/form_actions.html" with form_actions_url_voltar=url_voltar_aumento_salarial|add:"?banco="|add:request.banco %}
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const formaField = document.getElementById("{{ form.aume_forma.id_for_label }}");
+    const percentSuffix = document.querySelector(".js-percent-suffix");
+
+    if (!formaField || !percentSuffix) {
+        return;
+    }
+
+    function syncValorMask() {
+        const isPercentual = String(formaField.value || "").toUpperCase() === "P";
+        percentSuffix.classList.toggle("is-hidden", !isPercentual);
+    }
+
+    formaField.addEventListener("change", syncValorMask);
+    syncValorMask();
+});
+</script>
+{% endblock %}

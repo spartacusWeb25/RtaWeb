@@ -607,7 +607,7 @@ FIELD_LABELS = {
     "func_matricula_anterior": "Matrícula anterior",
     "func_data_transferencia": "Data de transferência",
     "func_transferencia_com_onus": "Transferência com ônus",
-    "func_data_saida": "Data saída",
+    "func_data_saida": "Data de demissão",
     "func_aviso_previo": "Aviso prévio",
     "func_motivo_saida": "Motivo da saída",
     "func_tipo_contrato_trabalho": "Tipo de contrato de trabalho",
@@ -1065,6 +1065,10 @@ class FuncionarioForm(forms.ModelForm):
 
         for nome, field in self.fields.items():
             model_field = self._meta.model._meta.get_field(nome)
+
+            # Preserva campos tecnicos ocultos definidos antes deste loop.
+            if isinstance(field.widget, forms.HiddenInput):
+                continue
 
             if isinstance(model_field, models.BooleanField):
                 field.required = False

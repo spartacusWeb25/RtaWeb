@@ -1,297 +1,311 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}{{ titulo|default:"Preparação de Rescisão" }} — RtaWeb{% endblock %}
+{% block title %}{% if operacao == "editar" %}Editar Preparação de Rescisão{% else %}Nova Preparação de Rescisão{% endif %} — RtaWeb{% endblock %}
 
 {% block extra_css %}
 <link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
 <style>
-    .rescisao-fixa-badge {
-        color: #dc2626; /* vermelho escuro como no screenshot do SCI */
-        font-weight: 700;
-    }
+  .field-error .form-control,
+  .field-error .form-select,
+  .field-error .form-check-input {
+    border-color: var(--bs-danger);
+    box-shadow: 0 0 0 0.12rem rgba(220, 53, 69, .12);
+  }
+  .invalid-feedback.d-block { font-weight: 500; }
+  .field-error { scroll-margin-top: 6rem; }
+  .prep-readonly { background: var(--bs-secondary-bg); }
+  .rescisao-fixa-badge {
+    color: #dc2626;
+    font-weight: 700;
+  }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4 mb-5">
-    <div class="d-flex justify-content-center align-items-center mb-3">
-        <h3><i class="bi bi-file-earmark-ruled-fill"></i> {{ titulo }}</h3>
+<div class="container mt-4">
+  <h4>{% if operacao == "editar" %}Editar Preparação de Rescisão{% else %}Nova Preparação de Rescisão{% endif %}</h4>
+
+  <form method="post" action="" novalidate>
+    {% csrf_token %}
+    {% for field in form.hidden_fields %}{{ field }}{% endfor %}
+
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger mt-3" role="alert">
+      {{ form.non_field_errors }}
+    </div>
+    {% endif %}
+
+    {% if form.errors %}
+    <div class="alert alert-warning mt-3" role="alert">
+      Revise os campos destacados em vermelho antes de salvar.
+      <ul class="mb-0 mt-2">
+        {% for field in form.visible_fields %}
+          {% for error in field.errors %}
+          <li>{{ field.label }}: {{ error }}</li>
+          {% endfor %}
+        {% endfor %}
+        {% for field in form.hidden_fields %}
+          {% for error in field.errors %}
+          <li>Campo interno ({{ field.name }}): {{ error }}</li>
+          {% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    {# ====================================================== #}
+    {# Cabeçalho: Empresa / Filial (readonly)                  #}
+    {# ====================================================== #}
+    <div class="app-form-card mb-3">
+      <div class="row g-3 p-3">
+        <div class="row g-3 align-items-center mb-3">
+          <div class="col-12 col-lg-2">
+            <label class="form-label">Empresa</label>
+            <input type="text" class="form-control prep-readonly text-center"
+                   value="{{ empr_padrao_cod|default:'1' }}" readonly>
+          </div>
+          <div class="col-12 col-lg-8">
+            <label class="form-label">Empresa</label>
+            <input type="text" class="form-control prep-readonly"
+                   value="{{ empresa_nome|default:'—' }}" readonly>
+          </div>
+          <div class="col-12 col-lg-2">
+            <label class="form-label">Filial</label>
+            <input type="text" class="form-control prep-readonly text-center"
+                   value="{{ fili_padrao_cod|default:'1' }}" readonly>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <form method="post" novalidate>
-        {% csrf_token %}
-
-        <div class="app-form-card mb-3">
-            <div class="row g-3 mb-2 align-items-end">
-                <div class="col-3">
-                    <label class="form-label" for="id_empresa_fixa">Empresa</label>
-                    <input type="text" class="form-control form-control-plaintext border px-2" id="id_empresa_fixa"
-                           value="{{ empr_padrao_cod|default:'1' }}" readonly>
-                </div>
-                <div class="col-7">
-                    <label class="form-label">Empresa</label>
-                    <input type="text" class="form-control form-control-plaintext border px-2"
-                           value="{{ empresa_nome|default:'—' }}" readonly>
-                </div>
-                <div class="col-2">
-                    <label class="form-label" for="id_filial_fixa">Filial</label>
-                    <input type="text" class="form-control form-control-plaintext border px-2" id="id_filial_fixa"
-                           value="{{ fili_padrao_cod|default:'1' }}" readonly>
-                </div>
-            </div>
-        </div>
-
-        <div class="app-form-card mb-3">
-            <div class="row g-3 mb-2 align-items-end">
-                <div class="col-2{% if form.prep_codi.errors %} field-error{% endif %}">
-                    <label class="form-label" for="{{ form.prep_codi.id_for_label }}">Código</label>
-                    <input type="text" class="form-control form-control-sm text-center fw-bold"
-                           value="{{ proximo_codigo|default:form.prep_codi.value|default:'' }}" readonly>
-                    {{ form.prep_codi }}
-                    {% if form.prep_codi.errors %}
-                      <div class="invalid-feedback d-block">{{ form.prep_codi.errors|join:', ' }}</div>
-                    {% endif %}
-                </div>
-                <div class="col-8{% if form.prep_descricao.errors or form.prep_desc.errors %} field-error{% endif %}">
-                    <label class="form-label" for="{{ form.prep_descricao.id_for_label }}">Descrição</label>
-                    {{ form.prep_descricao }}
-                    {% if form.prep_descricao.errors %}
-                      <div class="invalid-feedback d-block">{{ form.prep_descricao.errors|join:', ' }}</div>
-                    {% endif %}
-                    {% if form.prep_desc.errors %}
-                      <div class="invalid-feedback d-block">{{ form.prep_desc.errors|join:', ' }}</div>
-                    {% endif %}
-                    {{ form.prep_desc }}
-                </div>
-                <div class="col-2 d-flex align-items-end justify-content-end">
-                    {% if form.prep_rescisao_fixa.value %}
-                    <span class="rescisao-fixa-badge text-end" title="Rescisão fixa (configuração padrão)">
-                        Rescisão fixa
-                    </span>
-                    {% endif %}
-                    <div class="form-check form-switch ms-auto">
-                        {{ form.prep_inativo }}
-                        <label class="form-check-label" for="{{ form.prep_inativo.id_for_label }}">Inativo</label>
-                    </div>
-                </div>
-            </div>
-
-            <hr>
-
-            {% if form.non_field_errors %}
-            <div class="alert alert-danger small">
-                <strong>Atenção:</strong>
-                {{ form.non_field_errors|join:' ' }}
-            </div>
+    {# ====================================================== #}
+    {# Cabeçalho: Código / Descrição / Rescisão fixa          #}
+    {# ====================================================== #}
+    <div class="app-form-card mb-3">
+      <div class="row g-3 p-3">
+        <div class="row g-3 align-items-center mb-3">
+          <div class="col-12 col-lg-2{% if form.prep_codi.errors %} field-error{% endif %}">
+            <label class="form-label" for="{{ form.prep_codi.id_for_label }}">Código</label>
+            <input type="text" class="form-control prep-readonly text-center font-weight-bold"
+                   value="{% if operacao == 'editar' %}{{ form.prep_codi.value|default:'' }}{% else %}{{ proximo_codigo|default_if_none:'' }}{% endif %}"
+                   readonly>
+            {% if form.prep_codi.errors %}
+              <div class="invalid-feedback d-block">{{ form.prep_codi.errors|join:', ' }}</div>
             {% endif %}
-
-            <div class="row g-3 mb-2 align-items-end">
-                <div class="col-3{% if form.prep_iniciativa_codi.errors %} field-error{% endif %}">
-                    <label class="form-label" for="{{ form.prep_iniciativa_codi.id_for_label }}">Iniciativa</label>
-                    {{ form.prep_iniciativa_codi }}
-                    {{ form.prep_iniciativa_desc }}
-                    <div class="text-end">
-                        <small class="text-muted">Selecione a iniciativa da rescisão</small>
-                    </div>
-                    {% if form.prep_iniciativa_codi.errors %}
-                      <div class="invalid-feedback d-block">{{ form.prep_iniciativa_codi.errors|join:', ' }}</div>
-                    {% endif %}
-                </div>
-                <div class="col-5{% if form.prep_aviso_previo_codi.errors %} field-error{% endif %}">
-                    <label class="form-label" for="{{ form.prep_aviso_previo_codi.id_for_label }}">Aviso prévio</label>
-                    <div class="row g-2 align-items-end">
-                        <div class="col-5">
-                            {{ form.prep_aviso_previo_codi }}
-                            {{ form.prep_aviso_previo_desc }}
-                        </div>
-                        <div class="col-7 d-flex align-items-center">
-                            <div class="form-check form-switch ms-2">
-                                {{ form.prep_inden_ferias_13 }}
-                                <label class="form-check-label" for="{{ form.prep_inden_ferias_13.id_for_label }}">
-                                    Indenização 1/12 de férias e 13º
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                    {% if form.prep_aviso_previo_codi.errors %}
-                      <div class="invalid-feedback d-block">{{ form.prep_aviso_previo_codi.errors|join:', ' }}</div>
-                    {% endif %}
-                </div>
-                <div class="col-4">
-                    <label class="form-label">Código saque (FGTS)</label>
-                    <div class="input-group input-group-sm">
-                        {{ form.prep_saque_codi }}
-                        {{ form.prep_saque_desc }}
-                    </div>
-                </div>
+          </div>
+          <div class="col-12 col-lg-8{% if form.prep_descricao.errors %} field-error{% endif %}">
+            <label class="form-label" for="{{ form.prep_descricao.id_for_label }}">
+              {{ form.prep_descricao.label|default:"Descrição" }}
+              <span class="text-danger">*</span>
+            </label>
+            {{ form.prep_descricao }}
+            {% if form.prep_descricao.errors %}
+              <div class="invalid-feedback d-block">{{ form.prep_descricao.errors|join:', ' }}</div>
+            {% endif %}
+          </div>
+          <div class="col-12 col-lg-2">
+            <div class="d-flex align-items-start align-items-lg-center pt-2 pt-lg-4 mt-2 mt-lg-0 justify-content-end">
+              {% if form.prep_rescisao_fixa.value %}
+              <span class="rescisao-fixa-badge me-3" title="Rescisão fixa (configuração padrão)">
+                Rescisão fixa
+              </span>
+              {% endif %}
+              <div class="form-check form-switch">
+                {{ form.prep_rescisao_fixa }}
+                <label class="form-check-label" for="{{ form.prep_rescisao_fixa.id_for_label }}">
+                  {{ form.prep_rescisao_fixa.label|default:"Rescisão fixa" }}
+                </label>
+              </div>
             </div>
-
-            <div class="row g-3 mb-2 align-items-end">
-                <div class="col-3">
-                    <label class="form-label">FGTS</label>
-                    <div class="input-group input-group-sm">
-                        {{ form.prep_fgts_codi }}
-                        {{ form.prep_fgts_desc }}
-                    </div>
-                </div>
-                <div class="col-3">
-                    <label class="form-label">FGTS intermitente</label>
-                    <div class="input-group input-group-sm">
-                        {{ form.prep_fgts_int_codi }}
-                        {{ form.prep_fgts_int_desc }}
-                    </div>
-                </div>
-                <div class="col-3">
-                    <label class="form-label">CAGED</label>
-                    <div class="input-group input-group-sm">
-                        {{ form.prep_caged_codi }}
-                        {{ form.prep_caged_desc }}
-                    </div>
-                </div>
-                <div class="col-3">
-                    <label class="form-label">RAIS</label>
-                    <div class="input-group input-group-sm">
-                        {{ form.prep_rais_codi }}
-                        {{ form.prep_rais_desc }}
-                    </div>
-                </div>
-            </div>
-
-            <div class="row g-3 mb-2 align-items-end">
-                <div class="col-4{% if form.prep_gfd_codi.errors %} field-error{% endif %}">
-                    <label class="form-label" for="{{ form.prep_gfd_codi.id_for_label }}">GFD / GRRF</label>
-                    {{ form.prep_gfd_codi }}
-                    {{ form.prep_gfd_desc }}
-                    {% if form.prep_gfd_codi.errors %}
-                      <div class="invalid-feedback d-block">{{ form.prep_gfd_codi.errors|join:', ' }}</div>
-                    {% endif %}
-                </div>
-                <div class="col-4">
-                    <label class="form-label">Código HomologNet</label>
-                    <div class="input-group input-group-sm">
-                        {{ form.prep_homolognet_codi }}
-                        {{ form.prep_homolognet_desc }}
-                    </div>
-                </div>
-                <div class="col-4">
-                    <label class="form-label">Motivo eSocial</label>
-                    <div class="input-group input-group-sm">
-                        {{ form.prep_motivo_esocial_codi }}
-                        {{ form.prep_motivo_esocial_desc }}
-                    </div>
-                </div>
-            </div>
-
-            <hr>
-
-            <div class="row g-3 mb-2">
-                <div class="col-12 small">
-                    <strong>Opções adicionais (bloco checkboxes):</strong>
-                </div>
-                <div class="col-3">
-                    <div class="form-check form-switch">
-                        {{ form.prep_justa_causa }}
-                        <label class="form-check-label" for="{{ form.prep_justa_causa.id_for_label }}">
-                            Justa causa
-                        </label>
-                    </div>
-                </div>
-                <div class="col-4">
-                    <div class="form-check form-switch">
-                        {{ form.prep_inden_contr_exp }}
-                        <label class="form-check-label" for="{{ form.prep_inden_contr_exp.id_for_label }}">
-                            Indenização contrato experiência
-                        </label>
-                    </div>
-                </div>
-                <div class="col-3">
-                    <div class="form-check form-switch">
-                        {{ form.prep_emitir_seg_desemp }}
-                        <label class="form-check-label" for="{{ form.prep_emitir_seg_desemp.id_for_label }}">
-                            Emitir seguro desemprego
-                        </label>
-                    </div>
-                </div>
-                <div class="col-2">
-                    <div class="form-check form-switch">
-                        {{ form.prep_50_aviso_inden }}
-                        <label class="form-check-label" for="{{ form.prep_50_aviso_inden.id_for_label }}">
-                            50% aviso indenizado
-                        </label>
-                    </div>
-                </div>
-                <div class="w-100"></div>
-                <div class="col-3">
-                    <div class="form-check form-switch">
-                        {{ form.prep_estabilidade }}
-                        <label class="form-check-label" for="{{ form.prep_estabilidade.id_for_label }}">
-                            Estabilidade
-                        </label>
-                    </div>
-                </div>
-                <div class="col-4">
-                    <div class="form-check form-switch">
-                        {{ form.prep_nao_calc_multa_resc }}
-                        <label class="form-check-label" for="{{ form.prep_nao_calc_multa_resc.id_for_label }}">
-                            Não calcula multa rescisória
-                        </label>
-                    </div>
-                </div>
-                <div class="col-5">
-                    <div class="form-check form-switch">
-                        {{ form.prep_50_verbas_inden }}
-                        <label class="form-check-label" for="{{ form.prep_50_verbas_inden.id_for_label }}">
-                            50% das verbas indenizadas (aviso/férias/13º)
-                        </label>
-                    </div>
-                </div>
-                <div class="w-100"></div>
-                <div class="col-3">
-                    <div class="form-check form-switch">
-                        {{ form.prep_rescisao_fixa }}
-                        <label class="form-check-label" for="{{ form.prep_rescisao_fixa.id_for_label }}">
-                            Rescisão fixa
-                        </label>
-                    </div>
-                </div>
-            </div>
+          </div>
         </div>
 
-        <div class="d-flex justify-content-start gap-3">
-            <button type="submit" class="botao botao-salvar">
-                <i class="bi bi-save"></i> Salvar
-            </button>
-            <a href="{% url 'prepara_recisoes:listar' %}?banco={{ request.banco }}"
-               class="botao botao-voltar"
-               data-form-action="voltar">
-                <i class="bi bi-arrow-left"></i> Voltar
-            </a>
+        <hr>
+
+        {# ====================================================== #}
+        {# Iniciativa + Aviso prévio + Código saque               #}
+        {# ====================================================== #}
+        <div class="row g-3 mb-3 align-items-end">
+          <div class="col-12 col-lg-3{% if form.prep_iniciativa_codi.errors %} field-error{% endif %}">
+            <label class="form-label" for="{{ form.prep_iniciativa_codi.id_for_label }}">{{ form.prep_iniciativa_codi.label|default:"Iniciativa" }}</label>
+            {{ form.prep_iniciativa_codi }}
+            {% if form.prep_iniciativa_codi.errors %}<div class="invalid-feedback d-block">{{ form.prep_iniciativa_codi.errors|join:', ' }}</div>{% endif %}
+          </div>
+          <div class="col-12 col-lg-5{% if form.prep_aviso_previo_codi.errors %} field-error{% endif %}">
+            <label class="form-label" for="{{ form.prep_aviso_previo_codi.id_for_label }}">{{ form.prep_aviso_previo_codi.label|default:"Aviso prévio" }}</label>
+            <div class="input-group input-group-sm">
+              {{ form.prep_aviso_previo_codi }}
+              <div class="input-group-text border-0 bg-transparent">
+                <div class="form-check form-switch ms-2 mb-0">
+                  {{ form.prep_inden_ferias_13 }}
+                  <label class="form-check-label" for="{{ form.prep_inden_ferias_13.id_for_label }}">
+                    {{ form.prep_inden_ferias_13.label|default:"Indenização 1/12 férias e 13º" }}
+                  </label>
+                </div>
+              </div>
+            </div>
+            {% if form.prep_aviso_previo_codi.errors %}<div class="invalid-feedback d-block">{{ form.prep_aviso_previo_codi.errors|join:', ' }}</div>{% endif %}
+          </div>
+          <div class="col-12 col-lg-4">
+            <label class="form-label">Código saque (FGTS)</label>
+            <div class="input-group input-group-sm">
+              {{ form.prep_saque_codi }}
+              {{ form.prep_saque_desc }}
+            </div>
+          </div>
         </div>
 
-    </form>
+        {# ====================================================== #}
+        {# FGTS / FGTS intermitente / CAGED / RAIS                #}
+        {# ====================================================== #}
+        <div class="row g-3 mb-3 align-items-end">
+          <div class="col-12 col-lg-3">
+            <label class="form-label">FGTS</label>
+            <div class="input-group input-group-sm">
+              {{ form.prep_fgts_codi }}
+              {{ form.prep_fgts_desc }}
+            </div>
+          </div>
+          <div class="col-12 col-lg-3">
+            <label class="form-label">FGTS intermitente</label>
+            <div class="input-group input-group-sm">
+              {{ form.prep_fgts_int_codi }}
+              {{ form.prep_fgts_int_desc }}
+            </div>
+          </div>
+          <div class="col-12 col-lg-3">
+            <label class="form-label">CAGED</label>
+            <div class="input-group input-group-sm">
+              {{ form.prep_caged_codi }}
+              {{ form.prep_caged_desc }}
+            </div>
+          </div>
+          <div class="col-12 col-lg-3">
+            <label class="form-label">RAIS</label>
+            <div class="input-group input-group-sm">
+              {{ form.prep_rais_codi }}
+              {{ form.prep_rais_desc }}
+            </div>
+          </div>
+        </div>
+
+        {# ====================================================== #}
+        {# GFD / HomologNet / Motivo eSocial                      #}
+        {# ====================================================== #}
+        <div class="row g-3 mb-3 align-items-end">
+          <div class="col-12 col-lg-4{% if form.prep_gfd_codi.errors %} field-error{% endif %}">
+            <label class="form-label" for="{{ form.prep_gfd_codi.id_for_label }}">{{ form.prep_gfd_codi.label|default:"GFD / GRRF" }}</label>
+            {{ form.prep_gfd_codi }}
+            {% if form.prep_gfd_codi.errors %}<div class="invalid-feedback d-block">{{ form.prep_gfd_codi.errors|join:', ' }}</div>{% endif %}
+          </div>
+          <div class="col-12 col-lg-4">
+            <label class="form-label">Código HomologNet</label>
+            <div class="input-group input-group-sm">
+              {{ form.prep_homolognet_codi }}
+              {{ form.prep_homolognet_desc }}
+            </div>
+          </div>
+          <div class="col-12 col-lg-4">
+            <label class="form-label">Motivo eSocial</label>
+            <div class="input-group input-group-sm">
+              {{ form.prep_motivo_esocial_codi }}
+              {{ form.prep_motivo_esocial_desc }}
+            </div>
+          </div>
+        </div>
+
+        <hr>
+
+        {# ====================================================== #}
+        {# Bloco de checkboxes (opções adicionais)                #}
+        {# ====================================================== #}
+        <div class="row g-3">
+          <div class="col-12 small mb-1"><strong>Opções adicionais:</strong></div>
+
+          <div class="col-12 col-lg-3">
+            <div class="form-check form-switch">
+              {{ form.prep_justa_causa }}
+              <label class="form-check-label" for="{{ form.prep_justa_causa.id_for_label }}">
+                {{ form.prep_justa_causa.label|default:"Justa causa" }}
+              </label>
+            </div>
+          </div>
+          <div class="col-12 col-lg-4">
+            <div class="form-check form-switch">
+              {{ form.prep_inden_contr_exp }}
+              <label class="form-check-label" for="{{ form.prep_inden_contr_exp.id_for_label }}">
+                {{ form.prep_inden_contr_exp.label|default:"Indenização contrato experiência" }}
+              </label>
+            </div>
+          </div>
+          <div class="col-12 col-lg-3">
+            <div class="form-check form-switch">
+              {{ form.prep_emitir_seg_desemp }}
+              <label class="form-check-label" for="{{ form.prep_emitir_seg_desemp.id_for_label }}">
+                {{ form.prep_emitir_seg_desemp.label|default:"Emitir seguro desemprego" }}
+              </label>
+            </div>
+          </div>
+          <div class="col-12 col-lg-2">
+            <div class="form-check form-switch">
+              {{ form.prep_50_aviso_inden }}
+              <label class="form-check-label" for="{{ form.prep_50_aviso_inden.id_for_label }}">
+                {{ form.prep_50_aviso_inden.label|default:"50% aviso indenizado" }}
+              </label>
+            </div>
+          </div>
+
+          <div class="w-100"></div>
+
+          <div class="col-12 col-lg-3">
+            <div class="form-check form-switch">
+              {{ form.prep_estabilidade }}
+              <label class="form-check-label" for="{{ form.prep_estabilidade.id_for_label }}">
+                {{ form.prep_estabilidade.label|default:"Estabilidade" }}
+              </label>
+            </div>
+          </div>
+          <div class="col-12 col-lg-4">
+            <div class="form-check form-switch">
+              {{ form.prep_nao_calc_multa_resc }}
+              <label class="form-check-label" for="{{ form.prep_nao_calc_multa_resc.id_for_label }}">
+                {{ form.prep_nao_calc_multa_resc.label|default:"Não calcula multa rescisória" }}
+              </label>
+            </div>
+          </div>
+          <div class="col-12 col-lg-5">
+            <div class="form-check form-switch">
+              {{ form.prep_50_verbas_inden }}
+              <label class="form-check-label" for="{{ form.prep_50_verbas_inden.id_for_label }}">
+                {{ form.prep_50_verbas_inden.label|default:"50% das verbas indenizadas (aviso/férias/13º)" }}
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% url 'prepara_rescisoes:listar' as url_voltar_prep %}
+    {% include "partials/ui/form_actions.html" with form_actions_url_voltar=url_voltar_prep|add:"?banco="|add:request.banco %}
+  </form>
 </div>
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    // ================================================================
-    // JS 1: ESC = Voltar
-    // ================================================================
+    // ESC = Voltar
     function goBack(e) {
       if (e.key === 'Escape') {
-        var btn = document.querySelector('[data-form-action="voltar"]');
-        if (btn && btn.href) {
-          window.location.href = btn.href;
-        }
+        var btn = document.querySelector('[data-form-action="voltar"], .js-esc-exit');
+        if (btn && btn.href) window.location.href = btn.href;
       }
     }
     document.addEventListener('keydown', goBack);
 
-    // ================================================================
-    // JS 2: Ao trocar a combobox -> atualiza automaticamente o input
-    //       hidden _desc correspondente. (O backend tambem valida isso
-    //       no clean(), mas assim garantimos consistencia.)
-    // ================================================================
+    // Sincroniza as 3 comboboxes com os campos _desc hidden
     function setupComboDescSync(comboSelector) {
       var combo = document.querySelector(comboSelector);
       if (!combo) return;
@@ -304,7 +318,7 @@
         descInput.value = (sel && sel.value) ? (sel.text || '') : '';
       }
       combo.addEventListener('change', sync);
-      sync(); // inicializa (modo editar)
+      sync();
     }
 
     setupComboDescSync('#{{ form.prep_iniciativa_codi.id_for_label }}');

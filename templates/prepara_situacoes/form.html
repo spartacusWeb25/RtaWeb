@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ titulo|default:"Preparação de Situação" }} - RtaWeb{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+<style>
+    .situacao-fixa-badge {
+        color: #dc2626;
+        font-weight: 700;
+    }
+    .legacy-checkbox-box {
+        border: 1px solid var(--bs-border-color, #495057);
+        border-radius: 4px;
+        padding: 10px 12px 8px;
+        min-height: 62px;
+    }
+    .legacy-checkbox-box legend {
+        width: auto;
+        padding: 0 6px;
+        margin: 0 0 0 6px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: var(--bs-secondary-color, #adb5bd);
+    }
+    .legacy-checkbox-box .form-check {
+        margin-right: 0;
+        min-height: auto;
+    }
+    .legacy-checkbox-box .form-check-label {
+        font-size: 0.95rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <div class="d-flex justify-content-center align-items-center mb-3">
+        <h3><i class="bi bi-file-earmark-ruled-fill"></i> {{ titulo }}</h3>
+    </div>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {% for field in form.hidden_fields %}{{ field }}{% endfor %}
+
+        <div class="app-form-card mb-3">
+            <div class="row g-3 mb-2 align-items-end">
+                <div class="col-3">
+                    <label class="form-label">Empresa</label>
+                    <input type="text" class="form-control form-control-plaintext border px-2"
+                           value="{{ empr_padrao_cod|default:'1' }}" readonly>
+                </div>
+                <div class="col-7">
+                    <label class="form-label">Razão social</label>
+                    <input type="text" class="form-control form-control-plaintext border px-2"
+                           value="{{ empresa_nome|default:'-' }}" readonly>
+                </div>
+                <div class="col-2">
+                    <label class="form-label">Filial</label>
+                    <input type="text" class="form-control form-control-plaintext border px-2"
+                           value="{{ fili_padrao_cod|default:'1' }}" readonly>
+                </div>
+            </div>
+        </div>
+
+        <div class="app-form-card mb-3">
+            <div class="row g-3 mb-2 align-items-end">
+                <div class="col-2{% if form.prep_codi.errors %} field-error{% endif %}">
+                    <label class="form-label" for="{{ form.prep_codi.id_for_label }}">Código</label>
+                    <input type="text" class="form-control form-control-sm text-center fw-bold"
+                           value="{{ proximo_codigo|default:form.prep_codi.value|default:'' }}" readonly>
+                    {{ form.prep_codi }}
+                    {% if form.prep_codi.errors %}
+                      <div class="invalid-feedback d-block">{{ form.prep_codi.errors|join:', ' }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-8{% if form.prep_descricao.errors or form.prep_desc.errors %} field-error{% endif %}">
+                    <label class="form-label" for="{{ form.prep_descricao.id_for_label }}">Descrição</label>
+                    {{ form.prep_descricao }}
+                    {% if form.prep_descricao.errors %}
+                      <div class="invalid-feedback d-block">{{ form.prep_descricao.errors|join:', ' }}</div>
+                    {% endif %}
+                    {% if form.prep_desc.errors %}
+                      <div class="invalid-feedback d-block">{{ form.prep_desc.errors|join:', ' }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-2 d-flex align-items-end justify-content-end">
+                    {% if form.prep_situacao_fixa.value %}
+                    <span class="situacao-fixa-badge text-end">Situação fixa</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <hr>
+
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger small">
+                <strong>Atenção:</strong>
+                {{ form.non_field_errors|join:' ' }}
+            </div>
+            {% endif %}
+
+            <div class="row g-3 mb-3">
+                <div class="col-4">
+                    <div class="form-check form-check-inline">
+                        {{ form.prep_desc_situacao_folha }}
+                        <label class="form-check-label ms-1" for="{{ form.prep_desc_situacao_folha.id_for_label }}">
+                            Descontar situação na folha
+                        </label>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="form-check form-check-inline">
+                        {{ form.prep_calcula_salario_familia }}
+                        <label class="form-check-label ms-1" for="{{ form.prep_calcula_salario_familia.id_for_label }}">
+                            Calcula salário familia
+                        </label>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="form-check form-check-inline">
+                        {{ form.prep_13_integral }}
+                        <label class="form-check-label ms-1" for="{{ form.prep_13_integral.id_for_label }}">
+                            13º integral
+                        </label>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="form-check form-check-inline">
+                        {{ form.prep_reembolso_gps_13 }}
+                        <label class="form-check-label ms-1" for="{{ form.prep_reembolso_gps_13.id_for_label }}">
+                            Reembolso GPS 13º
+                        </label>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="form-check form-check-inline">
+                        {{ form.prep_prorroga_periodo_aquisitivo }}
+                        <label class="form-check-label ms-1" for="{{ form.prep_prorroga_periodo_aquisitivo.id_for_label }}">
+                            Prorroga período aquisitivo
+                        </label>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="form-check form-check-inline">
+                        {{ form.prep_meses_media_sindicato }}
+                        <label class="form-check-label ms-1" for="{{ form.prep_meses_media_sindicato.id_for_label }}">
+                            Meses de média do sindicato
+                        </label>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="form-check form-check-inline">
+                        {{ form.prep_desc_tempo_servico }}
+                        <label class="form-check-label ms-1" for="{{ form.prep_desc_tempo_servico.id_for_label }}">
+                            Descontar do tempo de serviço
+                        </label>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="form-check form-check-inline">
+                        {{ form.prep_nao_prorroga_ult_prazo_ferias }}
+                        <label class="form-check-label ms-1" for="{{ form.prep_nao_prorroga_ult_prazo_ferias.id_for_label }}">
+                            Não prorroga o último prazo de férias em caso de afastamento
+                        </label>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="form-check form-check-inline">
+                        {{ form.prep_perde_pa_afast_super_30 }}
+                        <label class="form-check-label ms-1" for="{{ form.prep_perde_pa_afast_super_30.id_for_label }}">
+                            Perde PA para afastamento superior 30 dias consecutivos
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-12">
+                    <fieldset class="legacy-checkbox-box">
+                        <legend>
+                            Ignorar meses em situação para cálculo de:
+                        </legend>
+                        <div class="row g-2 pt-1">
+                            <div class="col-4">
+                                <div class="form-check form-check-inline">
+                                    {{ form.prep_ignora_inss_13 }}
+                                    <label class="form-check-label ms-1" for="{{ form.prep_ignora_inss_13.id_for_label }}">
+                                        INSS 13º
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="form-check form-check-inline">
+                                    {{ form.prep_ignora_ir_13 }}
+                                    <label class="form-check-label ms-1" for="{{ form.prep_ignora_ir_13.id_for_label }}">
+                                        IR 13º
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="form-check form-check-inline">
+                                    {{ form.prep_ignora_fgts_13 }}
+                                    <label class="form-check-label ms-1" for="{{ form.prep_ignora_fgts_13.id_for_label }}">
+                                        FGTS 13º
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+                <div class="col-12">
+                    <label class="form-label" for="{{ form.prep_grupo_situacao.id_for_label }}">Grupo de situação</label>
+                    {{ form.prep_grupo_situacao }}
+                </div>
+            </div>
+        </div>
+
+        {% url 'prepara_situacoes:listar' as url_voltar_prep_sit %}
+        {% include "partials/ui/form_actions.html" with form_actions_url_voltar=url_voltar_prep_sit|add:"?banco="|add:request.banco %}
+    </form>
+</div>
+{% endblock %}

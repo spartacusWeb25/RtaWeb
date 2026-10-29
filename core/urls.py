@@ -45,7 +45,28 @@ urlpatterns = [
     path("tabelasalariominimo/", include("tabelasalariominimo.web.urls")),
     path("terceiros/", include("terceiros.web.urls")),
     path("usuarios/", include("usuarios.web.urls")),
-    path("prepara-recisoes/", include("prepara_recisoes.urls")),
+    path("prepara_rescisoes/", include("prepara_rescisoes.urls")),
+    path(
+        "prepara-recisoes/",
+        include(("prepara_rescisoes.urls", "prepara_rescisoes"), namespace="prepara_rescisoes_legacy"),
+    ),
+    path("prepara_situacoes/", include("prepara_situacoes.urls")),
+    path("eventos_agrupados/", include("eventos_agrupados.urls")),
+    path("eventos_automaticos/", include("eventos_automaticos.urls")),
+    path("aumento_salarial/", include("aumento_salarial.urls")),
+    path(
+        "eventos-agrupados/",
+        include(("eventos_agrupados.urls", "eventos_agrupados"), namespace="eventos_agrupados_legacy"),
+    ),
+    path(
+        "eventos-automaticos/",
+        include(("eventos_automaticos.urls", "eventos_automaticos"), namespace="eventos_automaticos_legacy"),
+    ),
+    path(
+        "aumento-salarial/",
+        include(("aumento_salarial.urls", "aumento_salarial"), namespace="aumento_salarial_legacy"),
+    ),
+
 ]
 
 # Em ambiente local, garante o serviço dos arquivos estáticos mesmo com DEBUG=False.

@@ -31,6 +31,7 @@
   --radius-lg: 14px;
 
   --nav-height: 56px;
+  --statusbar-height: 34px;
 }
 
 [data-theme='dark'] {
@@ -368,6 +369,7 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
+  max-width: 300px;
 }
 
 .banco-icon {
@@ -376,7 +378,7 @@ body {
 }
 
 .banco-input {
-  width: 140px;
+  width: clamp(180px, 18vw, 260px);
   padding: 5px 10px;
   border: 1px solid var(--border-default);
   border-radius: var(--radius-sm);
@@ -533,12 +535,72 @@ body {
     flex: 1;
     width: 100%;
   }
+
+  .page-content {
+    padding: 20px 14px calc(20px + var(--statusbar-height) + 42px);
+  }
+
+  .statusbar-inner {
+    padding: 6px 14px 8px;
+    gap: 6px;
+    font-size: 11px;
+  }
 }
 
 .page-content {
-  padding: 24px 20px;
+  padding: 24px 20px calc(24px + var(--statusbar-height) + 10px);
   max-width: 1400px;
   margin: 0 auto;
+}
+
+.statusbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  min-height: var(--statusbar-height);
+  background: var(--surface-nav);
+  border-top: 1px solid var(--border-default);
+  box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.08);
+  z-index: 90;
+}
+
+.statusbar-inner {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  min-height: var(--statusbar-height);
+  padding: 6px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.statusbar-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.statusbar-label {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.statusbar-value {
+  color: var(--text-primary);
+  font-family: 'DM Mono', monospace;
+}
+
+.statusbar-separator {
+  color: var(--text-muted);
+  opacity: 0.7;
 }
 
 .card {

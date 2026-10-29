@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ titulo|default:"Verbas agrupadas para calculo" }} - RtaWeb{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+<style>
+    .agrupados-form .campo-coluna {
+        display: grid;
+        gap: 14px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5 agrupados-form">
+    <div class="d-flex justify-content-center align-items-center mb-3">
+        <h3><i class="bi bi-collection-fill"></i> {{ titulo }}</h3>
+    </div>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+        {% for field in form.hidden_fields %}{{ field }}{% endfor %}
+
+        <div class="app-form-card mb-3">
+            <div class="row g-3 mb-2 align-items-end">
+                <div class="col-3">
+                    <label class="form-label">Empresa</label>
+                    <input type="text" class="form-control form-control-plaintext border px-2"
+                           value="{{ empr_padrao_cod|default:'1' }}" readonly>
+                </div>
+                <div class="col-7">
+                    <label class="form-label">Razão social</label>
+                    <input type="text" class="form-control form-control-plaintext border px-2"
+                           value="{{ empresa_nome|default:'-' }}" readonly>
+                </div>
+                <div class="col-2">
+                    <label class="form-label">Filial</label>
+                    <input type="text" class="form-control form-control-plaintext border px-2"
+                           value="{{ fili_padrao_cod|default:'1' }}" readonly>
+                </div>
+            </div>
+        </div>
+
+        <div class="app-form-card mb-3">
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger small mb-3">
+                <strong>Atenção:</strong>
+                {{ form.non_field_errors|join:' ' }}
+            </div>
+            {% endif %}
+
+            <div class="row g-3">
+                <div class="col-lg-6">
+                        <div class="campo-coluna">
+                            <div>
+                                <label class="form-label" for="{{ form.even_ferias_proporcionais.id_for_label }}">Férias proporcionais</label>
+                                {{ form.even_ferias_proporcionais }}
+                                {% if form.even_ferias_proporcionais.errors %}
+                                <div class="invalid-feedback d-block">{{ form.even_ferias_proporcionais.errors|join:', ' }}</div>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <label class="form-label" for="{{ form.even_ferias_vencidas.id_for_label }}">Férias vencidas</label>
+                                {{ form.even_ferias_vencidas }}
+                                {% if form.even_ferias_vencidas.errors %}
+                                <div class="invalid-feedback d-block">{{ form.even_ferias_vencidas.errors|join:', ' }}</div>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <label class="form-label" for="{{ form.even_ferias_dobro.id_for_label }}">Férias em dobro</label>
+                                {{ form.even_ferias_dobro }}
+                                {% if form.even_ferias_dobro.errors %}
+                                <div class="invalid-feedback d-block">{{ form.even_ferias_dobro.errors|join:', ' }}</div>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <label class="form-label" for="{{ form.even_ferias_indenizadas.id_for_label }}">Férias indenizadas</label>
+                                {{ form.even_ferias_indenizadas }}
+                                {% if form.even_ferias_indenizadas.errors %}
+                                <div class="invalid-feedback d-block">{{ form.even_ferias_indenizadas.errors|join:', ' }}</div>
+                                {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                        <div class="campo-coluna">
+                            <div>
+                                <label class="form-label" for="{{ form.even_13_salario.id_for_label }}">13º salário</label>
+                                {{ form.even_13_salario }}
+                                {% if form.even_13_salario.errors %}
+                                <div class="invalid-feedback d-block">{{ form.even_13_salario.errors|join:', ' }}</div>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <label class="form-label" for="{{ form.even_13_salario_indenizado.id_for_label }}">13º salário indenizado</label>
+                                {{ form.even_13_salario_indenizado }}
+                                {% if form.even_13_salario_indenizado.errors %}
+                                <div class="invalid-feedback d-block">{{ form.even_13_salario_indenizado.errors|join:', ' }}</div>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <label class="form-label" for="{{ form.even_aviso_previo_indenizado.id_for_label }}">Aviso prévio indenizado</label>
+                                {{ form.even_aviso_previo_indenizado }}
+                                {% if form.even_aviso_previo_indenizado.errors %}
+                                <div class="invalid-feedback d-block">{{ form.even_aviso_previo_indenizado.errors|join:', ' }}</div>
+                                {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% url 'eventos_agrupados:listar' as url_voltar_eventos_agrupados %}
+        {% include "partials/ui/form_actions.html" with form_actions_url_voltar=url_voltar_eventos_agrupados|add:"?banco="|add:request.banco %}
+    </form>
+</div>
+{% endblock %}

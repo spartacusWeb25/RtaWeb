@@ -61,56 +61,25 @@
     {% endif %}
 
     {# ====================================================== #}
-    {# Cabeçalho: Código / Descrição / Inativo / Empresa Filial #}
+    {# Cabeçalho: Empresa / Razão social / Filial logados      #}
     {# ====================================================== #}
     <div class="app-form-card mb-3">
       <div class="row g-3 p-3">
         <div class="row g-3 align-items-center mb-3">
-          <div class="col-12 col-lg-2{% if form.depa_codi.errors %} field-error{% endif %}">
-            <label class="form-label" for="{{ form.depa_codi.id_for_label }}">Código</label>
-            {% if operacao == "editar" %}
-              {% if object and object.depa_codi %}
-            <input type="text" class="form-control depa-readonly text-center font-weight-bold"
-                   value="{{ object.depa_codi }}" readonly>
-              {% else %}
-            <input type="text" class="form-control depa-readonly text-center font-weight-bold"
-                   placeholder="Automático" readonly>
-              {% endif %}
-            {% else %}
-              {% if proximo_codigo is not None and proximo_codigo != '' %}
-            <input type="text" class="form-control depa-readonly text-center font-weight-bold"
-                   value="{{ proximo_codigo }}" readonly>
-              {% else %}
-            <input type="text" class="form-control depa-readonly text-center font-weight-bold"
-                   placeholder="Automático" readonly>
-              {% endif %}
-            {% endif %}
-            {% if form.depa_codi.errors %}
-              <div class="invalid-feedback d-block">{{ form.depa_codi.errors|join:', ' }}</div>
-            {% endif %}
+          <div class="col-12 col-lg-2">
+            <label class="form-label">Empresa</label>
+            <input type="text" class="form-control depa-readonly"
+                   value="{{ empr_padrao_cod|default_if_none:'' }}" readonly>
           </div>
-          <div class="col-12 col-lg-8{% if form.depa_desc.errors %} field-error{% endif %}">
-            <label class="form-label" for="{{ form.depa_desc.id_for_label }}">
-              {{ form.depa_desc.label|default:"Descrição" }}
-              <span class="text-danger">*</span>
-            </label>
-            {{ form.depa_desc }}
-            {% if form.depa_desc.errors %}
-              <div class="invalid-feedback d-block">{{ form.depa_desc.errors|join:', ' }}</div>
-            {% endif %}
+          <div class="col-12 col-lg-8">
+            <label class="form-label">Razão social</label>
+            <input type="text" class="form-control depa-readonly"
+                   value="{{ empresa_nome|default:'Empresa padrão da licença' }}" readonly>
           </div>
-          <div class="col-12 col-lg-2{% if form.depa_inativo.errors %} field-error{% endif %}">
-            <div class="d-flex align-items-start align-items-lg-center pt-2 pt-lg-4 mt-2 mt-lg-0">
-              <div class="form-check form-check-inline">
-                {{ form.depa_inativo }}
-                <label class="form-check-label ms-1" for="{{ form.depa_inativo.id_for_label }}">
-                  {{ form.depa_inativo.label|default:"Inativo" }}
-                </label>
-              </div>
-            </div>
-            {% if form.depa_inativo.errors %}
-              <div class="invalid-feedback d-block">{{ form.depa_inativo.errors|join:', ' }}</div>
-            {% endif %}
+          <div class="col-12 col-lg-2">
+            <label class="form-label">Filial</label>
+            <input type="text" class="form-control depa-readonly"
+                   value="{{ fili_padrao_cod|default_if_none:'' }}" readonly>
           </div>
         </div>
       </div>
@@ -136,6 +105,55 @@
       <div class="tab-content p-3">
         {# ABA 1 #}
         <div class="tab-pane fade show active tab-pane-abas" id="tab-cadastrais" role="tabpanel">
+
+          <div class="row g-3 mb-3 align-items-center">
+            <div class="col-12 col-lg-2{% if form.depa_codi.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depa_codi.id_for_label }}">Código</label>
+              {% if operacao == "editar" %}
+                {% if object and object.depa_codi %}
+              <input type="text" class="form-control depa-readonly text-center font-weight-bold"
+                     value="{{ object.depa_codi }}" readonly>
+                {% else %}
+              <input type="text" class="form-control depa-readonly text-center font-weight-bold"
+                     placeholder="Automático" readonly>
+                {% endif %}
+              {% else %}
+                {% if proximo_codigo is not None and proximo_codigo != '' %}
+              <input type="text" class="form-control depa-readonly text-center font-weight-bold"
+                     value="{{ proximo_codigo }}" readonly>
+                {% else %}
+              <input type="text" class="form-control depa-readonly text-center font-weight-bold"
+                     placeholder="Automático" readonly>
+                {% endif %}
+              {% endif %}
+              {% if form.depa_codi.errors %}
+                <div class="invalid-feedback d-block">{{ form.depa_codi.errors|join:', ' }}</div>
+              {% endif %}
+            </div>
+            <div class="col-12 col-lg-8{% if form.depa_desc.errors %} field-error{% endif %}">
+              <label class="form-label" for="{{ form.depa_desc.id_for_label }}">
+                {{ form.depa_desc.label|default:"Descrição" }}
+                <span class="text-danger">*</span>
+              </label>
+              {{ form.depa_desc }}
+              {% if form.depa_desc.errors %}
+                <div class="invalid-feedback d-block">{{ form.depa_desc.errors|join:', ' }}</div>
+              {% endif %}
+            </div>
+            <div class="col-12 col-lg-2{% if form.depa_inativo.errors %} field-error{% endif %}">
+              <div class="d-flex align-items-start align-items-lg-center pt-2 pt-lg-4 mt-2 mt-lg-0">
+                <div class="form-check form-check-inline">
+                  {{ form.depa_inativo }}
+                  <label class="form-check-label ms-1" for="{{ form.depa_inativo.id_for_label }}">
+                    {{ form.depa_inativo.label|default:"Inativo" }}
+                  </label>
+                </div>
+              </div>
+              {% if form.depa_inativo.errors %}
+                <div class="invalid-feedback d-block">{{ form.depa_inativo.errors|join:', ' }}</div>
+              {% endif %}
+            </div>
+          </div>
 
           {# Apelido #}
           <div class="row g-3 mb-3">

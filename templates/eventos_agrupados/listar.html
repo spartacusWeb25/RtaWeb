@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Verbas agrupadas para calculo - RtaWeb{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'core/css/forms-global.css' %}" rel="stylesheet">
+<link href="{% static 'core/css/list-cards.css' %}" rel="stylesheet">
+<link href="{% static 'core/css/tabelas-layout.css' %}" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/botoes.css' %}">
+<link rel="stylesheet" href="{% static 'css/tabelas.css' %}">
+<style>
+    .eventos-agrupados-listar .table-responsive {
+        overflow-x: visible;
+    }
+    .eventos-agrupados-listar .tabela-moderna {
+        width: 100%;
+        table-layout: fixed;
+    }
+    .eventos-agrupados-listar .tabela-moderna th,
+    .eventos-agrupados-listar .tabela-moderna td {
+        font-size: 0.92rem;
+        padding: 0.8rem 0.7rem;
+        white-space: normal;
+        word-break: break-word;
+        line-height: 1.2;
+        vertical-align: middle;
+    }
+    .eventos-agrupados-listar .col-evento { width: 11%; }
+    .eventos-agrupados-listar .col-acoes { width: 23%; }
+    .eventos-agrupados-listar td.tabela-acoes {
+        text-align: center;
+        white-space: nowrap;
+    }
+    .eventos-agrupados-listar .acoes-wrap {
+        display: flex;
+        flex-wrap: nowrap;
+        justify-content: center;
+        gap: 8px;
+        align-items: center;
+        transform: translateX(30px);
+    }
+    .eventos-agrupados-listar thead th.col-acoes,
+    .eventos-agrupados-listar tbody td.col-acoes {
+        text-align: center;
+    }
+    .eventos-agrupados-listar .tabela-acoes .botao {
+        white-space: nowrap;
+        padding: 0.42rem 0.65rem;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 mt-4 eventos-agrupados-listar">
+    <div class="d-flex justify-content-center align-items-center mb-3">
+        <h3><i class="bi bi-collection-fill"></i> Eventos agrupados para cálculo</h3>
+    </div>
+
+    <div class="filtros-acoes mb-3">
+        {% if not tem_configuracao %}
+        <a href="{% url 'eventos_agrupados:criar' %}?banco={{ request.banco }}" class="botao botao-adicionar">
+            <i class="bi bi-plus"></i> Nova Configuração
+        </a>
+        {% else %}
+        <a href="{% url 'eventos_agrupados:editar' %}?banco={{ request.banco }}" class="botao botao-editar">
+            <i class="bi bi-pencil-fill"></i> Editar Configuração
+        </a>
+        {% endif %}
+    </div>
+
+    {% if objetos %}
+    <div class="table-responsive">
+        <table class="tabela-moderna">
+            <thead>
+                <tr>
+                    <th class="col-evento"><i class="bi bi-sun"></i> Férias proporcionais</th>
+                    <th class="col-evento"><i class="bi bi-brightness-high"></i> Férias vencidas</th>
+                    <th class="col-evento"><i class="bi bi-stars"></i> Férias em dobro</th>
+                    <th class="col-evento"><i class="bi bi-emoji-sunglasses"></i> Férias indenizadas</th>
+                    <th class="col-evento"><i class="bi bi-calendar2-week"></i> 13º salário</th>
+                    <th class="col-evento"><i class="bi bi-calendar2-x"></i> 13º salário indenizado</th>
+                    <th class="col-evento"><i class="bi bi-arrow-left-right"></i> Aviso prévio indenizado</th>
+                    <th class="col-acoes"><i class="bi bi-gear"></i> Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in objetos %}
+                <tr>
+                    <td data-label="Férias proporcionais" class="col-evento">{{ item.even_ferias_proporcionais_desc|default:'-' }}</td>
+                    <td data-label="Férias vencidas" class="col-evento">{{ item.even_ferias_vencidas_desc|default:'-' }}</td>
+                    <td data-label="Férias em dobro" class="col-evento">{{ item.even_ferias_dobro_desc|default:'-' }}</td>
+                    <td data-label="Férias indenizadas" class="col-evento">{{ item.even_ferias_indenizadas_desc|default:'-' }}</td>
+                    <td data-label="13º salário" class="col-evento">{{ item.even_13_salario_desc|default:'-' }}</td>
+                    <td data-label="13º salário indenizado" class="col-evento">{{ item.even_13_salario_indenizado_desc|default:'-' }}</td>
+                    <td data-label="Aviso prévio indenizado" class="col-evento">{{ item.even_aviso_previo_indenizado_desc|default:'-' }}</td>
+                          <td data-label="Ações" class="col-acoes tabela-acoes">
+                              <div class="acoes-wrap">
+                        <a class="botao botao-editar"
+                           href="{% url 'eventos_agrupados:editar' %}?banco={{ request.banco }}">
+                            <i class="bi bi-pencil-fill"></i> Editar
+                        </a>
+                        <a class="botao botao-remover"
+                           href="{% url 'eventos_agrupados:excluir' %}?banco={{ request.banco }}">
+                            <i class="bi bi-trash-fill"></i> Excluir
+                        </a>
+                              </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-warning">
+        Nenhuma configuração de eventos agrupados até o momento.
+        <a href="{% url 'eventos_agrupados:criar' %}?banco={{ request.banco }}">Cadastrar agora</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

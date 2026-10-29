@@ -3,8 +3,7 @@
             class="bi bi-chevron-down chevron"></i>
     </button>
 
-    <div class="dropdown-panel sortable-submenu">
-        {% comment %}
+    <div class="dropdown-panel unsortable-submenu">
         <div
             class="submenu-item"
             tabindex="0"
@@ -14,21 +13,34 @@
             data-submenu-toggle
         >Preparações
             <div class="submenu-panel" role="menu" style="display:none;">
-                <a href="{% url 'prepara_recisoes:listar' %}?banco={{ request.banco|default:'rta0001' }}" role="menuitem">
+                <a href="{% url 'prepara_rescisoes:listar' %}?banco={{ request.banco|default:'rta0001' }}" role="menuitem">
                     Rescisões
                 </a>
-                <a href="#" role="menuitem">
+                <a href="{% url 'prepara_situacoes:listar' %}?banco={{ request.banco|default:'rta0001' }}" role="menuitem">
                     Situações
                 </a>
-                <a href="#" role="menuitem">
-                    Verbas agrupadas
+                <a href="{% url 'eventos_agrupados:listar' %}?banco={{ request.banco|default:'rta0001' }}" role="menuitem">
+                    Eventos agrupados
                 </a>
-                <a href="#" role="menuitem">
-                    Verbas automáticas
+                <a href="{% url 'eventos_automaticos:listar' %}?banco={{ request.banco|default:'rta0001' }}" role="menuitem">
+                    Eventos automáticos
                 </a>
             </div>
         </div>
-        {% endcomment %}
+        <div
+            class="submenu-item"
+            tabindex="0"
+            role="button"
+            aria-haspopup="true"
+            aria-expanded="false"
+            data-submenu-toggle
+        >Aumentos
+            <div class="submenu-panel" role="menu" style="display:none;">
+                <a href="{% url 'aumento_salarial:listar' %}?banco={{ request.banco|default:'rta0001' }}" role="menuitem">
+                    Aumento salarial
+                </a>
+            </div>
+        </div>
     </div>
 
 </li>

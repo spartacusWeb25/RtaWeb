@@ -126,7 +126,11 @@ INSTALLED_APPS = [
     'terceiros',
     'dependentesterc',
     'usuarios',
-    'prepara_recisoes',
+    'prepara_rescisoes',
+    'prepara_situacoes',
+    'eventos_agrupados',
+    'eventos_automaticos',
+    'aumento_salarial',
 ]
 
 MIDDLEWARE = [
@@ -155,6 +159,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'core.context_processors.statusbar_context',
               
             ],
         },

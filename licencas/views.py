@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.views import View
 from django.urls import reverse
+from django.utils import timezone
 
 from .forms import LoginRtaForm
 from .services import LoginRtaService
@@ -41,6 +42,9 @@ class LoginRtaView(View):
 
         for chave, valor in dados.items():
             request.session[chave] = valor
+        agora = timezone.now()
+        request.session["login_data"] = agora.strftime("%d/%m/%Y")
+        request.session["login_hora"] = agora.strftime("%H:%M:%S")
         request.session.modified = True
 
         messages.success(request, mensagem)
